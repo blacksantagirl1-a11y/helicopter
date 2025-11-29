@@ -193,6 +193,7 @@ Material:
     - _BaseColor: {r: 0.5943396, g: 0.52458614, b: 0.44014773, a: 1}
     - _Color: {r: 0.5943396, g: 0.52458614, b: 0.4401477, a: 1}
     - _EmissionColor: {r: 0.111932434, g: 0.06301003, b: 0.026241222, a: 1}
+    - _LightContract: {r: 0.28702384, g: 0.41204903, b: 0.4716981, a: 0}
     - _MatcapColor: {r: 0, g: 0, b: 0, a: 1}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
