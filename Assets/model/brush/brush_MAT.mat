@@ -1,5 +1,18 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7524810738627633135
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -7,16 +20,16 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: brush_MAT
-  m_Shader: {fileID: -6465566751694194690, guid: 97359abf607b06046a741d29f6973be1, type: 3}
+  m_Name: Brush_MAT
+  m_Shader: {fileID: -6465566751694194690, guid: d8c30a39c8196b94a8f65d135b4ccdd2, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords: []
-  m_LightmapFlags: 4
+  m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2998
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
@@ -24,11 +37,11 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _SampleTexture2D_4f75db6ee5084d74845694e538dbab79_Texture_1_Texture2D:
+    - _alpha_tex:
         m_Texture: {fileID: 2800000, guid: c9199e24bcddf0b4d9525f7d26983178, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_a1f994d073434748a79d20e3d1e9ff32_Texture_1_Texture2D:
+    - _color_tex:
         m_Texture: {fileID: 2800000, guid: 5ae27119cc8081641a198b62de6cd1be, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -47,23 +60,12 @@ Material:
     m_Ints: []
     m_Floats:
     - _QueueControl: 0
-    - _QueueOffset: -2
+    - _QueueOffset: 0
+    - _WindIntensity: 0.42
+    - _WindSpeed: 2.31
+    - _smothness: 0.1
     m_Colors:
-    - _highlight: {r: 0, g: 0, b: 0, a: 0}
-    - _lightContract: {r: 0.2985048, g: 0.42626327, b: 0.49056602, a: 0}
-    - _shadow: {r: 0.050980397, g: 0.32941177, b: 0.23996066, a: 0}
+    - _WindDirection: {r: 1, g: 0, b: 0, a: 0}
+    - _offset: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &6923764115003588306
-MonoBehaviour:
-  m_ObjectHideFlags: 11
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  version: 9
