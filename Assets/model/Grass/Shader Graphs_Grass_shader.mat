@@ -48,7 +48,11 @@ Material:
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: 0
-    m_Colors: []
+    - _Smoothness: 0
+    m_Colors:
+    - _FarColor: {r: 0.24693978, g: 0.3773585, b: 0.1512994, a: 0}
+    - _NearColor: {r: 0.26415092, g: 0.2581997, b: 0.12833749, a: 0}
+    - _NearFarRange: {r: 79.69, g: 11.4, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &775722965881653918
