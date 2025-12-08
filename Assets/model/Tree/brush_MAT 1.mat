@@ -66,7 +66,7 @@ Material:
     - _scale: 43.83
     - _smothness: 0.1
     m_Colors:
-    - _Emission: {r: 0.08306412, g: 0.2264151, b: 0.048059814, a: 1}
+    - _Emission: {r: 0.06063155, g: 0.04705882, b: 0.22745098, a: 1}
     - _WindDirection: {r: 1, g: 0, b: 0, a: 0}
     - _offset: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
