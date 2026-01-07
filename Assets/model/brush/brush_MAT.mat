@@ -62,11 +62,11 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _WindIntensity: 0.84
-    - _WindSpeed: 1.82
+    - _WindSpeed: 0.73
     - _scale: 43.83
-    - _smothness: 0.1
+    - _smothness: 0.41
     m_Colors:
-    - _Emission: {r: 0.08306412, g: 0.2264151, b: 0.048059814, a: 1}
+    - _Emission: {r: 0.16226411, g: 0.16226411, b: 0.16226411, a: 1}
     - _WindDirection: {r: 1, g: 0, b: 0, a: 0}
     - _offset: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
