@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.boxqkrtm.ide.cursor": "file:C:/Users/admin/Dropbox/PC/Downloads/com.unity.ide.cursor-master/com.unity.ide.cursor-master",
     "com.unity.ai.navigation": "2.0.6",
     "com.unity.burst": "1.8.19",
     "com.unity.cinemachine": "2.10.3",
