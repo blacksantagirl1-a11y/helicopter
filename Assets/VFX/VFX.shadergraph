@@ -1205,7 +1205,7 @@
     "m_ZWriteControl": 0,
     "m_AlphaMode": 0,
     "m_RenderFace": 2,
-    "m_AlphaClip": false,
+    "m_AlphaClip": true,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
     "m_DisableTint": false,
@@ -1557,10 +1557,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -728.8001098632813,
-            "y": 260.0000305175781,
-            "width": 55.99993896484375,
-            "height": 24.0
+            "x": -756.800048828125,
+            "y": 237.59999084472657,
+            "width": 56.0,
+            "height": 23.999984741210939
         }
     },
     "m_Slots": [

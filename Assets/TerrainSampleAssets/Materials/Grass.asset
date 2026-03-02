@@ -217,7 +217,7 @@ Material:
     - _Diffusion_Profile_Asset: {r: -0.00000002060262, g: 7.3194675e-27, b: 69972056, a: -3.7115523e+9}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _FixEmission: {r: 0.4792453, g: 0.4792453, b: 0.4792453, a: 0}
+    - _FixEmission: {r: 0.1609042, g: 0.3509434, b: 0.18617332, a: 0}
     - _SSSColor: {r: 0.6295641, g: 0.9622642, b: 0.28595585, a: 0}
     - _Subsurface_Scattering_Color: {r: 1, g: 1, b: 1, a: 0}
     - _Thickness_Remap: {r: 0, g: 1, b: 0, a: 0}
