@@ -2993,8 +2993,8 @@
     "m_ObjectId": "14d7a2c4836245619ac831f10851d0a6",
     "m_Title": "URP Subsurface Scattering (URP only)",
     "m_Position": {
-        "x": 1254.4000244140625,
-        "y": 1265.5997314453125
+        "x": 1255.0,
+        "y": 1266.0
     }
 }
 
@@ -3119,8 +3119,8 @@
     "m_ObjectId": "18d2d5d05b434374bef16bb8042e6392",
     "m_Title": "Grass Wind",
     "m_Position": {
-        "x": -1117.599853515625,
-        "y": -833.5999145507813
+        "x": -1117.0,
+        "y": -833.0
     }
 }
 
@@ -7676,8 +7676,8 @@
     "m_ObjectId": "773df9adbd9445a1a8fec178310598ff",
     "m_Title": "Sky normals",
     "m_Position": {
-        "x": 1640.7998046875,
-        "y": -973.5999145507813
+        "x": 1641.0,
+        "y": -973.0
     }
 }
 

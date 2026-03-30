@@ -6,6 +6,8 @@ TagManager:
   tags:
   - canPickUp
   - Clue
+  - Obstacle
+  - wayPoints
   layers:
   - Default
   - TransparentFX
