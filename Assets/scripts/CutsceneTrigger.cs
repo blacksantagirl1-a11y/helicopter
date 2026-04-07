@@ -10,7 +10,7 @@ public class CutsceneTrigger : MonoBehaviour
     public bool preRendered;
     public VideoPlayer preRenderedPlayer;
     public string cutsceneTriggerName;
-    public FirstPersonMovement playerScript;
+    public PlayerMovement playerScript;
     public Camera playerCamera;
     public float cutsceneDuration;
 
