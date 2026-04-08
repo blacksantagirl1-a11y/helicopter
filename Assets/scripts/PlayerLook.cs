@@ -13,12 +13,14 @@ public class PlayerLook : MonoBehaviour
     void Awake()
     {
         TryResolveCharacter();
+        ApplySavedSensitivity();
     }
 
     void OnEnable()
     {
         LockCursor();
         TryResolveCharacter();
+        ApplySavedSensitivity();
     }
 
     void Reset()
@@ -33,6 +35,7 @@ public class PlayerLook : MonoBehaviour
 
     void Start()
     {
+        ApplySavedSensitivity();
         LockCursor();
     }
 
@@ -83,5 +86,10 @@ public class PlayerLook : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+    }
+
+    void ApplySavedSensitivity()
+    {
+        sensitivity = MenuSettingsService.GetLookSensitivity();
     }
 }
