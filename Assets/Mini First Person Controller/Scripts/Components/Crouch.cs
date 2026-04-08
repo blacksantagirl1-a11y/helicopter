@@ -6,7 +6,7 @@ public class Crouch : MonoBehaviour
 
     [Header("Slow Movement")]
     [Tooltip("Movement to slow down when crouched.")]
-    public FirstPersonMovement movement;
+    public PlayerMovement movement;
     [Tooltip("Movement speed when crouched.")]
     public float movementSpeed = 2;
 
@@ -29,7 +29,7 @@ public class Crouch : MonoBehaviour
     void Reset()
     {
         // Try to get components.
-        movement = GetComponentInParent<FirstPersonMovement>();
+        movement = GetComponentInParent<PlayerMovement>();
         headToLower = movement.GetComponentInChildren<Camera>().transform;
         colliderToLower = movement.GetComponentInChildren<CapsuleCollider>();
     }

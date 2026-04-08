@@ -32,7 +32,7 @@ public class IntroSequenceController : MonoBehaviour
 
     void Awake()
     {
-        // Awake chạy rất sớm khi scene bắt đầu.
+        // Awake chạy sớm khi scene bắt đầu.
         // Ở đây script tự tìm các object/camera cần dùng.
         initialized = AutoResolveReferences();
         if (!initialized)
@@ -69,7 +69,7 @@ public class IntroSequenceController : MonoBehaviour
         if (playerRoot == null)
         {
             // Tìm player thật bằng script di chuyển đang có trong scene.
-            FirstPersonMovement movement = Object.FindFirstObjectByType<FirstPersonMovement>();
+            PlayerMovement movement = Object.FindFirstObjectByType<PlayerMovement>();
             if (movement != null)
             {
                 playerRoot = movement.gameObject;
@@ -106,13 +106,13 @@ public class IntroSequenceController : MonoBehaviour
 
         // Gom tất cả script điều khiển cần tắt lúc intro.
         playerControls.Clear();
-        AddPlayerControl(playerRoot.GetComponent<FirstPersonMovement>());
+        AddPlayerControl(playerRoot.GetComponent<PlayerMovement>());
         AddPlayerControl(playerRoot.GetComponent<Jump>());
         AddPlayerControl(playerRoot.GetComponent<Crouch>());
         AddPlayerControl(playerRoot.GetComponentInChildren<EchoVision>(true));
         AddPlayerControl(playerRoot.GetComponentInChildren<MouseMovement>(true));
 
-        AddPlayerControl(playerCamera.GetComponent<FirstPersonLook>());
+        AddPlayerControl(playerCamera.GetComponent<PlayerLook>());
         AddPlayerControl(playerCamera.GetComponent<Zoom>());
         AddPlayerControl(playerCamera.GetComponent<PickUpScript>());
         AddPlayerControl(playerCamera.GetComponent<MouseMovement>());
@@ -170,7 +170,7 @@ public class IntroSequenceController : MonoBehaviour
 
         introFinished = true;
 
-        // Đảo ngược lại toàn bộ những gì đã khóa ở đầu game.
+        // Bỏ khóa toàn bộ những gì đã khóa ở đầu game.
         SetPlayerVisible(true);
         FreezePlayer(false);
         SetCameraState(introCamera, false);
