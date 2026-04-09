@@ -20,12 +20,6 @@ public class PickUpScript : MonoBehaviour
     {
         CheckForInteractables();
 
-        // Esc dong panel noi dung dang mo.
-        if (Input.GetKeyDown(KeyCode.Escape) && playerUI != null)
-        {
-            playerUI.HideInteractionContent();
-        }
-
         // E kich hoat object dang duoc raycast vao.
         if (Input.GetKeyDown(KeyCode.E))
         {
@@ -36,6 +30,12 @@ public class PickUpScript : MonoBehaviour
     private void HandleInteractInput()
     {
         if (!TryGetLookInteractable(out Interactable interactable))
+        {
+            return;
+        }
+
+        // Khi subtitle cua chinh object nay dang hien thi, khong kich hoat lai cho den khi no tu tat.
+        if (playerUI != null && playerUI.IsShowingContent(interactable))
         {
             return;
         }

@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,11 +10,13 @@ public class PlayerUI : MonoBehaviour
 
     [Header("Interaction UI")]
     [SerializeField] private GameObject interactionPanel;
+    [SerializeField] private Image interactionPanelBackground;
     [SerializeField] private TextMeshProUGUI interactionText;
+    [SerializeField] private GameObject interactionImagePanel;
     [SerializeField] private Image interactionImage;
-    [SerializeField] private TextMeshProUGUI interactionHintText;
 
     private Interactable currentInteractionSource;
+    private Coroutine autoHideRoutine;
 
     private void Awake()
     {
@@ -34,25 +37,6 @@ public class PlayerUI : MonoBehaviour
         PickUpText.gameObject.SetActive(!string.IsNullOrWhiteSpace(promptMessage));
     }
 
-    public void ToggleInteractionContent(Interactable interactable)
-    {
-        if (interactable == null)
-        {
-            HideInteractionContent();
-            return;
-        }
-
-        if (interactionPanel != null &&
-            interactionPanel.activeSelf &&
-            currentInteractionSource == interactable)
-        {
-            HideInteractionContent();
-            return;
-        }
-
-        ShowInteractionContent(interactable);
-    }
-
     public void ShowInteractionContent(Interactable interactable)
     {
         if (interactable == null)
@@ -61,12 +45,14 @@ public class PlayerUI : MonoBehaviour
             return;
         }
 
+        StopAutoHideTimer();
         EnsureInteractionUI();
-        if (interactionPanel == null)
+        if (interactionPanel == null && interactionImagePanel == null)
         {
             return;
         }
 
+        string speakerName = interactable.DialogueSpeaker;
         string bodyText = interactable.DialogueText;
         Sprite sprite = interactable.InteractionImage;
         bool hasText = !string.IsNullOrWhiteSpace(bodyText);
@@ -79,12 +65,21 @@ public class PlayerUI : MonoBehaviour
         }
 
         currentInteractionSource = interactable;
-        interactionPanel.SetActive(true);
+
+        if (interactionPanel != null)
+        {
+            interactionPanel.SetActive(hasText);
+        }
 
         if (interactionText != null)
         {
-            interactionText.text = bodyText;
+            interactionText.text = BuildDialogueMarkup(speakerName, bodyText);
             interactionText.gameObject.SetActive(hasText);
+        }
+
+        if (interactionImagePanel != null)
+        {
+            interactionImagePanel.SetActive(hasImage);
         }
 
         if (interactionImage != null)
@@ -94,14 +89,15 @@ public class PlayerUI : MonoBehaviour
             interactionImage.gameObject.SetActive(hasImage);
         }
 
-        if (interactionHintText != null)
+        if (hasText || hasImage)
         {
-            interactionHintText.gameObject.SetActive(true);
+            autoHideRoutine = StartCoroutine(AutoHideAfterDelay(interactable.ContentDisplaySeconds));
         }
     }
 
     public void HideInteractionContent()
     {
+        StopAutoHideTimer();
         currentInteractionSource = null;
 
         if (interactionPanel != null)
@@ -119,18 +115,29 @@ public class PlayerUI : MonoBehaviour
             interactionImage.sprite = null;
             interactionImage.enabled = false;
         }
+
+        if (interactionImagePanel != null)
+        {
+            interactionImagePanel.SetActive(false);
+        }
     }
 
     public bool IsShowingContent(Interactable interactable)
     {
-        return interactionPanel != null &&
-               interactionPanel.activeSelf &&
+        bool isDialogueVisible = interactionPanel != null && interactionPanel.activeSelf;
+        bool isImageVisible = interactionImagePanel != null && interactionImagePanel.activeSelf;
+
+        return (isDialogueVisible || isImageVisible) &&
                currentInteractionSource == interactable;
     }
 
     private void EnsureInteractionUI()
     {
-        if (interactionPanel != null && interactionText != null && interactionImage != null)
+        if (interactionPanel != null &&
+            interactionPanelBackground != null &&
+            interactionText != null &&
+            interactionImagePanel != null &&
+            interactionImage != null)
         {
             return;
         }
@@ -152,6 +159,8 @@ public class PlayerUI : MonoBehaviour
 
         if (interactionPanel != null)
         {
+            interactionPanelBackground ??= interactionPanel.GetComponent<Image>();
+
             if (interactionText == null)
             {
                 Transform textTransform = interactionPanel.transform.Find("InteractionText");
@@ -160,96 +169,180 @@ public class PlayerUI : MonoBehaviour
                     interactionText = textTransform.GetComponent<TextMeshProUGUI>();
                 }
             }
+        }
 
-            if (interactionImage == null)
+        if (interactionImagePanel == null)
+        {
+            Transform imagePanelTransform = canvas.transform.Find("InteractionImagePanel");
+            if (imagePanelTransform != null)
             {
-                Transform imageTransform = interactionPanel.transform.Find("InteractionImage");
-                if (imageTransform != null)
-                {
-                    interactionImage = imageTransform.GetComponent<Image>();
-                }
-            }
-
-            if (interactionHintText == null)
-            {
-                Transform hintTransform = interactionPanel.transform.Find("InteractionHint");
-                if (hintTransform != null)
-                {
-                    interactionHintText = hintTransform.GetComponent<TextMeshProUGUI>();
-                }
+                interactionImagePanel = imagePanelTransform.gameObject;
             }
         }
 
+        if (interactionImagePanel != null && interactionImage == null)
+        {
+            Transform imageTransform = interactionImagePanel.transform.Find("InteractionImage");
+            if (imageTransform != null)
+            {
+                interactionImage = imageTransform.GetComponent<Image>();
+            }
+        }
+
+        CreateMissingInteractionUI(canvas);
+        ConfigureDialoguePanel();
+        ConfigureDialogueText();
+        ConfigureImagePanel();
+        ConfigureInteractionImage();
+    }
+
+    private void CreateMissingInteractionUI(Canvas canvas)
+    {
         if (interactionPanel == null)
         {
-            CreateInteractionUI(canvas);
+            interactionPanel = new GameObject("InteractionPanel", typeof(RectTransform), typeof(Image));
+            interactionPanel.transform.SetParent(canvas.transform, false);
+        }
+
+        if (interactionPanelBackground == null)
+        {
+            interactionPanelBackground = interactionPanel.GetComponent<Image>();
+            if (interactionPanelBackground == null)
+            {
+                interactionPanelBackground = interactionPanel.AddComponent<Image>();
+            }
+        }
+
+        if (interactionText == null)
+        {
+            interactionText = CreateTextElement("InteractionText", interactionPanel.transform);
+        }
+
+        if (interactionImagePanel == null)
+        {
+            interactionImagePanel = new GameObject("InteractionImagePanel", typeof(RectTransform), typeof(Image));
+            interactionImagePanel.transform.SetParent(canvas.transform, false);
+        }
+
+        if (interactionImage == null)
+        {
+            interactionImage = CreateImageElement("InteractionImage", interactionImagePanel.transform);
         }
     }
 
-    private void CreateInteractionUI(Canvas canvas)
+    private void ConfigureDialoguePanel()
     {
-        // Panel nay la phan UI lon de hien hoi thoai/hinh anh sau khi interact.
-        interactionPanel = new GameObject("InteractionPanel", typeof(RectTransform), typeof(Image));
-        interactionPanel.transform.SetParent(canvas.transform, false);
+        if (interactionPanel == null || interactionPanelBackground == null)
+        {
+            return;
+        }
 
         RectTransform panelRect = interactionPanel.GetComponent<RectTransform>();
+        panelRect.anchorMin = new Vector2(0.5f, 0f);
+        panelRect.anchorMax = new Vector2(0.5f, 0f);
+        panelRect.pivot = new Vector2(0.5f, 0f);
+        panelRect.anchoredPosition = new Vector2(0f, 28f);
+        panelRect.sizeDelta = new Vector2(860f, 96f);
+
+        interactionPanelBackground.color = new Color(0f, 0f, 0f, 0.30f);
+        interactionPanelBackground.raycastTarget = false;
+    }
+
+    private void ConfigureDialogueText()
+    {
+        if (interactionText == null)
+        {
+            return;
+        }
+
+        RectTransform textRect = interactionText.rectTransform;
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.pivot = new Vector2(0.5f, 0.5f);
+        textRect.offsetMin = new Vector2(24f, 12f);
+        textRect.offsetMax = new Vector2(-24f, -12f);
+
+        interactionText.text = string.Empty;
+        interactionText.color = Color.white;
+        interactionText.alignment = TextAlignmentOptions.Center;
+        interactionText.enableWordWrapping = true;
+        interactionText.fontSize = 34f;
+        interactionText.lineSpacing = -6f;
+        interactionText.richText = true;
+        interactionText.raycastTarget = false;
+    }
+
+    private void ConfigureImagePanel()
+    {
+        if (interactionImagePanel == null)
+        {
+            return;
+        }
+
+        RectTransform panelRect = interactionImagePanel.GetComponent<RectTransform>();
         panelRect.anchorMin = new Vector2(0.5f, 0.5f);
         panelRect.anchorMax = new Vector2(0.5f, 0.5f);
         panelRect.pivot = new Vector2(0.5f, 0.5f);
-        panelRect.anchoredPosition = new Vector2(0f, 8f);
-        panelRect.sizeDelta = new Vector2(560f, 320f);
+        panelRect.anchoredPosition = new Vector2(0f, 10f);
+        panelRect.sizeDelta = new Vector2(620f, 360f);
 
-        Image background = interactionPanel.GetComponent<Image>();
-        background.color = new Color(0f, 0f, 0f, 0.82f);
+        Image background = interactionImagePanel.GetComponent<Image>();
+        if (background == null)
+        {
+            background = interactionImagePanel.AddComponent<Image>();
+        }
+        background.color = new Color(0f, 0f, 0f, 0.6f);
         background.raycastTarget = false;
-
-        interactionText = CreateTextElement(
-            "InteractionText",
-            panelRect,
-            new Vector2(0.5f, 1f),
-            new Vector2(0.5f, 1f),
-            new Vector2(0.5f, 1f),
-            new Vector2(0f, -28f),
-            new Vector2(480f, 120f));
-        interactionText.alignment = TextAlignmentOptions.TopLeft;
-        interactionText.enableWordWrapping = true;
-        interactionText.fontSize = 28f;
-
-        interactionImage = CreateImageElement(
-            "InteractionImage",
-            panelRect,
-            new Vector2(0.5f, 0.34f),
-            new Vector2(0.5f, 0.34f),
-            new Vector2(0.5f, 0.5f),
-            Vector2.zero,
-            new Vector2(420f, 130f));
-        interactionImage.preserveAspect = true;
-        interactionImage.raycastTarget = false;
-
-        interactionHintText = CreateTextElement(
-            "InteractionHint",
-            panelRect,
-            new Vector2(0.5f, 0f),
-            new Vector2(0.5f, 0f),
-            new Vector2(0.5f, 0f),
-            new Vector2(0f, 20f),
-            new Vector2(300f, 28f));
-        interactionHintText.text = "Press E again or Esc to close";
-        interactionHintText.alignment = TextAlignmentOptions.Center;
-        interactionHintText.fontSize = 18f;
-        interactionHintText.color = new Color(1f, 1f, 1f, 0.75f);
-
-        interactionPanel.SetActive(false);
     }
 
-    private static TextMeshProUGUI CreateTextElement(
-        string objectName,
-        Transform parent,
-        Vector2 anchorMin,
-        Vector2 anchorMax,
-        Vector2 pivot,
-        Vector2 anchoredPosition,
-        Vector2 size)
+    private void ConfigureInteractionImage()
+    {
+        if (interactionImage == null)
+        {
+            return;
+        }
+
+        RectTransform imageRect = interactionImage.rectTransform;
+        imageRect.anchorMin = new Vector2(0.5f, 0.5f);
+        imageRect.anchorMax = new Vector2(0.5f, 0.5f);
+        imageRect.pivot = new Vector2(0.5f, 0.5f);
+        imageRect.anchoredPosition = Vector2.zero;
+        imageRect.sizeDelta = new Vector2(560f, 300f);
+
+        interactionImage.color = Color.white;
+        interactionImage.preserveAspect = true;
+        interactionImage.raycastTarget = false;
+    }
+
+    private string BuildDialogueMarkup(string speakerName, string bodyText)
+    {
+        if (string.IsNullOrWhiteSpace(speakerName))
+        {
+            return bodyText;
+        }
+
+        return $"<color=#D79E37>{speakerName}:</color> {bodyText}";
+    }
+
+    private void StopAutoHideTimer()
+    {
+        if (autoHideRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(autoHideRoutine);
+        autoHideRoutine = null;
+    }
+
+    private IEnumerator AutoHideAfterDelay(float delaySeconds)
+    {
+        yield return new WaitForSeconds(delaySeconds);
+        autoHideRoutine = null;
+        HideInteractionContent();
+    }
+
+    private static TextMeshProUGUI CreateTextElement(string objectName, Transform parent)
     {
         GameObject textObject = new GameObject(
             objectName,
@@ -258,29 +351,14 @@ public class PlayerUI : MonoBehaviour
             typeof(TextMeshProUGUI));
         textObject.transform.SetParent(parent, false);
 
-        RectTransform rectTransform = textObject.GetComponent<RectTransform>();
-        rectTransform.anchorMin = anchorMin;
-        rectTransform.anchorMax = anchorMax;
-        rectTransform.pivot = pivot;
-        rectTransform.anchoredPosition = anchoredPosition;
-        rectTransform.sizeDelta = size;
-
         TextMeshProUGUI text = textObject.GetComponent<TextMeshProUGUI>();
         text.text = string.Empty;
         text.color = Color.white;
-        text.enableWordWrapping = true;
 
         return text;
     }
 
-    private static Image CreateImageElement(
-        string objectName,
-        Transform parent,
-        Vector2 anchorMin,
-        Vector2 anchorMax,
-        Vector2 pivot,
-        Vector2 anchoredPosition,
-        Vector2 size)
+    private static Image CreateImageElement(string objectName, Transform parent)
     {
         GameObject imageObject = new GameObject(
             objectName,
@@ -288,13 +366,6 @@ public class PlayerUI : MonoBehaviour
             typeof(CanvasRenderer),
             typeof(Image));
         imageObject.transform.SetParent(parent, false);
-
-        RectTransform rectTransform = imageObject.GetComponent<RectTransform>();
-        rectTransform.anchorMin = anchorMin;
-        rectTransform.anchorMax = anchorMax;
-        rectTransform.pivot = pivot;
-        rectTransform.anchoredPosition = anchoredPosition;
-        rectTransform.sizeDelta = size;
 
         Image image = imageObject.GetComponent<Image>();
         image.color = Color.white;
