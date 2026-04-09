@@ -1,574 +1,433 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.UI;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MainMenuController : MonoBehaviour
 {
-    const string GameplaySceneName = "Suml";
-    const string GameTitle = "SUML";
-    const string MenuVersionLabel = "Prototype Build";
-    const string CreditsBody =
-        "Developed by\nYour Team Name\n\n" +
-        "Gameplay\nEnvironment\nUI\n\n" +
-        "Built with Unity\n\n" +
-        "Third-party assets\nUpdate this section before release.";
+    enum MenuState
+    {
+        Idle,
+        OptionsOpen,
+        CreditsOpen,
+        Loading
+    }
 
-    static readonly Color ScreenTint = new(0.02f, 0.03f, 0.04f, 0.24f);
-    static readonly Color LeftTint = new(0.01f, 0.015f, 0.02f, 0.54f);
-    static readonly Color MidShadeTint = new(0.01f, 0.015f, 0.02f, 0.22f);
-    static readonly Color PanelTint = new(0.03f, 0.04f, 0.05f, 0.92f);
-    static readonly Color OverlayTint = new(0f, 0f, 0f, 0.72f);
-    static readonly Color MainButtonNormal = new(0.92f, 0.96f, 1f, 0.78f);
-    static readonly Color MainButtonHover = new(1f, 1f, 1f, 1f);
-    static readonly Color MainButtonSelected = new(1f, 0.96f, 0.82f, 1f);
-    static readonly Color PanelButtonColor = new(0.14f, 0.17f, 0.2f, 0.96f);
-    static readonly Color SliderTrackColor = new(0.12f, 0.14f, 0.16f, 0.95f);
-    static readonly Color SliderFillColor = new(0.81f, 0.89f, 0.96f, 1f);
-    static readonly Color TextPrimary = new(0.94f, 0.97f, 1f, 1f);
-    static readonly Color TextMuted = new(0.76f, 0.8f, 0.86f, 1f);
+    const string DefaultGameplaySceneName = "Suml";
 
-    TMP_FontAsset menuFont;
-    CanvasGroup uiCanvasGroup;
-    Image fadeOverlay;
-    GameObject modalOverlay;
-    GameObject optionsPanel;
-    GameObject creditsPanel;
-    GameObject quitPanel;
-    Slider volumeSlider;
-    Slider sensitivitySlider;
-    TMP_Text volumeValueText;
-    TMP_Text sensitivityValueText;
-    TMP_Text displayModeValueText;
-    TMP_Text qualityValueText;
-    TMP_Text playButtonLabel;
-    Button playButton;
-    Button optionsButton;
-    Button creditsButton;
-    Button quitButton;
-    Button lastMenuButton;
+    [Header("Scene Flow")]
+    [SerializeField] string gameplaySceneName = DefaultGameplaySceneName;
+
+    [Header("Canvas")]
+    [SerializeField] CanvasGroup uiCanvasGroup;
+
+    [Header("Primary Buttons")]
+    [SerializeField] Button playButton;
+    [SerializeField] TMP_Text playButtonLabel;
+    [SerializeField] Button creditsButton;
+    [SerializeField] TMP_Text creditsButtonLabel;
+    [SerializeField] Button optionsButton;
+    [SerializeField] TMP_Text optionsButtonLabel;
+    [SerializeField] Button quitButton;
+    [SerializeField] TMP_Text quitButtonLabel;
+
+    [Header("Panels")]
+    [SerializeField] RectTransform optionsPanel;
+    [SerializeField] CanvasGroup optionsPanelCanvasGroup;
+    [SerializeField] Button optionsBackButton;
+    [SerializeField] RectTransform creditsPanel;
+    [SerializeField] CanvasGroup creditsPanelCanvasGroup;
+    [SerializeField] Button creditsBackButton;
+
+    [Header("Options")]
+    [SerializeField] Slider volumeSlider;
+    [SerializeField] TMP_Text volumeValueText;
+    [SerializeField] Slider sensitivitySlider;
+    [SerializeField] TMP_Text sensitivityValueText;
+    [SerializeField] Button displayModeButton;
+    [SerializeField] TMP_Text displayModeValueText;
+    [SerializeField] Button qualityDecreaseButton;
+    [SerializeField] Button qualityIncreaseButton;
+    [SerializeField] TMP_Text qualityValueText;
+
+    [Header("Animation")]
+    [SerializeField, Min(0f)] float introFadeDuration = 0.45f;
+    [SerializeField, Min(0f)] float panelTweenDuration = 0.35f;
+    [SerializeField, Min(0f)] float panelSlidePadding = 140f;
+    [SerializeField, Min(0f)] float panelRightInset = 72f;
+    [SerializeField, Min(1f)] float highlightScale = 1.06f;
+    [SerializeField, Min(0f)] float buttonTweenDuration = 0.16f;
+
+    [Header("Palette")]
+    [SerializeField] Color buttonNormalColor = new(0.92f, 0.96f, 1f, 0.78f);
+    [SerializeField] Color buttonHoverColor = Color.white;
+    [SerializeField] Color buttonLockedColor = new(1f, 0.96f, 0.82f, 1f);
+    [SerializeField] Color buttonDisabledColor = new(1f, 1f, 1f, 0.35f);
+
+    readonly Dictionary<Button, MainButtonVisual> mainButtons = new();
+
     MenuSettingsData currentSettings;
-    bool isLoadingScene;
+    MenuState currentState;
+    Button hoveredButton;
+    Button lockedButton;
+    Tween introTween;
+    Tween activePanelTween;
+    Vector2 optionsShownPosition;
+    Vector2 optionsHiddenPosition;
+    Vector2 creditsShownPosition;
+    Vector2 creditsHiddenPosition;
+    bool uiEventsBound;
 
     void Awake()
     {
         currentSettings = MenuSettingsService.Load();
-        menuFont = ResolveFont();
+
+        ResolveReferences();
+        RegisterMainButtons();
+        AttachHoverRelay(playButton);
+        AttachHoverRelay(creditsButton);
+        AttachHoverRelay(optionsButton);
+        AttachHoverRelay(quitButton);
+
         UnlockCursor();
-        EnsureEventSystem();
-        BuildMenu();
+        ConfigurePanel(optionsPanel, optionsPanelCanvasGroup, out optionsShownPosition, out optionsHiddenPosition);
+        ConfigurePanel(creditsPanel, creditsPanelCanvasGroup, out creditsShownPosition, out creditsHiddenPosition);
+        ResetUiState();
         RefreshSettingsUi();
+        BindUiEvents();
+    }
+
+    void OnDestroy()
+    {
+        UnbindUiEvents();
+        KillTweens();
     }
 
     void Start()
     {
-        StartCoroutine(FadeInRoutine());
+        StartIntroFade();
         StartCoroutine(SelectButtonNextFrame(playButton));
     }
 
-    void Update()
+    void BindUiEvents()
     {
-        if (Keyboard.current == null || !Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (uiEventsBound)
         {
             return;
         }
 
-        if (isLoadingScene)
-        {
-            return;
-        }
-
-        if (quitPanel.activeSelf)
-        {
-            ClosePanels();
-            return;
-        }
-
-        if (optionsPanel.activeSelf || creditsPanel.activeSelf)
-        {
-            ClosePanels();
-            return;
-        }
-
-        OpenQuitPanel();
+        BindButton(playButton, OnPlayPressed);
+        BindButton(creditsButton, OpenCreditsPanel);
+        BindButton(optionsButton, OpenOptionsPanel);
+        BindButton(quitButton, QuitGame);
+        BindButton(optionsBackButton, CloseOptionsPanel);
+        BindButton(creditsBackButton, CloseCreditsPanel);
+        BindButton(displayModeButton, ToggleDisplayMode);
+        BindButton(qualityDecreaseButton, OnQualityDecreasePressed);
+        BindButton(qualityIncreaseButton, OnQualityIncreasePressed);
+        BindSlider(volumeSlider, OnVolumeChanged);
+        BindSlider(sensitivitySlider, OnSensitivityChanged);
+        uiEventsBound = true;
     }
 
-    void EnsureEventSystem()
+    void UnbindUiEvents()
     {
-        if (FindFirstObjectByType<EventSystem>() != null)
+        if (!uiEventsBound)
         {
             return;
         }
 
-        GameObject eventSystemObject = new("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
-        eventSystemObject.transform.SetParent(transform, false);
-        eventSystemObject.GetComponent<InputSystemUIInputModule>().AssignDefaultActions();
+        UnbindButton(playButton, OnPlayPressed);
+        UnbindButton(creditsButton, OpenCreditsPanel);
+        UnbindButton(optionsButton, OpenOptionsPanel);
+        UnbindButton(quitButton, QuitGame);
+        UnbindButton(optionsBackButton, CloseOptionsPanel);
+        UnbindButton(creditsBackButton, CloseCreditsPanel);
+        UnbindButton(displayModeButton, ToggleDisplayMode);
+        UnbindButton(qualityDecreaseButton, OnQualityDecreasePressed);
+        UnbindButton(qualityIncreaseButton, OnQualityIncreasePressed);
+        UnbindSlider(volumeSlider, OnVolumeChanged);
+        UnbindSlider(sensitivitySlider, OnSensitivityChanged);
+        uiEventsBound = false;
     }
 
-    void BuildMenu()
+    void ResolveReferences()
     {
-        GameObject canvasObject = new("MainMenuCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(CanvasGroup));
-        canvasObject.transform.SetParent(transform, false);
+        uiCanvasGroup ??= GetComponentInChildren<CanvasGroup>(true);
 
-        Canvas canvas = canvasObject.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 100;
+        optionsPanelCanvasGroup ??= optionsPanel != null ? optionsPanel.GetComponent<CanvasGroup>() : null;
+        creditsPanelCanvasGroup ??= creditsPanel != null ? creditsPanel.GetComponent<CanvasGroup>() : null;
 
-        CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
-        scaler.matchWidthOrHeight = 0.5f;
+        playButton ??= FindButton("PLAYButton");
+        creditsButton ??= FindButton("CREDITSButton");
+        optionsButton ??= FindButton("OPTIONSButton");
+        quitButton ??= FindButton("QUITButton");
 
-        uiCanvasGroup = canvasObject.GetComponent<CanvasGroup>();
+        playButtonLabel = ResolveLabel(playButton, playButtonLabel);
+        creditsButtonLabel = ResolveLabel(creditsButton, creditsButtonLabel);
+        optionsButtonLabel = ResolveLabel(optionsButton, optionsButtonLabel);
+        quitButtonLabel = ResolveLabel(quitButton, quitButtonLabel);
+
+        optionsBackButton ??= FindInPanel<Button>(optionsPanel, "BackButton");
+        creditsBackButton ??= FindInPanel<Button>(creditsPanel, "BackButton");
+
+        volumeSlider ??= FindInPanel<Slider>(optionsPanel, "Slider");
+        sensitivitySlider ??= FindInPanel<Slider>(optionsPanel, "Slider");
+        volumeValueText ??= FindInPanel<TMP_Text>(optionsPanel, "Value");
+        sensitivityValueText ??= FindNextValueText(optionsPanel, volumeValueText);
+
+        displayModeButton ??= FindInPanel<Button>(optionsPanel, "WindowedButton");
+        displayModeValueText ??= ResolveLabel(displayModeButton, displayModeValueText);
+        qualityDecreaseButton ??= FindInPanel<Button>(optionsPanel, "-Button");
+        qualityIncreaseButton ??= FindInPanel<Button>(optionsPanel, "+Button");
+        qualityValueText ??= FindInPanel<TMP_Text>(optionsPanel, "QualityValue");
+    }
+
+    void RegisterMainButtons()
+    {
+        mainButtons.Clear();
+        RegisterMainButton(playButton, playButtonLabel);
+        RegisterMainButton(creditsButton, creditsButtonLabel);
+        RegisterMainButton(optionsButton, optionsButtonLabel);
+        RegisterMainButton(quitButton, quitButtonLabel);
+    }
+
+    void RegisterMainButton(Button button, TMP_Text label)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        mainButtons[button] = new MainButtonVisual
+        {
+            button = button,
+            label = label,
+            rect = button.transform as RectTransform
+        };
+    }
+
+    void AttachHoverRelay(Button button)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        MainMenuButtonHoverRelay relay = button.GetComponent<MainMenuButtonHoverRelay>();
+        if (relay == null)
+        {
+            relay = button.gameObject.AddComponent<MainMenuButtonHoverRelay>();
+        }
+
+        relay.Initialize(button, OnMainButtonHoverChanged);
+    }
+
+    void ResetUiState()
+    {
+        currentState = MenuState.Idle;
+        hoveredButton = null;
+        lockedButton = null;
+
+        if (uiCanvasGroup != null)
+        {
+            uiCanvasGroup.alpha = 0f;
+            uiCanvasGroup.interactable = true;
+            uiCanvasGroup.blocksRaycasts = true;
+        }
+
+        HidePanelImmediate(optionsPanel, optionsPanelCanvasGroup, optionsHiddenPosition);
+        HidePanelImmediate(creditsPanel, creditsPanelCanvasGroup, creditsHiddenPosition);
+        SetMainButtonsInteractable(true);
+        RefreshMainButtons(true);
+    }
+
+    void StartIntroFade()
+    {
+        if (uiCanvasGroup == null)
+        {
+            return;
+        }
+
+        introTween?.Kill();
         uiCanvasGroup.alpha = 0f;
-
-        RectTransform canvasRect = canvasObject.GetComponent<RectTransform>();
-        CreateStretchImage("ScreenTint", canvasRect, ScreenTint);
-
-        Image leftShade = CreateStretchImage("LeftShade", canvasRect, LeftTint);
-        RectTransform leftShadeRect = leftShade.rectTransform;
-        leftShadeRect.anchorMin = new Vector2(0f, 0f);
-        leftShadeRect.anchorMax = new Vector2(0.38f, 1f);
-        leftShadeRect.offsetMin = Vector2.zero;
-        leftShadeRect.offsetMax = Vector2.zero;
-
-        Image midShade = CreateStretchImage("MidShade", canvasRect, MidShadeTint);
-        RectTransform midShadeRect = midShade.rectTransform;
-        midShadeRect.anchorMin = new Vector2(0f, 0f);
-        midShadeRect.anchorMax = new Vector2(0.58f, 1f);
-        midShadeRect.offsetMin = Vector2.zero;
-        midShadeRect.offsetMax = Vector2.zero;
-
-        leftShade.transform.SetAsLastSibling();
-        midShade.transform.SetSiblingIndex(leftShade.transform.GetSiblingIndex() - 1);
-        leftShadeRect.offsetMin = Vector2.zero;
-        leftShadeRect.offsetMax = Vector2.zero;
-
-        RectTransform titleRoot = CreateRectTransform("TitleRoot", canvasRect);
-        titleRoot.anchorMin = new Vector2(0f, 1f);
-        titleRoot.anchorMax = new Vector2(0f, 1f);
-        titleRoot.pivot = new Vector2(0f, 1f);
-        titleRoot.anchoredPosition = new Vector2(88f, -70f);
-        titleRoot.sizeDelta = new Vector2(460f, 120f);
-
-        CreateText("GameTitle", titleRoot, GameTitle, 68f, FontStyles.Bold, TextAlignmentOptions.TopLeft, TextPrimary);
-        TMP_Text versionLabel = CreateText("Version", titleRoot, MenuVersionLabel, 20f, FontStyles.Normal, TextAlignmentOptions.BottomLeft, TextMuted);
-        versionLabel.rectTransform.anchorMin = new Vector2(0f, 0f);
-        versionLabel.rectTransform.anchorMax = new Vector2(1f, 0f);
-        versionLabel.rectTransform.pivot = new Vector2(0f, 0f);
-        versionLabel.rectTransform.anchoredPosition = new Vector2(2f, -38f);
-
-        RectTransform menuRoot = CreateRectTransform("MenuRoot", canvasRect);
-        menuRoot.anchorMin = new Vector2(0f, 0.5f);
-        menuRoot.anchorMax = new Vector2(0f, 0.5f);
-        menuRoot.pivot = new Vector2(0f, 0.5f);
-        menuRoot.anchoredPosition = new Vector2(78f, 18f);
-        menuRoot.sizeDelta = new Vector2(420f, 420f);
-
-        VerticalLayoutGroup menuLayout = menuRoot.gameObject.AddComponent<VerticalLayoutGroup>();
-        menuLayout.childAlignment = TextAnchor.MiddleLeft;
-        menuLayout.childControlWidth = true;
-        menuLayout.childControlHeight = true;
-        menuLayout.childForceExpandWidth = true;
-        menuLayout.childForceExpandHeight = false;
-        menuLayout.spacing = 12f;
-
-        playButton = CreateMainMenuButton(menuRoot, "PLAY", OnPlayPressed, out playButtonLabel);
-        optionsButton = CreateMainMenuButton(menuRoot, "OPTIONS", OpenOptionsPanel, out _);
-        creditsButton = CreateMainMenuButton(menuRoot, "CREDITS", OpenCreditsPanel, out _);
-        quitButton = CreateMainMenuButton(menuRoot, "QUIT", OpenQuitPanel, out _);
-
-        TMP_Text footerText = CreateText("Footer", canvasRect, "Mouse free in menu. Press Esc to close open panels.", 18f, FontStyles.Normal, TextAlignmentOptions.BottomLeft, TextMuted);
-        footerText.rectTransform.anchorMin = new Vector2(0f, 0f);
-        footerText.rectTransform.anchorMax = new Vector2(0f, 0f);
-        footerText.rectTransform.pivot = new Vector2(0f, 0f);
-        footerText.rectTransform.anchoredPosition = new Vector2(88f, 36f);
-        footerText.rectTransform.sizeDelta = new Vector2(540f, 24f);
-
-        modalOverlay = CreateStretchImage("ModalOverlay", canvasRect, OverlayTint).gameObject;
-        modalOverlay.SetActive(false);
-
-        optionsPanel = CreateModalPanel(modalOverlay.transform, "OptionsPanel", "OPTIONS", new Vector2(700f, 470f));
-        BuildOptionsPanel(optionsPanel.transform);
-        optionsPanel.SetActive(false);
-
-        creditsPanel = CreateModalPanel(modalOverlay.transform, "CreditsPanel", "CREDITS", new Vector2(620f, 420f));
-        BuildCreditsPanel(creditsPanel.transform);
-        creditsPanel.SetActive(false);
-
-        quitPanel = CreateModalPanel(modalOverlay.transform, "QuitPanel", "QUIT GAME", new Vector2(500f, 280f));
-        BuildQuitPanel(quitPanel.transform);
-        quitPanel.SetActive(false);
-
-        fadeOverlay = CreateStretchImage("FadeOverlay", canvasRect, Color.black);
-        fadeOverlay.raycastTarget = false;
+        introTween = uiCanvasGroup
+            .DOFade(1f, Mathf.Max(0.01f, introFadeDuration))
+            .SetEase(Ease.OutCubic)
+            .SetUpdate(true);
     }
 
-    void BuildOptionsPanel(Transform panelTransform)
+    void OnMainButtonHoverChanged(Button button, bool isHovered)
     {
-        RectTransform contentRoot = CreateContentRoot(panelTransform);
-        CreateSliderRow(contentRoot, "Master Volume", 0f, 1f, currentSettings.masterVolume, OnVolumeChanged, out volumeSlider, out volumeValueText);
-        CreateSliderRow(contentRoot, "Look Sensitivity", 0.5f, 8f, currentSettings.lookSensitivity, OnSensitivityChanged, out sensitivitySlider, out sensitivityValueText);
-
-        RectTransform displayRow = CreateRow(contentRoot, 62f);
-        CreateLabel(displayRow, "Display Mode");
-        CreatePanelButton(displayRow, MenuSettingsService.GetDisplayModeLabel(currentSettings.fullscreen), ToggleDisplayMode, out displayModeValueText, new Vector2(220f, 44f));
-
-        RectTransform qualityRow = CreateRow(contentRoot, 62f);
-        CreateLabel(qualityRow, "Quality");
-
-        RectTransform qualityControls = CreateRectTransform("QualityControls", qualityRow);
-        LayoutElement qualityControlsLayout = qualityControls.gameObject.AddComponent<LayoutElement>();
-        qualityControlsLayout.flexibleWidth = 1f;
-
-        HorizontalLayoutGroup qualityLayout = qualityControls.gameObject.AddComponent<HorizontalLayoutGroup>();
-        qualityLayout.childAlignment = TextAnchor.MiddleRight;
-        qualityLayout.childControlWidth = true;
-        qualityLayout.childControlHeight = true;
-        qualityLayout.childForceExpandWidth = false;
-        qualityLayout.childForceExpandHeight = false;
-        qualityLayout.spacing = 12f;
-
-        CreatePanelButton(qualityControls, "-", () => ShiftQuality(-1), out _, new Vector2(44f, 44f));
-        TMP_Text qualityLabel = CreateText("QualityValue", qualityControls, MenuSettingsService.GetQualityLabel(currentSettings.qualityPreset), 26f, FontStyles.Bold, TextAlignmentOptions.Midline, TextPrimary);
-        LayoutElement qualityLabelLayout = qualityLabel.gameObject.AddComponent<LayoutElement>();
-        qualityLabelLayout.preferredWidth = 220f;
-        qualityLabelLayout.minWidth = 220f;
-        qualityValueText = qualityLabel;
-        CreatePanelButton(qualityControls, "+", () => ShiftQuality(1), out _, new Vector2(44f, 44f));
-
-        RectTransform buttonRow = CreateRectTransform("Actions", contentRoot);
-        HorizontalLayoutGroup buttonRowLayout = buttonRow.gameObject.AddComponent<HorizontalLayoutGroup>();
-        buttonRowLayout.childAlignment = TextAnchor.MiddleRight;
-        buttonRowLayout.childControlWidth = true;
-        buttonRowLayout.childControlHeight = true;
-        buttonRowLayout.childForceExpandWidth = false;
-        buttonRowLayout.childForceExpandHeight = false;
-        buttonRowLayout.spacing = 14f;
-        CreatePanelButton(buttonRow, "Close", ClosePanels, out _, new Vector2(160f, 48f));
-    }
-
-    void BuildCreditsPanel(Transform panelTransform)
-    {
-        RectTransform contentRoot = CreateContentRoot(panelTransform);
-        TMP_Text creditsText = CreateText("CreditsBody", contentRoot, CreditsBody, 27f, FontStyles.Normal, TextAlignmentOptions.TopLeft, TextPrimary);
-        creditsText.enableWordWrapping = true;
-        LayoutElement creditsLayout = creditsText.gameObject.AddComponent<LayoutElement>();
-        creditsLayout.flexibleHeight = 1f;
-        creditsLayout.minHeight = 220f;
-
-        RectTransform buttonRow = CreateRectTransform("Actions", contentRoot);
-        HorizontalLayoutGroup buttonRowLayout = buttonRow.gameObject.AddComponent<HorizontalLayoutGroup>();
-        buttonRowLayout.childAlignment = TextAnchor.MiddleRight;
-        buttonRowLayout.childControlWidth = true;
-        buttonRowLayout.childControlHeight = true;
-        buttonRowLayout.childForceExpandWidth = false;
-        buttonRowLayout.childForceExpandHeight = false;
-        buttonRowLayout.spacing = 14f;
-        CreatePanelButton(buttonRow, "Back", ClosePanels, out _, new Vector2(160f, 48f));
-    }
-
-    void BuildQuitPanel(Transform panelTransform)
-    {
-        RectTransform contentRoot = CreateContentRoot(panelTransform);
-        TMP_Text body = CreateText("QuitBody", contentRoot, "Return to desktop now?", 30f, FontStyles.Normal, TextAlignmentOptions.Left, TextPrimary);
-        LayoutElement bodyLayout = body.gameObject.AddComponent<LayoutElement>();
-        bodyLayout.flexibleHeight = 1f;
-        bodyLayout.minHeight = 110f;
-
-        RectTransform buttonRow = CreateRectTransform("Actions", contentRoot);
-        HorizontalLayoutGroup buttonRowLayout = buttonRow.gameObject.AddComponent<HorizontalLayoutGroup>();
-        buttonRowLayout.childAlignment = TextAnchor.MiddleRight;
-        buttonRowLayout.childControlWidth = true;
-        buttonRowLayout.childControlHeight = true;
-        buttonRowLayout.childForceExpandWidth = false;
-        buttonRowLayout.childForceExpandHeight = false;
-        buttonRowLayout.spacing = 14f;
-        CreatePanelButton(buttonRow, "Stay", ClosePanels, out _, new Vector2(140f, 48f));
-        CreatePanelButton(buttonRow, "Quit", QuitGame, out _, new Vector2(140f, 48f));
-    }
-
-    GameObject CreateModalPanel(Transform parent, string name, string title, Vector2 size)
-    {
-        RectTransform panel = CreateRectTransform(name, parent);
-        panel.anchorMin = new Vector2(0.5f, 0.5f);
-        panel.anchorMax = new Vector2(0.5f, 0.5f);
-        panel.pivot = new Vector2(0.5f, 0.5f);
-        panel.sizeDelta = size;
-
-        Image panelImage = panel.gameObject.AddComponent<Image>();
-        panelImage.color = PanelTint;
-
-        Shadow shadow = panel.gameObject.AddComponent<Shadow>();
-        shadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
-        shadow.effectDistance = new Vector2(0f, -10f);
-
-        TMP_Text titleText = CreateText("Title", panel, title, 34f, FontStyles.Bold, TextAlignmentOptions.TopLeft, TextPrimary);
-        titleText.rectTransform.anchorMin = new Vector2(0f, 1f);
-        titleText.rectTransform.anchorMax = new Vector2(1f, 1f);
-        titleText.rectTransform.pivot = new Vector2(0f, 1f);
-        titleText.rectTransform.offsetMin = new Vector2(32f, -60f);
-        titleText.rectTransform.offsetMax = new Vector2(-32f, -20f);
-
-        Image divider = CreateStretchImage("Divider", panel, new Color(1f, 1f, 1f, 0.08f));
-        RectTransform dividerRect = divider.rectTransform;
-        dividerRect.anchorMin = new Vector2(0f, 1f);
-        dividerRect.anchorMax = new Vector2(1f, 1f);
-        dividerRect.pivot = new Vector2(0.5f, 1f);
-        dividerRect.offsetMin = new Vector2(30f, -76f);
-        dividerRect.offsetMax = new Vector2(-30f, -74f);
-
-        return panel.gameObject;
-    }
-
-    RectTransform CreateContentRoot(Transform panelTransform)
-    {
-        RectTransform contentRoot = CreateRectTransform("Content", panelTransform);
-        contentRoot.anchorMin = new Vector2(0f, 0f);
-        contentRoot.anchorMax = new Vector2(1f, 1f);
-        contentRoot.offsetMin = new Vector2(30f, 28f);
-        contentRoot.offsetMax = new Vector2(-30f, -88f);
-
-        VerticalLayoutGroup layout = contentRoot.gameObject.AddComponent<VerticalLayoutGroup>();
-        layout.childAlignment = TextAnchor.UpperLeft;
-        layout.childControlWidth = true;
-        layout.childControlHeight = true;
-        layout.childForceExpandWidth = true;
-        layout.childForceExpandHeight = false;
-        layout.spacing = 18f;
-
-        return contentRoot;
-    }
-
-    RectTransform CreateRow(Transform parent, float height)
-    {
-        RectTransform row = CreateRectTransform("Row", parent);
-        LayoutElement layoutElement = row.gameObject.AddComponent<LayoutElement>();
-        layoutElement.preferredHeight = height;
-
-        HorizontalLayoutGroup layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
-        layout.childAlignment = TextAnchor.MiddleLeft;
-        layout.childControlWidth = true;
-        layout.childControlHeight = true;
-        layout.childForceExpandWidth = false;
-        layout.childForceExpandHeight = false;
-        layout.spacing = 18f;
-
-        return row;
-    }
-
-    void CreateSliderRow(Transform parent, string label, float minValue, float maxValue, float initialValue, UnityAction<float> onValueChanged, out Slider slider, out TMP_Text valueLabel)
-    {
-        RectTransform row = CreateRow(parent, 68f);
-        CreateLabel(row, label);
-
-        RectTransform sliderRoot = CreateRectTransform("SliderRoot", row);
-        LayoutElement sliderLayout = sliderRoot.gameObject.AddComponent<LayoutElement>();
-        sliderLayout.flexibleWidth = 1f;
-        sliderLayout.minWidth = 220f;
-
-        slider = CreateSlider(sliderRoot);
-        slider.minValue = minValue;
-        slider.maxValue = maxValue;
-        slider.value = initialValue;
-        slider.onValueChanged.AddListener(onValueChanged);
-
-        valueLabel = CreateText("Value", row, string.Empty, 22f, FontStyles.Bold, TextAlignmentOptions.Right, TextPrimary);
-        LayoutElement valueLayout = valueLabel.gameObject.AddComponent<LayoutElement>();
-        valueLayout.preferredWidth = 86f;
-        valueLayout.minWidth = 86f;
-    }
-
-    TMP_Text CreateLabel(Transform parent, string label)
-    {
-        TMP_Text text = CreateText(label + "Label", parent, label, 24f, FontStyles.Normal, TextAlignmentOptions.Left, TextPrimary);
-        LayoutElement layout = text.gameObject.AddComponent<LayoutElement>();
-        layout.preferredWidth = 180f;
-        layout.minWidth = 180f;
-        return text;
-    }
-
-    Slider CreateSlider(Transform parent)
-    {
-        RectTransform sliderRoot = CreateRectTransform("Slider", parent);
-        sliderRoot.sizeDelta = new Vector2(0f, 24f);
-
-        Slider slider = sliderRoot.gameObject.AddComponent<Slider>();
-        Image background = CreateStretchImage("Background", sliderRoot, SliderTrackColor);
-        background.rectTransform.offsetMin = new Vector2(0f, 4f);
-        background.rectTransform.offsetMax = new Vector2(0f, -4f);
-
-        RectTransform fillArea = CreateRectTransform("FillArea", sliderRoot);
-        fillArea.anchorMin = new Vector2(0f, 0f);
-        fillArea.anchorMax = new Vector2(1f, 1f);
-        fillArea.offsetMin = new Vector2(6f, 4f);
-        fillArea.offsetMax = new Vector2(-16f, -4f);
-
-        Image fill = CreateStretchImage("Fill", fillArea, SliderFillColor);
-        fill.rectTransform.offsetMin = Vector2.zero;
-        fill.rectTransform.offsetMax = Vector2.zero;
-
-        RectTransform handleSlideArea = CreateRectTransform("HandleSlideArea", sliderRoot);
-        handleSlideArea.anchorMin = new Vector2(0f, 0f);
-        handleSlideArea.anchorMax = new Vector2(1f, 1f);
-        handleSlideArea.offsetMin = new Vector2(10f, 0f);
-        handleSlideArea.offsetMax = new Vector2(-10f, 0f);
-
-        Image handle = CreateImage("Handle", handleSlideArea, TextPrimary);
-        RectTransform handleRect = handle.rectTransform;
-        handleRect.sizeDelta = new Vector2(18f, 32f);
-        handleRect.anchorMin = new Vector2(0.5f, 0.5f);
-        handleRect.anchorMax = new Vector2(0.5f, 0.5f);
-        handleRect.pivot = new Vector2(0.5f, 0.5f);
-
-        slider.targetGraphic = handle;
-        slider.fillRect = fill.rectTransform;
-        slider.handleRect = handleRect;
-        slider.direction = Slider.Direction.LeftToRight;
-        return slider;
-    }
-
-    Button CreateMainMenuButton(Transform parent, string label, UnityAction onClick, out TMP_Text labelText)
-    {
-        RectTransform buttonRect = CreateRectTransform(label + "Button", parent);
-        LayoutElement layoutElement = buttonRect.gameObject.AddComponent<LayoutElement>();
-        layoutElement.preferredHeight = 84f;
-
-        Button button = buttonRect.gameObject.AddComponent<Button>();
-        button.transition = Selectable.Transition.ColorTint;
-        button.onClick.AddListener(onClick);
-
-        labelText = CreateText("Label", buttonRect, label, 72f, FontStyles.Bold, TextAlignmentOptions.Left, MainButtonNormal);
-        labelText.enableAutoSizing = true;
-        labelText.fontSizeMin = 42f;
-        labelText.fontSizeMax = 72f;
-        labelText.raycastTarget = true;
-
-        RectTransform labelRect = labelText.rectTransform;
-        labelRect.anchorMin = new Vector2(0f, 0f);
-        labelRect.anchorMax = new Vector2(1f, 1f);
-        labelRect.offsetMin = Vector2.zero;
-        labelRect.offsetMax = Vector2.zero;
-
-        button.targetGraphic = labelText;
-
-        ColorBlock colors = button.colors;
-        colors.normalColor = MainButtonNormal;
-        colors.highlightedColor = MainButtonHover;
-        colors.pressedColor = MainButtonSelected;
-        colors.selectedColor = MainButtonSelected;
-        colors.disabledColor = new Color(1f, 1f, 1f, 0.35f);
-        colors.colorMultiplier = 1f;
-        colors.fadeDuration = 0.12f;
-        button.colors = colors;
-
-        return button;
-    }
-
-    Button CreatePanelButton(Transform parent, string label, UnityAction onClick, out TMP_Text labelText, Vector2 size)
-    {
-        RectTransform buttonRect = CreateRectTransform(label + "Button", parent);
-        LayoutElement layoutElement = buttonRect.gameObject.AddComponent<LayoutElement>();
-        layoutElement.preferredWidth = size.x;
-        layoutElement.preferredHeight = size.y;
-        layoutElement.minWidth = size.x;
-        layoutElement.minHeight = size.y;
-
-        Image image = buttonRect.gameObject.AddComponent<Image>();
-        image.color = PanelButtonColor;
-
-        Button button = buttonRect.gameObject.AddComponent<Button>();
-        button.targetGraphic = image;
-        button.onClick.AddListener(onClick);
-
-        ColorBlock colors = button.colors;
-        colors.normalColor = PanelButtonColor;
-        colors.highlightedColor = new Color(0.2f, 0.24f, 0.28f, 1f);
-        colors.pressedColor = new Color(0.12f, 0.15f, 0.18f, 1f);
-        colors.selectedColor = new Color(0.2f, 0.24f, 0.28f, 1f);
-        colors.disabledColor = new Color(0.1f, 0.1f, 0.1f, 0.5f);
-        colors.fadeDuration = 0.12f;
-        button.colors = colors;
-
-        labelText = CreateText("Label", buttonRect, label, 22f, FontStyles.Bold, TextAlignmentOptions.Center, TextPrimary);
-        RectTransform labelRect = labelText.rectTransform;
-        labelRect.anchorMin = new Vector2(0f, 0f);
-        labelRect.anchorMax = new Vector2(1f, 1f);
-        labelRect.offsetMin = Vector2.zero;
-        labelRect.offsetMax = Vector2.zero;
-        labelText.raycastTarget = false;
-
-        return button;
-    }
-
-    RectTransform CreateRectTransform(string name, Transform parent)
-    {
-        GameObject gameObject = new(name, typeof(RectTransform));
-        gameObject.transform.SetParent(parent, false);
-        return gameObject.GetComponent<RectTransform>();
-    }
-
-    Image CreateStretchImage(string name, Transform parent, Color color)
-    {
-        Image image = CreateImage(name, parent, color);
-        RectTransform rect = image.rectTransform;
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = Vector2.zero;
-        rect.offsetMax = Vector2.zero;
-        return image;
-    }
-
-    Image CreateImage(string name, Transform parent, Color color)
-    {
-        RectTransform rect = CreateRectTransform(name, parent);
-        Image image = rect.gameObject.AddComponent<Image>();
-        image.color = color;
-        return image;
-    }
-
-    TMP_Text CreateText(string name, Transform parent, string textValue, float fontSize, FontStyles fontStyle, TextAlignmentOptions alignment, Color color)
-    {
-        RectTransform rect = CreateRectTransform(name, parent);
-        TextMeshProUGUI text = rect.gameObject.AddComponent<TextMeshProUGUI>();
-        text.text = textValue;
-        text.font = menuFont;
-        text.fontSize = fontSize;
-        text.fontStyle = fontStyle;
-        text.alignment = alignment;
-        text.color = color;
-        text.raycastTarget = false;
-        return text;
-    }
-
-    TMP_FontAsset ResolveFont()
-    {
-        if (TMP_Settings.defaultFontAsset != null)
+        if (currentState != MenuState.Idle)
         {
-            return TMP_Settings.defaultFontAsset;
+            return;
         }
 
-        TMP_FontAsset fallback = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
-        return fallback != null ? fallback : TMP_Settings.defaultFontAsset;
+        if (isHovered)
+        {
+            hoveredButton = button;
+        }
+        else if (hoveredButton == button)
+        {
+            hoveredButton = null;
+        }
+
+        RefreshMainButtons();
+    }
+
+    void RefreshMainButtons(bool immediate = false)
+    {
+        foreach (MainButtonVisual visual in mainButtons.Values)
+        {
+            bool isLocked = visual.button == lockedButton;
+            bool isHovered = currentState == MenuState.Idle && visual.button == hoveredButton;
+            bool isDisabled = !visual.button.interactable && !isLocked;
+            float targetScale = isLocked || isHovered ? highlightScale : 1f;
+            Color targetColor = isDisabled
+                ? buttonDisabledColor
+                : isLocked
+                    ? buttonLockedColor
+                    : isHovered
+                        ? buttonHoverColor
+                        : buttonNormalColor;
+
+            ApplyMainButtonVisual(visual, targetScale, targetColor, immediate);
+        }
+    }
+
+    void ApplyMainButtonVisual(MainButtonVisual visual, float targetScale, Color targetColor, bool immediate)
+    {
+        if (visual.rect != null)
+        {
+            visual.rect.DOKill();
+            if (immediate)
+            {
+                visual.rect.localScale = Vector3.one * targetScale;
+            }
+            else
+            {
+                visual.rect
+                    .DOScale(targetScale, buttonTweenDuration)
+                    .SetEase(Ease.OutQuad)
+                    .SetUpdate(true);
+            }
+        }
+
+        if (visual.label != null)
+        {
+            visual.label.DOKill();
+            if (immediate)
+            {
+                visual.label.color = targetColor;
+            }
+            else
+            {
+                visual.label
+                    .DOColor(targetColor, buttonTweenDuration)
+                    .SetEase(Ease.OutQuad)
+                    .SetUpdate(true);
+            }
+        }
+    }
+
+    void SetMainButtonsInteractable(bool isInteractable)
+    {
+        SetButtonInteractable(playButton, isInteractable);
+        SetButtonInteractable(creditsButton, isInteractable);
+        SetButtonInteractable(optionsButton, isInteractable);
+        SetButtonInteractable(quitButton, isInteractable);
+    }
+
+    void SetState(MenuState nextState, Button highlightedButton)
+    {
+        currentState = nextState;
+        lockedButton = highlightedButton;
+        hoveredButton = null;
+        SetMainButtonsInteractable(nextState == MenuState.Idle);
+        RefreshMainButtons();
+    }
+
+    void OpenOptionsPanel()
+    {
+        if (currentState != MenuState.Idle)
+        {
+            return;
+        }
+
+        SetState(MenuState.OptionsOpen, optionsButton);
+        ShowPanel(optionsPanel, optionsPanelCanvasGroup, optionsShownPosition, optionsHiddenPosition);
+    }
+
+    void OpenCreditsPanel()
+    {
+        if (currentState != MenuState.Idle)
+        {
+            return;
+        }
+
+        SetState(MenuState.CreditsOpen, creditsButton);
+        ShowPanel(creditsPanel, creditsPanelCanvasGroup, creditsShownPosition, creditsHiddenPosition);
+    }
+
+    void CloseOptionsPanel()
+    {
+        if (currentState != MenuState.OptionsOpen)
+        {
+            return;
+        }
+
+        HidePanel(optionsPanel, optionsPanelCanvasGroup, optionsShownPosition, optionsHiddenPosition, () =>
+        {
+            SetState(MenuState.Idle, null);
+            StartCoroutine(SelectButtonNextFrame(optionsButton));
+        });
+    }
+
+    void CloseCreditsPanel()
+    {
+        if (currentState != MenuState.CreditsOpen)
+        {
+            return;
+        }
+
+        HidePanel(creditsPanel, creditsPanelCanvasGroup, creditsShownPosition, creditsHiddenPosition, () =>
+        {
+            SetState(MenuState.Idle, null);
+            StartCoroutine(SelectButtonNextFrame(creditsButton));
+        });
     }
 
     void OnPlayPressed()
     {
-        if (isLoadingScene)
+        if (currentState != MenuState.Idle || LoadingManager.IsLoading)
         {
             return;
         }
 
-        isLoadingScene = true;
-        playButton.interactable = false;
-        playButtonLabel.text = "LOADING...";
         MenuSettingsService.Save(currentSettings);
-        SceneManager.LoadScene(GameplaySceneName);
+        SetState(MenuState.Loading, playButton);
+
+        if (!LoadingManager.LoadScene(gameplaySceneName))
+        {
+            SetState(MenuState.Idle, null);
+            StartCoroutine(SelectButtonNextFrame(playButton));
+        }
+    }
+
+    void OnQualityDecreasePressed()
+    {
+        ShiftQuality(-1);
+    }
+
+    void OnQualityIncreasePressed()
+    {
+        ShiftQuality(1);
     }
 
     void OnVolumeChanged(float value)
@@ -598,41 +457,6 @@ public class MainMenuController : MonoBehaviour
         currentSettings.qualityPreset = (currentSettings.qualityPreset + direction + qualityCount) % qualityCount;
         MenuSettingsService.Save(currentSettings);
         RefreshSettingsUi();
-    }
-
-    void OpenOptionsPanel()
-    {
-        lastMenuButton = optionsButton;
-        SetActivePanel(optionsPanel);
-    }
-
-    void OpenCreditsPanel()
-    {
-        lastMenuButton = creditsButton;
-        SetActivePanel(creditsPanel);
-    }
-
-    void OpenQuitPanel()
-    {
-        lastMenuButton = quitButton;
-        SetActivePanel(quitPanel);
-    }
-
-    void ClosePanels()
-    {
-        modalOverlay.SetActive(false);
-        optionsPanel.SetActive(false);
-        creditsPanel.SetActive(false);
-        quitPanel.SetActive(false);
-        StartCoroutine(SelectButtonNextFrame(lastMenuButton == null ? playButton : lastMenuButton));
-    }
-
-    void SetActivePanel(GameObject activePanel)
-    {
-        modalOverlay.SetActive(true);
-        optionsPanel.SetActive(activePanel == optionsPanel);
-        creditsPanel.SetActive(activePanel == creditsPanel);
-        quitPanel.SetActive(activePanel == quitPanel);
     }
 
     void RefreshSettingsUi()
@@ -668,42 +492,152 @@ public class MainMenuController : MonoBehaviour
         }
     }
 
-    IEnumerator FadeInRoutine()
+    void ConfigurePanel(RectTransform panel, CanvasGroup canvasGroup, out Vector2 shownPosition, out Vector2 hiddenPosition)
     {
-        const float duration = 0.6f;
-        float elapsed = 0f;
+        shownPosition = Vector2.zero;
+        hiddenPosition = Vector2.zero;
 
-        while (elapsed < duration)
+        if (panel == null)
         {
-            elapsed += Time.unscaledDeltaTime;
-            float t = Mathf.Clamp01(elapsed / duration);
-            uiCanvasGroup.alpha = t;
-
-            if (fadeOverlay != null)
-            {
-                Color color = fadeOverlay.color;
-                color.a = 1f - t;
-                fadeOverlay.color = color;
-            }
-
-            yield return null;
+            return;
         }
 
-        uiCanvasGroup.alpha = 1f;
-        if (fadeOverlay != null)
+        panel.anchorMin = new Vector2(1f, 0.5f);
+        panel.anchorMax = new Vector2(1f, 0.5f);
+        panel.pivot = new Vector2(1f, 0.5f);
+
+        float width = panel.rect.width > 0f ? panel.rect.width : panel.sizeDelta.x;
+        shownPosition = new Vector2(-panelRightInset, 0f);
+        hiddenPosition = shownPosition + Vector2.right * (width + panelSlidePadding);
+
+        if (canvasGroup != null)
         {
-            fadeOverlay.gameObject.SetActive(false);
+            canvasGroup.alpha = 0f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+        }
+
+        panel.anchoredPosition = hiddenPosition;
+        panel.gameObject.SetActive(false);
+    }
+
+    void ShowPanel(RectTransform panel, CanvasGroup canvasGroup, Vector2 shownPosition, Vector2 hiddenPosition)
+    {
+        if (panel == null)
+        {
+            return;
+        }
+
+        KillPanelTween();
+
+        panel.gameObject.SetActive(true);
+        panel.anchoredPosition = hiddenPosition;
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = true;
+        }
+
+        Sequence sequence = DOTween.Sequence().SetUpdate(true);
+        sequence.Join(panel.DOAnchorPos(shownPosition, panelTweenDuration).SetEase(Ease.OutQuint));
+
+        if (canvasGroup != null)
+        {
+            sequence.Join(canvasGroup.DOFade(1f, panelTweenDuration).SetEase(Ease.OutCubic));
+        }
+
+        sequence.OnComplete(() =>
+        {
+            if (canvasGroup != null)
+            {
+                canvasGroup.interactable = true;
+                canvasGroup.blocksRaycasts = true;
+            }
+
+            activePanelTween = null;
+        });
+
+        activePanelTween = sequence;
+    }
+
+    void HidePanel(RectTransform panel, CanvasGroup canvasGroup, Vector2 shownPosition, Vector2 hiddenPosition, Action onComplete)
+    {
+        if (panel == null)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        KillPanelTween();
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = true;
+        }
+
+        Sequence sequence = DOTween.Sequence().SetUpdate(true);
+        sequence.Join(panel.DOAnchorPos(hiddenPosition, panelTweenDuration).SetEase(Ease.InCubic));
+
+        if (canvasGroup != null)
+        {
+            sequence.Join(canvasGroup.DOFade(0f, panelTweenDuration).SetEase(Ease.InCubic));
+        }
+
+        sequence.OnComplete(() =>
+        {
+            HidePanelImmediate(panel, canvasGroup, hiddenPosition);
+            activePanelTween = null;
+            onComplete?.Invoke();
+        });
+
+        activePanelTween = sequence;
+    }
+
+    void HidePanelImmediate(RectTransform panel, CanvasGroup canvasGroup, Vector2 hiddenPosition)
+    {
+        if (panel == null)
+        {
+            return;
+        }
+
+        panel.DOKill();
+        panel.anchoredPosition = hiddenPosition;
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.DOKill();
+            canvasGroup.alpha = 0f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+        }
+
+        panel.gameObject.SetActive(false);
+    }
+
+    void KillTweens()
+    {
+        introTween?.Kill();
+        introTween = null;
+        KillPanelTween();
+
+        foreach (MainButtonVisual visual in mainButtons.Values)
+        {
+            visual.rect?.DOKill();
+            visual.label?.DOKill();
         }
     }
 
-    IEnumerator SelectButtonNextFrame(Button button)
+    void KillPanelTween()
     {
-        yield return null;
-
-        if (button != null && EventSystem.current != null)
-        {
-            EventSystem.current.SetSelectedGameObject(button.gameObject);
-        }
+        activePanelTween?.Kill();
+        activePanelTween = null;
+        optionsPanel?.DOKill();
+        optionsPanelCanvasGroup?.DOKill();
+        creditsPanel?.DOKill();
+        creditsPanelCanvasGroup?.DOKill();
     }
 
     void UnlockCursor()
@@ -719,5 +653,168 @@ public class MainMenuController : MonoBehaviour
 #else
         Application.Quit();
 #endif
+    }
+
+    IEnumerator SelectButtonNextFrame(Button button)
+    {
+        yield return null;
+
+        if (button == null || EventSystem.current == null)
+        {
+            yield break;
+        }
+
+        EventSystem.current.SetSelectedGameObject(button.gameObject);
+    }
+
+    static TMP_Text ResolveLabel(Button button, TMP_Text currentLabel)
+    {
+        if (currentLabel != null)
+        {
+            return currentLabel;
+        }
+
+        if (button == null)
+        {
+            return null;
+        }
+
+        if (button.targetGraphic is TMP_Text targetLabel)
+        {
+            return targetLabel;
+        }
+
+        return button.GetComponentInChildren<TMP_Text>(true);
+    }
+
+    Button FindButton(string name)
+    {
+        if (uiCanvasGroup == null)
+        {
+            return null;
+        }
+
+        Button[] buttons = uiCanvasGroup.GetComponentsInChildren<Button>(true);
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            if (buttons[i].name == name)
+            {
+                return buttons[i];
+            }
+        }
+
+        return null;
+    }
+
+    static T FindInPanel<T>(RectTransform panel, string name) where T : Component
+    {
+        if (panel == null)
+        {
+            return null;
+        }
+
+        T[] results = panel.GetComponentsInChildren<T>(true);
+        for (int i = 0; i < results.Length; i++)
+        {
+            if (results[i].name == name)
+            {
+                return results[i];
+            }
+        }
+
+        return null;
+    }
+
+    static TMP_Text FindNextValueText(RectTransform panel, TMP_Text current)
+    {
+        if (panel == null)
+        {
+            return null;
+        }
+
+        TMP_Text[] values = panel.GetComponentsInChildren<TMP_Text>(true);
+        for (int i = 0; i < values.Length; i++)
+        {
+            if (values[i].name != "Value")
+            {
+                continue;
+            }
+
+            if (values[i] != current)
+            {
+                return values[i];
+            }
+        }
+
+        return current;
+    }
+
+    static void BindButton(Button button, UnityAction callback)
+    {
+        if (button != null)
+        {
+            button.onClick.AddListener(callback);
+        }
+    }
+
+    static void UnbindButton(Button button, UnityAction callback)
+    {
+        if (button != null)
+        {
+            button.onClick.RemoveListener(callback);
+        }
+    }
+
+    static void BindSlider(Slider slider, UnityAction<float> callback)
+    {
+        if (slider != null)
+        {
+            slider.onValueChanged.AddListener(callback);
+        }
+    }
+
+    static void UnbindSlider(Slider slider, UnityAction<float> callback)
+    {
+        if (slider != null)
+        {
+            slider.onValueChanged.RemoveListener(callback);
+        }
+    }
+
+    static void SetButtonInteractable(Button button, bool isInteractable)
+    {
+        if (button != null)
+        {
+            button.interactable = isInteractable;
+        }
+    }
+
+    sealed class MainButtonVisual
+    {
+        public Button button;
+        public TMP_Text label;
+        public RectTransform rect;
+    }
+}
+
+sealed class MainMenuButtonHoverRelay : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+{
+    Button targetButton;
+    Action<Button, bool> callback;
+
+    public void Initialize(Button button, Action<Button, bool> onHoverChanged)
+    {
+        targetButton = button;
+        callback = onHoverChanged;
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        callback?.Invoke(targetButton, true);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        callback?.Invoke(targetButton, false);
     }
 }
