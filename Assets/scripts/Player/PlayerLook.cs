@@ -62,7 +62,7 @@ public class PlayerLook : MonoBehaviour
         Vector2 rawFrameVelocity = Vector2.Scale(mouseDelta, Vector2.one * sensitivity);
         frameVelocity = Vector2.Lerp(frameVelocity, rawFrameVelocity, 1f / smoothing);
         velocity += frameVelocity;
-        velocity.y = Mathf.Clamp(velocity.y, -75f, 90f);
+        velocity.y = Mathf.Clamp(velocity.y, -60f, 90f);
 
         transform.localRotation = Quaternion.AngleAxis(-velocity.y, Vector3.right);
         character.localRotation = Quaternion.AngleAxis(velocity.x, Vector3.up);

@@ -12,6 +12,7 @@ public class PlayerMovement : MonoBehaviour
     public float runSpeed = 9f;
     public KeyCode runningKey = KeyCode.LeftShift;
     public bool IsRunning { get; private set; }
+    public bool IsCutscenePlaying => isCutscenePlaying;
 
     [Header("Animation States")]
     [SerializeField] private string idleStateName = "Idle";
@@ -27,9 +28,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Collider cutsceneTrigger;
     [SerializeField] private Camera cameraMain;
     [SerializeField] private Camera cameraForCutscene;
-    [SerializeField] private string cutsceneStateName = "Crouch_Cutscene";
+    [SerializeField] private string cutsceneStateName = "Fishing";
+    [SerializeField] private string cutsceneLayerName = "HandAnim";
     [SerializeField] private float cutsceneTransitionDuration = 0.1f;
-    [SerializeField] private bool useCutsceneRootMotion = true;
+    [SerializeField] private bool useCutsceneRootMotion = false;
     [SerializeField] private bool disableCutsceneTriggerAfterUse = true;
     [SerializeField] private Behaviour[] controlsToDisableDuringCutscene;
 
@@ -51,6 +53,7 @@ public class PlayerMovement : MonoBehaviour
     private int walkingLeftHash;
     private int runningHash;
     private int cutsceneHash;
+    private int cutsceneLayerIndex;
 
     private bool isCutscenePlaying;
 
@@ -273,7 +276,12 @@ public class PlayerMovement : MonoBehaviour
             SetCameraState(cameraForCutscene, true);
         }
 
-        PlayAnimation(cutsceneHash, cutsceneTransitionDuration);
+        if (animator != null && cutsceneLayerIndex > 0)
+        {
+            animator.SetLayerWeight(cutsceneLayerIndex, 1f);
+        }
+
+        PlayCutsceneAnimation();
 
         yield return null;
 
@@ -288,8 +296,8 @@ public class PlayerMovement : MonoBehaviour
         {
             if (animator != null)
             {
-                AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-                if (!animator.IsInTransition(0) &&
+                AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(cutsceneLayerIndex);
+                if (!animator.IsInTransition(cutsceneLayerIndex) &&
                     stateInfo.shortNameHash == cutsceneHash &&
                     stateInfo.normalizedTime >= 1f)
                 {
@@ -437,6 +445,18 @@ public class PlayerMovement : MonoBehaviour
         walkingLeftHash = GetStateHash(walkingLeftStateName);
         runningHash = GetStateHash(runningStateName);
         cutsceneHash = GetStateHash(cutsceneStateName);
+
+        if (animator == null || string.IsNullOrWhiteSpace(cutsceneLayerName))
+        {
+            cutsceneLayerIndex = 0;
+            return;
+        }
+
+        cutsceneLayerIndex = animator.GetLayerIndex(cutsceneLayerName);
+        if (cutsceneLayerIndex < 0)
+        {
+            cutsceneLayerIndex = 0;
+        }
     }
 
     private int GetStateHash(string stateName)
@@ -447,5 +467,15 @@ public class PlayerMovement : MonoBehaviour
         }
 
         return Animator.StringToHash(stateName);
+    }
+
+    private void PlayCutsceneAnimation()
+    {
+        if (animator == null || cutsceneHash == 0)
+        {
+            return;
+        }
+
+        animator.CrossFadeInFixedTime(cutsceneHash, cutsceneTransitionDuration, cutsceneLayerIndex);
     }
 }
