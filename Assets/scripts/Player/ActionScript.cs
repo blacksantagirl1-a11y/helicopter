@@ -4,13 +4,18 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class ActionScript : MonoBehaviour
 {
+    private const int HandStateUnequipped = 0;
+    private const int HandStateEquipped = 1;
+    private const int HandStateAttack = 2;
+    private const int HandStateFishing = 3;
+
     [Header("Hand Layer")]
     [SerializeField] private string handLayerName = "HandAnim";
     [SerializeField] private float handLayerWeight = 1f;
+    [SerializeField] private string handStateParameterName = "HandState";
     [SerializeField] private string equipWeaponStateName = "EquipWeapon";
     [SerializeField] private string unequipWeaponStateName = "UnequipWeapon";
     [SerializeField] private string attackStateName = "Attack";
-    [SerializeField] private float handTransitionDuration = 0.1f;
 
     [Header("Input")]
     [SerializeField] private KeyCode toggleWeaponKey = KeyCode.F;
@@ -24,14 +29,16 @@ public class ActionScript : MonoBehaviour
     private PlayerMovement playerMovement;
     private Coroutine handActionRoutine;
     private GameObject spawnedAxe;
-
     private int handLayerIndex = -1;
-    private int equipWeaponHash;
-    private int unequipWeaponHash;
-    private int attackHash;
-
+    private int handStateParameterHash;
+    private int currentHandState = HandStateUnequipped;
+    private string equipWeaponStatePath = string.Empty;
+    private string unequipWeaponStatePath = string.Empty;
+    private string attackStatePath = string.Empty;
     private bool isWeaponEquipped;
     private bool isHandActionLocked;
+
+    public bool IsWeaponEquipped => isWeaponEquipped;
 
     private void Reset()
     {
@@ -53,13 +60,7 @@ public class ActionScript : MonoBehaviour
 
     private void Start()
     {
-        if (animator == null || handLayerIndex < 0)
-        {
-            return;
-        }
-
-        animator.SetLayerWeight(handLayerIndex, handLayerWeight);
-        SnapToHandState(unequipWeaponHash);
+        RefreshAnimatorState();
         SetWeaponVisible(false);
     }
 
@@ -89,15 +90,28 @@ public class ActionScript : MonoBehaviour
         }
     }
 
+    public void RefreshAnimatorState()
+    {
+        ApplyHandState(isWeaponEquipped ? HandStateEquipped : HandStateUnequipped, true);
+        if (!isWeaponEquipped && hideWeaponWhenUnequipped)
+        {
+            SetWeaponVisible(false);
+        }
+    }
+
+    public void PlayFishingState()
+    {
+        ApplyHandState(HandStateFishing, true);
+    }
+
     private IEnumerator PlayEquipSequence()
     {
         isHandActionLocked = true;
         isWeaponEquipped = true;
-
         SetWeaponVisible(true);
-        PlayHandState(equipWeaponHash, handTransitionDuration);
+        ApplyHandState(HandStateEquipped, false);
 
-        yield return WaitForHandAnimation(equipWeaponHash, equipWeaponStateName);
+        yield return WaitForHandAnimation(equipWeaponStatePath, equipWeaponStateName);
 
         isHandActionLocked = false;
         handActionRoutine = null;
@@ -107,17 +121,15 @@ public class ActionScript : MonoBehaviour
     {
         isHandActionLocked = true;
         isWeaponEquipped = false;
+        ApplyHandState(HandStateUnequipped, false);
 
-        PlayHandState(unequipWeaponHash, handTransitionDuration);
-
-        yield return WaitForHandAnimation(unequipWeaponHash, unequipWeaponStateName);
+        yield return WaitForHandAnimation(unequipWeaponStatePath, unequipWeaponStateName);
 
         if (hideWeaponWhenUnequipped)
         {
             SetWeaponVisible(false);
         }
 
-        SnapToHandState(unequipWeaponHash);
         isHandActionLocked = false;
         handActionRoutine = null;
     }
@@ -125,22 +137,26 @@ public class ActionScript : MonoBehaviour
     private IEnumerator PlayAttackSequence()
     {
         isHandActionLocked = true;
+        ApplyHandState(HandStateAttack, true);
 
-        PlayHandState(attackHash, handTransitionDuration);
-
-        yield return WaitForHandAnimation(attackHash, attackStateName);
+        yield return WaitForHandAnimation(attackStatePath, attackStateName);
 
         if (isWeaponEquipped)
         {
-            SnapToHandState(equipWeaponHash);
+            ApplyHandState(HandStateEquipped, true);
         }
 
         isHandActionLocked = false;
         handActionRoutine = null;
     }
 
-    private IEnumerator WaitForHandAnimation(int stateHash, string clipName)
+    private IEnumerator WaitForHandAnimation(string statePath, string clipName)
     {
+        if (animator == null || handLayerIndex < 0 || string.IsNullOrWhiteSpace(statePath))
+        {
+            yield break;
+        }
+
         yield return null;
 
         float waitTimeout = GetClipLength(clipName) + 0.25f;
@@ -154,7 +170,7 @@ public class ActionScript : MonoBehaviour
         {
             AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(handLayerIndex);
             if (!animator.IsInTransition(handLayerIndex) &&
-                stateInfo.shortNameHash == stateHash &&
+                stateInfo.IsName(statePath) &&
                 stateInfo.normalizedTime >= 1f)
             {
                 yield break;
@@ -165,26 +181,21 @@ public class ActionScript : MonoBehaviour
         }
     }
 
-    private void PlayHandState(int stateHash, float transitionDuration)
+    private void ApplyHandState(int handState, bool force)
     {
-        if (animator == null || handLayerIndex < 0 || stateHash == 0)
+        if (animator == null || handLayerIndex < 0 || handStateParameterHash == 0)
+        {
+            return;
+        }
+
+        if (!force && currentHandState == handState)
         {
             return;
         }
 
         animator.SetLayerWeight(handLayerIndex, handLayerWeight);
-        animator.CrossFadeInFixedTime(stateHash, transitionDuration, handLayerIndex);
-    }
-
-    private void SnapToHandState(int stateHash)
-    {
-        if (animator == null || handLayerIndex < 0 || stateHash == 0)
-        {
-            return;
-        }
-
-        animator.SetLayerWeight(handLayerIndex, handLayerWeight);
-        animator.Play(stateHash, handLayerIndex, 1f);
+        animator.SetInteger(handStateParameterHash, handState);
+        currentHandState = handState;
     }
 
     private void SetWeaponVisible(bool isVisible)
@@ -254,26 +265,36 @@ public class ActionScript : MonoBehaviour
 
     private void CacheAnimatorData()
     {
-        equipWeaponHash = GetStateHash(equipWeaponStateName);
-        unequipWeaponHash = GetStateHash(unequipWeaponStateName);
-        attackHash = GetStateHash(attackStateName);
-
         if (animator == null || string.IsNullOrWhiteSpace(handLayerName))
         {
             handLayerIndex = -1;
+            handStateParameterHash = 0;
             return;
         }
 
         handLayerIndex = animator.GetLayerIndex(handLayerName);
-    }
-
-    private int GetStateHash(string stateName)
-    {
-        if (string.IsNullOrWhiteSpace(stateName))
+        if (handLayerIndex < 0)
         {
-            return 0;
+            handStateParameterHash = 0;
+            return;
         }
 
-        return Animator.StringToHash(stateName);
+        handStateParameterHash = string.IsNullOrWhiteSpace(handStateParameterName)
+            ? 0
+            : Animator.StringToHash(handStateParameterName);
+
+        equipWeaponStatePath = GetStatePath(equipWeaponStateName);
+        unequipWeaponStatePath = GetStatePath(unequipWeaponStateName);
+        attackStatePath = GetStatePath(attackStateName);
+    }
+
+    private string GetStatePath(string stateName)
+    {
+        if (handLayerIndex < 0 || string.IsNullOrWhiteSpace(stateName))
+        {
+            return string.Empty;
+        }
+
+        return handLayerName + "." + stateName;
     }
 }

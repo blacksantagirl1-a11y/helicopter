@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    private const int MoveStateIdle = 0;
+    private const int MoveStateForward = 1;
+    private const int MoveStateRight = 2;
+    private const int MoveStateBackward = 3;
+    private const int MoveStateLeft = 4;
+    private const int MoveStateRunning = 5;
+
     [Header("Movement")]
     public float speed = 5f;
 
@@ -14,14 +21,8 @@ public class PlayerMovement : MonoBehaviour
     public bool IsRunning { get; private set; }
     public bool IsCutscenePlaying => isCutscenePlaying;
 
-    [Header("Animation States")]
-    [SerializeField] private string idleStateName = "Idle";
-    [SerializeField] private string walkingForwardStateName = "WalkingForward";
-    [SerializeField] private string walkingRightStateName = "WalkingRight";
-    [SerializeField] private string walkingBackwardStateName = "WalkingBackWard";
-    [SerializeField] private string walkingLeftStateName = "WalkingLeft";
-    [SerializeField] private string runningStateName = "Running";
-    [SerializeField] private float movementTransitionDuration = 0.1f;
+    [Header("Animation Parameters")]
+    [SerializeField] private string moveStateParameterName = "MoveState";
 
     [Header("Cutscene Trigger")]
     [SerializeField] private bool useAnyTriggerWhenCutsceneTriggerIsEmpty = true;
@@ -39,46 +40,57 @@ public class PlayerMovement : MonoBehaviour
 
     private Animator animator;
     private Rigidbody rigidbodyComponent;
+    private ActionScript actionScript;
     private RigidbodyConstraints originalConstraints;
     private bool originalRigidbodyIsKinematic;
     private bool originalAnimatorApplyRootMotion;
     private Collider currentCutsceneTrigger;
     private Coroutine cutsceneRoutine;
-    private int currentAnimationHash;
-
-    private int idleHash;
-    private int walkingForwardHash;
-    private int walkingRightHash;
-    private int walkingBackwardHash;
-    private int walkingLeftHash;
-    private int runningHash;
-    private int cutsceneHash;
+    private int moveStateParameterHash;
+    private int currentMoveState = MoveStateIdle;
     private int cutsceneLayerIndex;
-
     private bool isCutscenePlaying;
 
     private void Reset()
     {
         TryAutoAssignReferences();
-        CacheAnimationHashes();
+        CacheAnimatorData();
     }
 
     private void Awake()
     {
         animator = GetComponent<Animator>();
         rigidbodyComponent = GetComponent<Rigidbody>();
+        actionScript = GetComponent<ActionScript>();
         originalConstraints = rigidbodyComponent != null
             ? rigidbodyComponent.constraints
             : RigidbodyConstraints.None;
 
         TryAutoAssignReferences();
-        CacheAnimationHashes();
+        CacheAnimatorData();
+    }
+
+    private void Start()
+    {
+        if (animator == null)
+        {
+            return;
+        }
+
+        animator.applyRootMotion = false;
+        animator.SetLayerWeight(0, 1f);
+        ApplyMoveState(MoveStateIdle, true);
+
+        if (actionScript != null)
+        {
+            actionScript.RefreshAnimatorState();
+        }
     }
 
     private void OnValidate()
     {
         TryAutoAssignReferences();
-        CacheAnimationHashes();
+        CacheAnimatorData();
     }
 
     private void FixedUpdate()
@@ -184,30 +196,29 @@ public class PlayerMovement : MonoBehaviour
         bool backwardPressed = Input.GetKey(KeyCode.S);
         bool leftPressed = Input.GetKey(KeyCode.A);
 
-        int nextAnimationHash = idleHash;
-
+        int nextMoveState = MoveStateIdle;
         if (canRun && (forwardPressed || rightPressed || backwardPressed || leftPressed) && Input.GetKey(runningKey))
         {
-            nextAnimationHash = runningHash;
+            nextMoveState = MoveStateRunning;
         }
         else if (forwardPressed && !backwardPressed)
         {
-            nextAnimationHash = walkingForwardHash;
+            nextMoveState = MoveStateForward;
         }
         else if (backwardPressed && !forwardPressed)
         {
-            nextAnimationHash = walkingBackwardHash;
+            nextMoveState = MoveStateBackward;
         }
         else if (rightPressed && !leftPressed)
         {
-            nextAnimationHash = walkingRightHash;
+            nextMoveState = MoveStateRight;
         }
         else if (leftPressed && !rightPressed)
         {
-            nextAnimationHash = walkingLeftHash;
+            nextMoveState = MoveStateLeft;
         }
 
-        PlayAnimation(nextAnimationHash, movementTransitionDuration);
+        ApplyMoveState(nextMoveState, false);
     }
 
     private bool HasMovementInput()
@@ -218,15 +229,20 @@ public class PlayerMovement : MonoBehaviour
                Input.GetKey(KeyCode.D);
     }
 
-    private void PlayAnimation(int stateHash, float transitionDuration)
+    private void ApplyMoveState(int moveState, bool force)
     {
-        if (animator == null || stateHash == 0 || currentAnimationHash == stateHash)
+        if (animator == null || moveStateParameterHash == 0)
         {
             return;
         }
 
-        animator.CrossFadeInFixedTime(stateHash, transitionDuration, 0);
-        currentAnimationHash = stateHash;
+        if (!force && currentMoveState == moveState)
+        {
+            return;
+        }
+
+        animator.SetInteger(moveStateParameterHash, moveState);
+        currentMoveState = moveState;
     }
 
     private void OnAnimatorMove()
@@ -250,6 +266,7 @@ public class PlayerMovement : MonoBehaviour
     {
         isCutscenePlaying = true;
         IsRunning = false;
+        ApplyMoveState(MoveStateIdle, true);
 
         if (animator != null)
         {
@@ -285,6 +302,7 @@ public class PlayerMovement : MonoBehaviour
 
         yield return null;
 
+        string cutsceneStatePath = GetCutsceneStatePath();
         float waitTimeout = GetClipLength(cutsceneStateName) + 0.25f;
         if (waitTimeout <= 0.25f)
         {
@@ -298,7 +316,7 @@ public class PlayerMovement : MonoBehaviour
             {
                 AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(cutsceneLayerIndex);
                 if (!animator.IsInTransition(cutsceneLayerIndex) &&
-                    stateInfo.shortNameHash == cutsceneHash &&
+                    stateInfo.IsName(cutsceneStatePath) &&
                     stateInfo.normalizedTime >= 1f)
                 {
                     break;
@@ -337,8 +355,13 @@ public class PlayerMovement : MonoBehaviour
 
         isCutscenePlaying = false;
         currentCutsceneTrigger = null;
-        currentAnimationHash = 0;
-        PlayAnimation(idleHash, movementTransitionDuration);
+
+        if (actionScript != null)
+        {
+            actionScript.RefreshAnimatorState();
+        }
+
+        ApplyMoveState(MoveStateIdle, true);
         cutsceneRoutine = null;
     }
 
@@ -409,6 +432,11 @@ public class PlayerMovement : MonoBehaviour
             rigidbodyComponent = GetComponent<Rigidbody>();
         }
 
+        if (actionScript == null)
+        {
+            actionScript = GetComponent<ActionScript>();
+        }
+
         if (cameraMain == null)
         {
             Camera taggedMainCamera = Camera.main;
@@ -436,15 +464,11 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private void CacheAnimationHashes()
+    private void CacheAnimatorData()
     {
-        idleHash = GetStateHash(idleStateName);
-        walkingForwardHash = GetStateHash(walkingForwardStateName);
-        walkingRightHash = GetStateHash(walkingRightStateName);
-        walkingBackwardHash = GetStateHash(walkingBackwardStateName);
-        walkingLeftHash = GetStateHash(walkingLeftStateName);
-        runningHash = GetStateHash(runningStateName);
-        cutsceneHash = GetStateHash(cutsceneStateName);
+        moveStateParameterHash = string.IsNullOrWhiteSpace(moveStateParameterName)
+            ? 0
+            : Animator.StringToHash(moveStateParameterName);
 
         if (animator == null || string.IsNullOrWhiteSpace(cutsceneLayerName))
         {
@@ -459,23 +483,46 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private int GetStateHash(string stateName)
-    {
-        if (string.IsNullOrWhiteSpace(stateName))
-        {
-            return 0;
-        }
-
-        return Animator.StringToHash(stateName);
-    }
-
     private void PlayCutsceneAnimation()
     {
-        if (animator == null || cutsceneHash == 0)
+        if (actionScript != null &&
+            string.Equals(cutsceneStateName, "Fishing", System.StringComparison.Ordinal))
+        {
+            actionScript.PlayFishingState();
+            return;
+        }
+
+        if (animator == null)
         {
             return;
         }
 
-        animator.CrossFadeInFixedTime(cutsceneHash, cutsceneTransitionDuration, cutsceneLayerIndex);
+        string cutsceneStatePath = GetCutsceneStatePath();
+        if (string.IsNullOrWhiteSpace(cutsceneStatePath))
+        {
+            return;
+        }
+
+        animator.CrossFadeInFixedTime(cutsceneStatePath, cutsceneTransitionDuration, cutsceneLayerIndex);
+    }
+
+    private string GetCutsceneStatePath()
+    {
+        if (string.IsNullOrWhiteSpace(cutsceneStateName))
+        {
+            return string.Empty;
+        }
+
+        return GetLayerNameForIndex(cutsceneLayerIndex) + "." + cutsceneStateName;
+    }
+
+    private string GetLayerNameForIndex(int layerIndex)
+    {
+        if (animator == null || layerIndex < 0 || layerIndex >= animator.layerCount)
+        {
+            return "Base Layer";
+        }
+
+        return animator.GetLayerName(layerIndex);
     }
 }
