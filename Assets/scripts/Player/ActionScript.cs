@@ -4,6 +4,7 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class ActionScript : MonoBehaviour
 {
+    private const int HandStateHolding = -1;
     private const int HandStateUnequipped = 0;
     private const int HandStateEquipped = 1;
     private const int HandStateAttack = 2;
@@ -16,6 +17,7 @@ public class ActionScript : MonoBehaviour
     [SerializeField] private string equipWeaponStateName = "EquipWeapon";
     [SerializeField] private string unequipWeaponStateName = "UnequipWeapon";
     [SerializeField] private string attackStateName = "Attack";
+    [SerializeField] private string holdWeaponStateName = "HoldItem";
 
     [Header("Input")]
     [SerializeField] private KeyCode toggleWeaponKey = KeyCode.F;
@@ -35,10 +37,12 @@ public class ActionScript : MonoBehaviour
     private string equipWeaponStatePath = string.Empty;
     private string unequipWeaponStatePath = string.Empty;
     private string attackStatePath = string.Empty;
+    private string holdWeaponStatePath = string.Empty;
     private bool isWeaponEquipped;
     private bool isHandActionLocked;
 
     public bool IsWeaponEquipped => isWeaponEquipped;
+    public event System.Action AttackPerformed;
 
     private void Reset()
     {
@@ -92,7 +96,14 @@ public class ActionScript : MonoBehaviour
 
     public void RefreshAnimatorState()
     {
-        ApplyHandState(isWeaponEquipped ? HandStateEquipped : HandStateUnequipped, true);
+        if (isWeaponEquipped)
+        {
+            SetWeaponVisible(true);
+            EnterHoldState();
+            return;
+        }
+
+        ApplyHandState(HandStateUnequipped, true);
         if (!isWeaponEquipped && hideWeaponWhenUnequipped)
         {
             SetWeaponVisible(false);
@@ -112,6 +123,11 @@ public class ActionScript : MonoBehaviour
         ApplyHandState(HandStateEquipped, false);
 
         yield return WaitForHandAnimation(equipWeaponStatePath, equipWeaponStateName);
+
+        if (isWeaponEquipped)
+        {
+            EnterHoldState();
+        }
 
         isHandActionLocked = false;
         handActionRoutine = null;
@@ -138,12 +154,13 @@ public class ActionScript : MonoBehaviour
     {
         isHandActionLocked = true;
         ApplyHandState(HandStateAttack, true);
+        AttackPerformed?.Invoke();
 
         yield return WaitForHandAnimation(attackStatePath, attackStateName);
 
         if (isWeaponEquipped)
         {
-            ApplyHandState(HandStateEquipped, true);
+            EnterHoldState();
         }
 
         isHandActionLocked = false;
@@ -196,6 +213,28 @@ public class ActionScript : MonoBehaviour
         animator.SetLayerWeight(handLayerIndex, handLayerWeight);
         animator.SetInteger(handStateParameterHash, handState);
         currentHandState = handState;
+    }
+
+    private void EnterHoldState()
+    {
+        if (animator == null || handLayerIndex < 0)
+        {
+            return;
+        }
+
+        animator.SetLayerWeight(handLayerIndex, handLayerWeight);
+
+        if (handStateParameterHash != 0)
+        {
+            animator.SetInteger(handStateParameterHash, HandStateHolding);
+        }
+
+        if (!string.IsNullOrWhiteSpace(holdWeaponStatePath))
+        {
+            animator.CrossFadeInFixedTime(holdWeaponStatePath, 0.08f, handLayerIndex);
+        }
+
+        currentHandState = HandStateHolding;
     }
 
     private void SetWeaponVisible(bool isVisible)
@@ -286,6 +325,7 @@ public class ActionScript : MonoBehaviour
         equipWeaponStatePath = GetStatePath(equipWeaponStateName);
         unequipWeaponStatePath = GetStatePath(unequipWeaponStateName);
         attackStatePath = GetStatePath(attackStateName);
+        holdWeaponStatePath = GetStatePath(holdWeaponStateName);
     }
 
     private string GetStatePath(string stateName)
