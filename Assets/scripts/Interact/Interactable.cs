@@ -17,7 +17,7 @@ public class Interactable : MonoBehaviour
     [Min(0.25f)]
     [SerializeField] private float contentDisplaySeconds = 3f;
 
-    public bool HasPromptText => !string.IsNullOrWhiteSpace(pickUpMessage);
+    public virtual bool HasPromptText => !string.IsNullOrWhiteSpace(PromptText);
     public virtual string PromptText => pickUpMessage;
     public virtual string DialogueSpeaker => dialogueSpeaker;
     public virtual string DialogueText => dialogueText;
