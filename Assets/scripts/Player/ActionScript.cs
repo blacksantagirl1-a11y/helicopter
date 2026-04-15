@@ -22,6 +22,11 @@ public class ActionScript : MonoBehaviour
     [Header("Input")]
     [SerializeField] private KeyCode toggleWeaponKey = KeyCode.F;
 
+    [Header("Attack Timing")]
+    [SerializeField]
+    [Min(0f)]
+    private float attackImpactDelay = 0.15f;
+
     [Header("Weapon Prefab")]
     [SerializeField] private GameObject axePrefab;
     [SerializeField] private Transform weaponSocket;
@@ -59,6 +64,7 @@ public class ActionScript : MonoBehaviour
     private void OnValidate()
     {
         TryAutoAssignReferences();
+        attackImpactDelay = Mathf.Max(0f, attackImpactDelay);
         CacheAnimatorData();
     }
 
@@ -154,9 +160,12 @@ public class ActionScript : MonoBehaviour
     {
         isHandActionLocked = true;
         ApplyHandState(HandStateAttack, true);
-        AttackPerformed?.Invoke();
+
+        bool attackImpactApplied = false;
+        StartCoroutine(InvokeAttackAfterDelay(() => attackImpactApplied = true));
 
         yield return WaitForHandAnimation(attackStatePath, attackStateName);
+        yield return new WaitUntil(() => attackImpactApplied);
 
         if (isWeaponEquipped)
         {
@@ -165,6 +174,18 @@ public class ActionScript : MonoBehaviour
 
         isHandActionLocked = false;
         handActionRoutine = null;
+    }
+
+    private IEnumerator InvokeAttackAfterDelay(System.Action onCompleted)
+    {
+        float impactDelay = Mathf.Max(0f, attackImpactDelay);
+        if (impactDelay > 0f)
+        {
+            yield return new WaitForSeconds(impactDelay);
+        }
+
+        AttackPerformed?.Invoke();
+        onCompleted?.Invoke();
     }
 
     private IEnumerator WaitForHandAnimation(string statePath, string clipName)
