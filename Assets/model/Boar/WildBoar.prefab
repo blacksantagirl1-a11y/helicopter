@@ -115,6 +115,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 4101709301206304360}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c961fe35a7f086b4a89740d670962dfe, type: 3}
+  m_Script: {fileID: 11500000, guid: 1c302cb12fe61424babe5c60e2e0031d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  actionScript: {fileID: 0}
+  sourceCamera: {fileID: 0}
+  playerRoot: {fileID: 0}
+  meatPickupPrefab: {fileID: 6282379212088616907, guid: 1a0e3451f34744ce801a7f5f59fd00a5, type: 3}
+  obstructionMask:
+    serializedVersion: 2
+    m_Bits: 499
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 499
+  hitsToKill: 5
+  attackRange: 4.5
+  targetBoundsPadding: 0.35
+  roamRadius: 8
+  idleDurationRange: {x: 1, y: 2.4}
+  destinationTolerance: 0.4
+  moveSpeed: 1.85
+  rotationSpeed: 8
+  navMeshSampleDistance: 5
+  groundProbeHeight: 4
+  groundProbeDistance: 16
+  dropOffset: {x: 0, y: 0.15, z: 0}
+  dropRandomYaw: {x: 0, y: 360}
