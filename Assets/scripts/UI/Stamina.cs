@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,6 +22,16 @@ public class Stamina : MonoBehaviour
     public float chopTargetHeight = 2f;
     public float chopMaxTargetAngle = 12f;
     public string[] cuttablePrototypeKeywords = { "pine", "tree" };
+
+    [Header("Boar Kill Stamina")]
+    public float boarKillStaminaCost = 12f;
+
+    private static readonly FieldInfo BoarHitsToKillField =
+        typeof(Boar).GetField("hitsToKill", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo BoarCurrentHealthField =
+        typeof(Boar).GetField("currentHealth", BindingFlags.Instance | BindingFlags.NonPublic);
+
+    private readonly List<Dictionary<int, int>> pendingBoarHealthSnapshots = new List<Dictionary<int, int>>();
 
     private ActionScript subscribedActionScript;
 
@@ -95,17 +107,126 @@ public class Stamina : MonoBehaviour
 
     private void HandleAttackPerformed()
     {
-        if (staminaSlider == null || chopStaminaCost <= 0f)
+        if (staminaSlider == null)
         {
             return;
         }
 
-        if (!IsLookingAtCuttableTree())
+        if (chopStaminaCost > 0f && IsLookingAtCuttableTree())
+        {
+            staminaSlider.value = Mathf.Clamp(staminaSlider.value - chopStaminaCost, 0f, maxStamina);
+        }
+
+        TryScheduleBoarKillStaminaCheck();
+    }
+
+    private void TryScheduleBoarKillStaminaCheck()
+    {
+        if (boarKillStaminaCost <= 0f)
         {
             return;
         }
 
-        staminaSlider.value = Mathf.Clamp(staminaSlider.value - chopStaminaCost, 0f, maxStamina);
+        Dictionary<int, int> snapshot = CaptureCurrentBoarHealthSnapshot();
+        if (snapshot.Count == 0)
+        {
+            return;
+        }
+
+        pendingBoarHealthSnapshots.Add(snapshot);
+        StartCoroutine(ApplyBoarKillStaminaCostOnNextFrame(snapshot));
+    }
+
+    private System.Collections.IEnumerator ApplyBoarKillStaminaCostOnNextFrame(Dictionary<int, int> snapshot)
+    {
+        yield return null;
+
+        if (staminaSlider == null)
+        {
+            pendingBoarHealthSnapshots.Remove(snapshot);
+            yield break;
+        }
+
+        Dictionary<int, int> currentBoarHealth = CaptureCurrentBoarHealthSnapshot();
+        int killedBoars = 0;
+
+        foreach (KeyValuePair<int, int> pair in snapshot)
+        {
+            int boarId = pair.Key;
+            int previousHealth = pair.Value;
+            if (previousHealth <= 0)
+            {
+                continue;
+            }
+
+            if (!currentBoarHealth.TryGetValue(boarId, out int healthAfterAttack))
+            {
+                killedBoars++;
+                continue;
+            }
+
+            if (healthAfterAttack <= 0)
+            {
+                killedBoars++;
+            }
+        }
+
+        if (killedBoars > 0)
+        {
+            float totalStaminaCost = boarKillStaminaCost * killedBoars;
+            staminaSlider.value = Mathf.Clamp(staminaSlider.value - totalStaminaCost, 0f, maxStamina);
+        }
+
+        pendingBoarHealthSnapshots.Remove(snapshot);
+    }
+
+    private Dictionary<int, int> CaptureCurrentBoarHealthSnapshot()
+    {
+        Boar[] boars = Object.FindObjectsByType<Boar>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        Dictionary<int, int> snapshot = new Dictionary<int, int>(boars.Length);
+
+        for (int i = 0; i < boars.Length; i++)
+        {
+            Boar boar = boars[i];
+            if (boar == null)
+            {
+                continue;
+            }
+
+            int boarId = boar.GetInstanceID();
+            snapshot[boarId] = GetBoarCurrentHealth(boar);
+        }
+
+        return snapshot;
+    }
+
+    private static int GetBoarCurrentHealth(Boar boar)
+    {
+        if (boar == null)
+        {
+            return 0;
+        }
+
+        if (BoarCurrentHealthField != null)
+        {
+            object rawHealth = BoarCurrentHealthField.GetValue(boar);
+            if (rawHealth is int currentHealth)
+            {
+                return Mathf.Max(0, currentHealth);
+            }
+        }
+
+        int fallbackHitsToKill = 1;
+        if (BoarHitsToKillField != null)
+        {
+            object rawHitsToKill = BoarHitsToKillField.GetValue(boar);
+            if (rawHitsToKill is int hitsToKill)
+            {
+                fallbackHitsToKill = Mathf.Max(1, hitsToKill);
+            }
+        }
+
+        return fallbackHitsToKill;
     }
 
     private bool IsLookingAtCuttableTree()
@@ -251,6 +372,7 @@ public class Stamina : MonoBehaviour
         chopRange = Mathf.Max(0.5f, chopRange);
         chopTargetHeight = Mathf.Max(0.5f, chopTargetHeight);
         chopMaxTargetAngle = Mathf.Clamp(chopMaxTargetAngle, 1f, 45f);
+        boarKillStaminaCost = Mathf.Max(0f, boarKillStaminaCost);
     }
 
     private bool IsPlayerMoving()
