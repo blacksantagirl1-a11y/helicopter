@@ -8,21 +8,43 @@ public class PickUpScript : MonoBehaviour
     [SerializeField] private PlayerUI playerUI;
     [SerializeField] private string defaultInteractionMessage = "Tuong tac";
 
+    private FishingRob fishingRob;
+
     private void Start()
     {
         if (playerUI == null)
         {
             playerUI = FindFirstObjectByType<PlayerUI>();
         }
+
+        fishingRob = FindFirstObjectByType<FishingRob>();
     }
 
     private void Update()
     {
-        CheckForInteractables();
+        if (fishingRob == null)
+        {
+            fishingRob = FindFirstObjectByType<FishingRob>();
+        }
+
+        if (fishingRob != null && fishingRob.ShouldOverrideDefaultInteraction)
+        {
+            ShowPromptUI(fishingRob.CurrentPrompt);
+        }
+        else
+        {
+            CheckForInteractables();
+        }
 
         // E kich hoat object dang duoc raycast vao.
         if (Input.GetKeyDown(KeyCode.E))
         {
+            if (fishingRob != null && fishingRob.TryConsumeInteractInput())
+            {
+                HidePromptUI();
+                return;
+            }
+
             HandleInteractInput();
         }
     }

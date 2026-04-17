@@ -29,6 +29,7 @@ public class ActionScript : MonoBehaviour
 
     [Header("Weapon Prefab")]
     [SerializeField] private GameObject axePrefab;
+    [SerializeField] private GameObject fishingRodPrefab;
     [SerializeField] private Transform weaponSocket;
     [SerializeField] private bool hideWeaponWhenUnequipped = true;
 
@@ -47,6 +48,7 @@ public class ActionScript : MonoBehaviour
     private bool isHandActionLocked;
 
     public bool IsWeaponEquipped => isWeaponEquipped;
+    public GameObject FishingRodPrefab => fishingRodPrefab;
     public event System.Action AttackPerformed;
 
     private void Reset()
