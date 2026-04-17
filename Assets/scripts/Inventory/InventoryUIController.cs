@@ -313,7 +313,7 @@ public class InventoryUIController : MonoBehaviour
         TextMeshProUGUI title = CreateText(
             "Title",
             panelRect,
-            "BAG",
+            "Túi đồ",
             28f,
             FontStyles.Bold,
             TextAlignmentOptions.Left);
@@ -328,7 +328,7 @@ public class InventoryUIController : MonoBehaviour
         TextMeshProUGUI closeHint = CreateText(
             "CloseHint",
             panelRect,
-            "B de dong",
+            "B để đóng",
             16f,
             FontStyles.Normal,
             TextAlignmentOptions.Right);
@@ -373,7 +373,7 @@ public class InventoryUIController : MonoBehaviour
         TextMeshProUGUI footer = CreateText(
             "FooterLabel",
             panelRect,
-            "Click item de su dung",
+            "Click item để sử dụng",
             15f,
             FontStyles.Normal,
             TextAlignmentOptions.Left);
@@ -514,7 +514,7 @@ public class InventoryUIController : MonoBehaviour
 
         if (statusLabel != null && !isInventoryOpen)
         {
-            statusLabel.text = "Click item de su dung";
+            statusLabel.text = "Click item để sử dụng";
         }
     }
 
