@@ -136,7 +136,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.E) && currentCutsceneTrigger != null && cutsceneRoutine == null)
         {
-            cutsceneRoutine = StartCoroutine(PlayCutscene());
+            TryPlayConfiguredCutscene(disableCutsceneTriggerAfterUse, currentCutsceneTrigger);
             return;
         }
 
@@ -262,7 +262,22 @@ public class PlayerMovement : MonoBehaviour
         transform.SetPositionAndRotation(animator.rootPosition, animator.rootRotation);
     }
 
-    private IEnumerator PlayCutscene()
+    public bool TryPlayConfiguredCutscene(bool shouldDisableTriggerAfterUse, Collider triggerToDisable)
+    {
+        if (!isActiveAndEnabled || isCutscenePlaying || cutsceneRoutine != null)
+        {
+            return false;
+        }
+
+        Collider resolvedTrigger = triggerToDisable != null
+            ? triggerToDisable
+            : currentCutsceneTrigger;
+
+        cutsceneRoutine = StartCoroutine(PlayCutscene(shouldDisableTriggerAfterUse, resolvedTrigger));
+        return true;
+    }
+
+    private IEnumerator PlayCutscene(bool shouldDisableTriggerAfterUse, Collider triggerToDisable)
     {
         isCutscenePlaying = true;
         IsRunning = false;
@@ -327,9 +342,9 @@ public class PlayerMovement : MonoBehaviour
             yield return null;
         }
 
-        if (disableCutsceneTriggerAfterUse && currentCutsceneTrigger != null)
+        if (shouldDisableTriggerAfterUse && triggerToDisable != null)
         {
-            currentCutsceneTrigger.enabled = false;
+            triggerToDisable.enabled = false;
         }
 
         if (cameraForCutscene != null)
