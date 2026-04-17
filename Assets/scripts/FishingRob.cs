@@ -30,37 +30,59 @@ public class FishingRob : MonoBehaviour
     }
 
     [Header("Fishing Area")]
+    [Tooltip("Tên object vùng nước mục tiêu để xác định điểm câu")]
     [SerializeField] private string targetWaterVolumeName = "WaterVolume (6)";
-    [SerializeField] [Min(1f)] private float fishingStartDistance = 4f;
-    [SerializeField] [Range(0f, 90f)] private float facingAngleThreshold = 55f;
-    [SerializeField] [Min(0f)] private float shoreOffset = 1.15f;
-    [SerializeField] [Min(0.5f)] private float castDistanceIntoWater = 4f;
+    [Tooltip("Khoảng cách tối thiểu để bắt đầu tương tác câu cá")]
+    [SerializeField][Min(1f)] private float fishingStartDistance = 4f;
+    [Tooltip("Góc lệch tối đa giữa hướng nhìn và vùng nước")]
+    [SerializeField][Range(0f, 90f)] private float facingAngleThreshold = 55f;
+    [Tooltip("Khoảng lùi vào bờ khi đặt vị trí đứng câu")]
+    [SerializeField][Min(0f)] private float shoreOffset = 1.15f;
+    [Tooltip("Khoảng cách điểm thả lưỡi câu vào trong mặt nước")]
+    [SerializeField][Min(0.5f)] private float castDistanceIntoWater = 4f;
 
     [Header("Fishing Timing")]
+    [Tooltip("Khoảng thời gian chờ cá cắn câu (min-max)")]
     [SerializeField] private Vector2 biteDelayRange = new Vector2(2.5f, 5f);
-    [SerializeField] [Min(0.5f)] private float biteResponseWindow = 1.8f;
-    [SerializeField] [Min(0.15f)] private float castLineTravelDuration = 0.45f;
-    [SerializeField] [Min(0f)] private float autoOpenMinigameDelay = 0.45f;
+    [Tooltip("Thời gian cho phép phản ứng khi cá cắn câu")]
+    [SerializeField][Min(0.5f)] private float biteResponseWindow = 1.8f;
+    [Tooltip("Thời gian line bay ra điểm thả khi quăng cần")]
+    [SerializeField][Min(0.15f)] private float castLineTravelDuration = 0.45f;
+    [Tooltip("Độ trễ tự mở mini game sau khi cá cắn")]
+    [SerializeField][Min(0f)] private float autoOpenMinigameDelay = 0.45f;
 
     [Header("Mini Game")]
-    [SerializeField] [Range(0.1f, 0.6f)] private float targetZoneWidth = 0.22f;
-    [SerializeField] [Min(0.2f)] private float fishTravelSeconds = 1.2f;
-    [SerializeField] [Min(0f)] private float fishSpinSpeed = 120f;
+    [Tooltip("Độ rộng vùng mục tiêu trong mini game")]
+    [SerializeField][Range(0.1f, 0.6f)] private float targetZoneWidth = 0.22f;
+    [Tooltip("Chu kỳ di chuyển của cá trong mini game")]
+    [SerializeField][Min(0.2f)] private float fishTravelSeconds = 1.2f;
+    [Tooltip("Tốc độ xoay model cá preview")]
+    [SerializeField][Min(0f)] private float fishSpinSpeed = 120f;
 
     [Header("Fishing Camera")]
-    [SerializeField] [Min(0f)] private float cameraFocusHeight = 0.38f;
-    [SerializeField] [Range(1f, 20f)] private float cameraAimLerpSpeed = 8f;
+    [Tooltip("Độ cao điểm camera tập trung khi câu")]
+    [SerializeField][Min(0f)] private float cameraFocusHeight = 0.38f;
+    [Tooltip("Tốc độ nội suy hướng ngắm camera khi câu")]
+    [SerializeField][Range(1f, 20f)] private float cameraAimLerpSpeed = 8f;
 
     [Header("Rod Attach")]
+    [Tooltip("Tên transform trên cần câu dùng làm điểm spawn line")]
     [SerializeField] private string lineSpawnPointName = "SpawnPoint";
+    [Tooltip("Vị trí local của cần câu khi gắn vào tay")]
     [SerializeField] private Vector3 rodLocalPosition = new Vector3(0.05f, 0.03f, 0.02f);
+    [Tooltip("Góc xoay local của cần câu khi gắn vào tay")]
     [SerializeField] private Vector3 rodLocalEulerAngles = new Vector3(6f, 92f, 94f);
-    [SerializeField] [Min(0.2f)] private float preferredRodLength = 1.15f;
-    [SerializeField] [Min(0.01f)] private float rodScaleMultiplier = 1f;
+    [Tooltip("Chiều dài chuẩn mong muốn của cần để tính scale")]
+    [SerializeField][Min(0.2f)] private float preferredRodLength = 1.15f;
+    [Tooltip("Hệ số nhân scale cuối cùng của cần câu")]
+    [SerializeField][Min(0.01f)] private float rodScaleMultiplier = 1f;
 
     [Header("Runtime Resources")]
+    [Tooltip("Đường dẫn Resources của prefab preview cá")]
     [SerializeField] private string fishPreviewResourcePath = "Fishing/FishPreview";
+    [Tooltip("Đường dẫn Resources của item cá trong inventory")]
     [SerializeField] private string fishItemResourcePath = "Inventory/Fish";
+    [Tooltip("Đường dẫn Resources của sprite cảnh báo cá cắn")]
     [SerializeField] private string alertSpriteResourcePath = "UI/alert";
 
     private readonly List<BehaviourRestoreState> disabledControls = new List<BehaviourRestoreState>();

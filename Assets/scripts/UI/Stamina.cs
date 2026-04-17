@@ -5,25 +5,41 @@ using UnityEngine.UI;
 
 public class Stamina : MonoBehaviour
 {
+    [Tooltip("Slider hiển thị và lưu giá trị stamina hiện tại")]
     public Slider staminaSlider;
+    [Tooltip("Tham chiếu script di chuyển của player")]
     public PlayerMovement playerMovement;
+    [Tooltip("Rigidbody của player để kiểm tra vận tốc")]
     public Rigidbody playerRigidbody;
+    [Tooltip("Script hành động (đánh/chặt) của player")]
     public ActionScript actionScript;
+    [Tooltip("Camera dùng để raycast kiểm tra mục tiêu")]
     public Camera sourceCamera;
+    [Tooltip("Terrain hiện tại để kiểm tra cây có thể chặt")]
     public Terrain targetTerrain;
+    [Tooltip("Mức stamina tối đa")]
     public float maxStamina = 100f;
+    [Tooltip("Tốc độ giảm stamina khi đang di chuyển")]
     public float staminaFallRate = 15f;
+    [Tooltip("Tốc độ giảm stamina khi đứng yên")]
     public float idleStaminaFallRate = 10f;
+    [Tooltip("Ngưỡng vận tốc để coi là đang di chuyển")]
     public float movementThreshold = 0.05f;
 
     [Header("Tree Chop Stamina")]
+    [Tooltip("Lượng stamina tiêu hao cho mỗi lần chặt cây")]
     public float chopStaminaCost = 8f;
+    [Tooltip("Tầm tối đa để chặt cây")]
     public float chopRange = 7f;
+    [Tooltip("Độ cao điểm ngắm trên cây khi kiểm tra chặt")]
     public float chopTargetHeight = 2f;
+    [Tooltip("Góc lệch tối đa giữa camera và mục tiêu cây")]
     public float chopMaxTargetAngle = 12f;
+    [Tooltip("Từ khóa tên prototype cây được phép chặt")]
     public string[] cuttablePrototypeKeywords = { "pine", "tree" };
 
     [Header("Boar Kill Stamina")]
+    [Tooltip("Lượng stamina tiêu hao khi hạ một con heo")]
     public float boarKillStaminaCost = 12f;
 
     private static readonly FieldInfo BoarHitsToKillField =

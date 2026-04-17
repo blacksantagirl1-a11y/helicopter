@@ -4,21 +4,33 @@ namespace IL3DN
     using Random = UnityEngine.Random;
     [RequireComponent(typeof(CharacterController))]
     [RequireComponent(typeof(AudioSource))]
-    
+
     ///A simplified version of the FPSController from standard assets 
     public class IL3DN_SimpleFPSController : MonoBehaviour
     {
+        [Tooltip("Bật để đi bộ, tắt để chạy")]
         [SerializeField] private bool m_IsWalking = false;
+        [Tooltip("Tốc độ đi bộ")]
         [SerializeField] private float m_WalkSpeed = 2;
+        [Tooltip("Tốc độ chạy")]
         [SerializeField] private float m_RunSpeed = 5;
-        [SerializeField] [Range(0f, 1f)] private float m_RunstepLenghten = 0.7f;
+        [Tooltip("Hệ số điều chỉnh nhịp bước khi chạy")]
+        [SerializeField][Range(0f, 1f)] private float m_RunstepLenghten = 0.7f;
+        [Tooltip("Vận tốc bật lên khi nhảy")]
         [SerializeField] private float m_JumpSpeed = 5;
+        [Tooltip("Lực ép nhân vật dính đất khi đang grounded")]
         [SerializeField] private float m_StickToGroundForce = 10;
+        [Tooltip("Hệ số nhân trọng lực")]
         [SerializeField] private float m_GravityMultiplier = 2;
+        [Tooltip("Thiết lập nhìn chuột")]
         [SerializeField] private IL3DN_SimpleMouseLook m_MouseLook = default;
+        [Tooltip("Khoảng thời gian giữa các bước chân")]
         [SerializeField] private float m_StepInterval = 2;
+        [Tooltip("Danh sách âm thanh bước chân")]
         [SerializeField] private AudioClip[] m_FootstepSounds = default;    // an array of footstep sounds that will be randomly selected from.
+        [Tooltip("Âm thanh phát khi nhảy")]
         [SerializeField] private AudioClip m_JumpSound = default;           // the sound played when character leaves the ground.
+        [Tooltip("Âm thanh phát khi tiếp đất")]
         [SerializeField] private AudioClip m_LandSound = default;           // the sound played when character touches back on ground.
 
         private Camera m_Camera;

@@ -8,13 +8,21 @@
     [Serializable]
     public class IL3DN_SimpleMouseLook
     {
+        [Tooltip("Độ nhạy xoay chuột theo trục ngang")]
         public float XSensitivity = 2f;
+        [Tooltip("Độ nhạy xoay chuột theo trục X và Y")]
         public float YSensitivity = 2f;
+        [Tooltip("Khoảng giới hạn góc nhìn dọc")]
         public bool clampVerticalRotation = true;
+        [Tooltip("Góc nhìn dọc thấp nhất")]
         public float MinimumX = -90F;
+        [Tooltip("Góc nhìn dọc cao nhất")]
         public float MaximumX = 90F;
+        [Tooltip("Giảm độ giật khi xoay camera")]
         public bool smooth;
+        [Tooltip("Giá trị làm mượt khi xoay")]
         public float smoothTime = 5f;
+        [Tooltip("Khóa và ẩn con trỏ chuột khi chơi")]
         public bool lockCursor = true;
 
         private Quaternion m_CharacterTargetRot;

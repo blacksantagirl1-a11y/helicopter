@@ -3,6 +3,7 @@
 public class Jump : MonoBehaviour
 {
     Rigidbody rigidbody;
+    [Tooltip("Lực nhảy của nhân vật")]
     public float jumpStrength = 2;
     public event System.Action Jumped;
 

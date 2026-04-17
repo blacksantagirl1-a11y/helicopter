@@ -4,8 +4,11 @@ using UnityEngine;
 public class PickUpScript : MonoBehaviour
 {
     [Header("Raycast Interaction")]
+    [Tooltip("Khoảng cách raycast để tìm object có thể tương tác")]
     [SerializeField] private float interactionRange = 5f;
+    [Tooltip("Tham chiếu tới UI hiển thị prompt/hội thoại")]
     [SerializeField] private PlayerUI playerUI;
+    [Tooltip("Prompt mặc định khi object không có PromptText riêng")]
     [SerializeField] private string defaultInteractionMessage = "Tuong tac";
 
     private FishingRob fishingRob;

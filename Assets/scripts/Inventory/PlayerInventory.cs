@@ -34,9 +34,11 @@ public class PlayerInventory : MonoBehaviour
     }
 
     [Header("Capacity")]
+    [Tooltip("Số lượng ô chứa trong túi đồ")]
     [SerializeField]
     [Min(1)]
     private int slotCount = 20;
+    [Tooltip("Danh sách slot inventory được serialize")]
     [SerializeField] private List<InventorySlot> slots = new List<InventorySlot>();
 
     public event Action InventoryChanged;

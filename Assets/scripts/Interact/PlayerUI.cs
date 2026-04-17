@@ -6,13 +6,19 @@ using UnityEngine.UI;
 public class PlayerUI : MonoBehaviour
 {
     [Header("Prompt UI")]
+    [Tooltip("Text prompt tương tác hiển thị giữa màn hình")]
     [SerializeField] public TextMeshProUGUI PickUpText;
 
     [Header("Interaction UI")]
+    [Tooltip("Panel hiển thị hội thoại khi tương tác")]
     [SerializeField] private GameObject interactionPanel;
+    [Tooltip("Nền của panel hội thoại")]
     [SerializeField] private Image interactionPanelBackground;
+    [Tooltip("Text nội dung hội thoại")]
     [SerializeField] private TextMeshProUGUI interactionText;
+    [Tooltip("Panel hiển thị ảnh minh họa khi tương tác")]
     [SerializeField] private GameObject interactionImagePanel;
+    [Tooltip("Ảnh minh họa hiển thị trong panel")]
     [SerializeField] private Image interactionImage;
 
     private Interactable currentInteractionSource;
