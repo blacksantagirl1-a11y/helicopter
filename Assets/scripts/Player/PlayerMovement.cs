@@ -59,6 +59,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Awake()
     {
+        DialogueController.RequestDialogue(DialogueEventId.IntroWakeUp);
         animator = GetComponent<Animator>();
         rigidbodyComponent = GetComponent<Rigidbody>();
         actionScript = GetComponent<ActionScript>();

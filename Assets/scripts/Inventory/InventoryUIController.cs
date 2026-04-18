@@ -129,6 +129,16 @@ public class InventoryUIController : MonoBehaviour
 
     private void Update()
     {
+        if (DialogueController.IsDialogueActive)
+        {
+            if (isInventoryOpen)
+            {
+                SetInventoryOpen(false);
+            }
+
+            return;
+        }
+
         if (Input.GetKeyDown(toggleInventoryKey))
         {
             ToggleInventory();
@@ -160,6 +170,11 @@ public class InventoryUIController : MonoBehaviour
 
     public void SetInventoryOpen(bool shouldOpen)
     {
+        if (shouldOpen && DialogueController.IsDialogueActive)
+        {
+            return;
+        }
+
         if (isInventoryOpen == shouldOpen)
         {
             return;

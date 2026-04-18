@@ -18,6 +18,10 @@ public class PlayerUI : MonoBehaviour
     private Interactable currentInteractionSource;
     private Coroutine autoHideRoutine;
 
+    public bool IsShowingAnyContent =>
+        (interactionPanel != null && interactionPanel.activeSelf) ||
+        (interactionImagePanel != null && interactionImagePanel.activeSelf);
+
     private void Awake()
     {
         // Neu scene chua co panel noi dung thi script tu tao runtime de dung ngay.
@@ -39,6 +43,12 @@ public class PlayerUI : MonoBehaviour
 
     public void ShowInteractionContent(Interactable interactable)
     {
+        if (DialogueController.IsDialogueActive)
+        {
+            HideInteractionContent();
+            return;
+        }
+
         if (interactable == null)
         {
             HideInteractionContent();
@@ -124,11 +134,7 @@ public class PlayerUI : MonoBehaviour
 
     public bool IsShowingContent(Interactable interactable)
     {
-        bool isDialogueVisible = interactionPanel != null && interactionPanel.activeSelf;
-        bool isImageVisible = interactionImagePanel != null && interactionImagePanel.activeSelf;
-
-        return (isDialogueVisible || isImageVisible) &&
-               currentInteractionSource == interactable;
+        return IsShowingAnyContent && currentInteractionSource == interactable;
     }
 
     private void EnsureInteractionUI()

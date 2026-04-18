@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 0447bde6a836ff8469f99c2ba035cdac
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 76974
+  packageName: Tree Collection Pack 2017
+  packageVersion: 3
+  assetPath: Assets/TreePackVol.1/Scripts/Tree_Packs.cs
+  uploadId: 864054

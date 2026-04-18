@@ -18,6 +18,12 @@ public class PickUpScript : MonoBehaviour
 
     private void Update()
     {
+        if (DialogueController.IsDialogueActive)
+        {
+            HidePromptUI();
+            return;
+        }
+
         CheckForInteractables();
 
         // E kich hoat object dang duoc raycast vao.
@@ -29,6 +35,12 @@ public class PickUpScript : MonoBehaviour
 
     private void HandleInteractInput()
     {
+        if (DialogueController.IsDialogueActive)
+        {
+            HidePromptUI();
+            return;
+        }
+
         if (!TryGetLookInteractable(out Interactable interactable))
         {
             return;
@@ -46,6 +58,12 @@ public class PickUpScript : MonoBehaviour
 
     private void CheckForInteractables()
     {
+        if (DialogueController.IsDialogueActive)
+        {
+            HidePromptUI();
+            return;
+        }
+
         if (TryGetLookInteractable(out Interactable interactable))
         {
             // Khi panel cua chinh object dang mo thi an prompt de UI doan nay khong chong len nhau.
@@ -78,7 +96,7 @@ public class PickUpScript : MonoBehaviour
         }
 
         interactable = hit.transform.GetComponentInParent<Interactable>();
-        return interactable != null;
+        return interactable != null && interactable.CanLookInteract;
     }
 
     private string GetInteractablePrompt(Interactable interactable)
