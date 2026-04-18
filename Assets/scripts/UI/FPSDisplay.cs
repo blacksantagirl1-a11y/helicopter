@@ -8,7 +8,9 @@ public class FPSDisplay : MonoBehaviour
     static readonly Vector2 TextOffset = new(-24f, -24f);
     static readonly Vector2 TextSize = new(180f, 40f);
 
+    [Tooltip("TextMeshPro dùng để hiển thị FPS hiện tại")]
     [SerializeField] public TextMeshProUGUI FpsText;
+    [Tooltip("Khoảng thời gian lấy mẫu để cập nhật FPS (giây)")]
     [SerializeField, Min(0.1f)] float pollingTime = 0.5f;
 
     static FPSDisplay instance;

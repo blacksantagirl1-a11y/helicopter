@@ -2,10 +2,13 @@ using UnityEngine;
 
 public class InventoryPickup : Interactable
 {
+    [Tooltip("Định nghĩa vật phẩm sẽ được nhặt")]
     [SerializeField] private InventoryItemDefinition itemDefinition;
+    [Tooltip("Số lượng vật phẩm trong pickup này")]
     [SerializeField]
     [Min(1)]
     private int amount = 1;
+    [Tooltip("Prompt tùy chỉnh khi nhìn vào vật phẩm (để trống sẽ tự tạo)")]
     [SerializeField] private string pickupPromptOverride = string.Empty;
 
     public override bool HasPromptText => true;

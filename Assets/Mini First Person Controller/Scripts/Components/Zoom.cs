@@ -4,10 +4,14 @@
 public class Zoom : MonoBehaviour
 {
     Camera camera;
+    [Tooltip("FOV mặc định của camera khi không zoom")]
     public float defaultFOV = 60;
+    [Tooltip("FOV nhỏ nhất khi zoom tối đa")]
     public float maxZoomFOV = 15;
     [Range(0, 1)]
+    [Tooltip("Mức zoom hiện tại (0 = không zoom, 1 = tối đa)")]
     public float currentZoom;
+    [Tooltip("Độ nhạy cuộn chuột khi zoom")]
     public float sensitivity = 1;
 
 

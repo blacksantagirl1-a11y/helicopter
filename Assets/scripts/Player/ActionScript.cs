@@ -11,25 +11,39 @@ public class ActionScript : MonoBehaviour
     private const int HandStateFishing = 3;
 
     [Header("Hand Layer")]
+    [Tooltip("Tên layer Animator điều khiển tay/cầm vật phẩm")]
     [SerializeField] private string handLayerName = "HandAnim";
+    [Tooltip("Trọng số layer tay trong Animator")]
     [SerializeField] private float handLayerWeight = 1f;
+    [Tooltip("Tên tham số int đại diện trạng thái tay")]
     [SerializeField] private string handStateParameterName = "HandState";
+    [Tooltip("Tên state equip vũ khí trong Animator")]
     [SerializeField] private string equipWeaponStateName = "EquipWeapon";
+    [Tooltip("Tên state unequip vũ khí trong Animator")]
     [SerializeField] private string unequipWeaponStateName = "UnequipWeapon";
+    [Tooltip("Tên state tấn công trong Animator")]
     [SerializeField] private string attackStateName = "Attack";
+    [Tooltip("Tên state giữ vũ khí khi đã equip")]
     [SerializeField] private string holdWeaponStateName = "HoldItem";
 
     [Header("Input")]
+    [Tooltip("Phím bật/tắt trạng thái cầm vũ khí")]
     [SerializeField] private KeyCode toggleWeaponKey = KeyCode.F;
 
     [Header("Attack Timing")]
+    [Tooltip("Độ trễ từ lúc bắt đầu animation tấn công đến khi tính hit")]
     [SerializeField]
     [Min(0f)]
     private float attackImpactDelay = 0.15f;
 
     [Header("Weapon Prefab")]
+    [Tooltip("Prefab rìu sẽ spawn để hiển thị trên tay")]
     [SerializeField] private GameObject axePrefab;
+    [Tooltip("Prefab cần câu dùng cho trạng thái câu cá")]
+    [SerializeField] private GameObject fishingRodPrefab;
+    [Tooltip("Điểm gắn vũ khí trên nhân vật")]
     [SerializeField] private Transform weaponSocket;
+    [Tooltip("Ẩn vũ khí khi ở trạng thái không trang bị")]
     [SerializeField] private bool hideWeaponWhenUnequipped = true;
 
     private Animator animator;
@@ -47,6 +61,7 @@ public class ActionScript : MonoBehaviour
     private bool isHandActionLocked;
 
     public bool IsWeaponEquipped => isWeaponEquipped;
+    public GameObject FishingRodPrefab => fishingRodPrefab;
     public event System.Action AttackPerformed;
 
     private void Reset()

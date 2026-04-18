@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class Crouch : MonoBehaviour
 {
+    [Tooltip("Phím giữ để cúi người")]
     public KeyCode key = KeyCode.LeftControl;
 
     [Header("Slow Movement")]
@@ -15,8 +16,9 @@ public class Crouch : MonoBehaviour
     public Transform headToLower;
     [HideInInspector]
     public float? defaultHeadYLocalPosition;
+    [Tooltip("Vị trí Y của đầu/camera khi đang cúi")]
     public float crouchYHeadPosition = 1;
-    
+
     [Tooltip("Collider to lower when crouched.")]
     public CapsuleCollider colliderToLower;
     [HideInInspector]
@@ -62,7 +64,7 @@ public class Crouch : MonoBehaviour
 
                 // Get lowering amount.
                 float loweringAmount;
-                if(defaultHeadYLocalPosition.HasValue)
+                if (defaultHeadYLocalPosition.HasValue)
                 {
                     loweringAmount = defaultHeadYLocalPosition.Value - crouchYHeadPosition;
                 }
@@ -114,7 +116,7 @@ public class Crouch : MonoBehaviour
     void SetSpeedOverrideActive(bool state)
     {
         // Stop if there is no movement component.
-        if(!movement)
+        if (!movement)
         {
             return;
         }

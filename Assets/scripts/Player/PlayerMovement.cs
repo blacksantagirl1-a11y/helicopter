@@ -12,30 +12,46 @@ public class PlayerMovement : MonoBehaviour
     private const int MoveStateRunning = 5;
 
     [Header("Movement")]
+    [Tooltip("Tốc độ di chuyển cơ bản của nhân vật")]
     public float speed = 5f;
 
     [Header("Running")]
+    [Tooltip("Cho phép nhân vật chạy")]
     public bool canRun = true;
+    [Tooltip("Tốc độ khi giữ phím chạy")]
     public float runSpeed = 9f;
+    [Tooltip("Phím dùng để chạy")]
     public KeyCode runningKey = KeyCode.LeftShift;
     public bool IsRunning { get; private set; }
     public bool IsCutscenePlaying => isCutscenePlaying;
 
     [Header("Animation Parameters")]
+    [Tooltip("Tên tham số MoveState trong Animator")]
     [SerializeField] private string moveStateParameterName = "MoveState";
 
     [Header("Cutscene Trigger")]
+    [Tooltip("Nếu chưa gán trigger cụ thể thì cho phép mọi trigger kích hoạt cutscene")]
     [SerializeField] private bool useAnyTriggerWhenCutsceneTriggerIsEmpty = true;
+    [Tooltip("Trigger collider dùng để kích hoạt cutscene")]
     [SerializeField] private Collider cutsceneTrigger;
+    [Tooltip("Camera gameplay chính")]
     [SerializeField] private Camera cameraMain;
+    [Tooltip("Camera dùng khi phát cutscene")]
     [SerializeField] private Camera cameraForCutscene;
+    [Tooltip("Tên state cutscene trong Animator")]
     [SerializeField] private string cutsceneStateName = "Fishing";
+    [Tooltip("Tên layer Animator chứa animation cutscene")]
     [SerializeField] private string cutsceneLayerName = "HandAnim";
+    [Tooltip("Thời gian chuyển state animation cutscene")]
     [SerializeField] private float cutsceneTransitionDuration = 0.1f;
+    [Tooltip("Bật để cho phép root motion trong cutscene")]
     [SerializeField] private bool useCutsceneRootMotion = false;
+    [Tooltip("Tắt trigger sau khi cutscene đã chạy xong")]
     [SerializeField] private bool disableCutsceneTriggerAfterUse = true;
+    [Tooltip("Danh sách component điều khiển sẽ bị tắt trong cutscene")]
     [SerializeField] private Behaviour[] controlsToDisableDuringCutscene;
 
+    [Tooltip("Danh sách hàm override tốc độ di chuyển theo ngữ cảnh")]
     public List<System.Func<float>> speedOverrides = new List<System.Func<float>>();
 
     private Animator animator;
@@ -137,7 +153,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.E) && currentCutsceneTrigger != null && cutsceneRoutine == null)
         {
-            cutsceneRoutine = StartCoroutine(PlayCutscene());
+            TryPlayConfiguredCutscene(disableCutsceneTriggerAfterUse, currentCutsceneTrigger);
             return;
         }
 
@@ -263,7 +279,22 @@ public class PlayerMovement : MonoBehaviour
         transform.SetPositionAndRotation(animator.rootPosition, animator.rootRotation);
     }
 
-    private IEnumerator PlayCutscene()
+    public bool TryPlayConfiguredCutscene(bool shouldDisableTriggerAfterUse, Collider triggerToDisable)
+    {
+        if (!isActiveAndEnabled || isCutscenePlaying || cutsceneRoutine != null)
+        {
+            return false;
+        }
+
+        Collider resolvedTrigger = triggerToDisable != null
+            ? triggerToDisable
+            : currentCutsceneTrigger;
+
+        cutsceneRoutine = StartCoroutine(PlayCutscene(shouldDisableTriggerAfterUse, resolvedTrigger));
+        return true;
+    }
+
+    private IEnumerator PlayCutscene(bool shouldDisableTriggerAfterUse, Collider triggerToDisable)
     {
         isCutscenePlaying = true;
         IsRunning = false;
@@ -328,9 +359,9 @@ public class PlayerMovement : MonoBehaviour
             yield return null;
         }
 
-        if (disableCutsceneTriggerAfterUse && currentCutsceneTrigger != null)
+        if (shouldDisableTriggerAfterUse && triggerToDisable != null)
         {
-            currentCutsceneTrigger.enabled = false;
+            triggerToDisable.enabled = false;
         }
 
         if (cameraForCutscene != null)

@@ -13,52 +13,71 @@ public class Boar : MonoBehaviour
     private const string DefaultMeatPickupResourcePath = "Inventory/MeatPickup";
 
     [Header("References")]
+    [Tooltip("Script hành động của player để nhận sự kiện tấn công")]
     [SerializeField] private ActionScript actionScript;
+    [Tooltip("Camera dùng để xác định mục tiêu tấn công")]
     [SerializeField] private Camera sourceCamera;
+    [Tooltip("Root player để loại trừ va chạm tự thân")]
     [SerializeField] private Transform playerRoot;
+    [Tooltip("Prefab thịt rơi ra khi heo chết")]
     [SerializeField] private GameObject meatPickupPrefab;
+    [Tooltip("Layer mask vật cản giữa camera và heo")]
     [SerializeField] private LayerMask obstructionMask = Physics.DefaultRaycastLayers;
+    [Tooltip("Layer mask mặt đất để canh vị trí di chuyển")]
     [SerializeField] private LayerMask groundMask = Physics.DefaultRaycastLayers;
 
     [Header("Combat")]
+    [Tooltip("Số hit cần để hạ gục heo")]
     [SerializeField]
     [Min(1)]
     private int hitsToKill = 5;
+    [Tooltip("Tầm tối đa để đòn đánh chạm vào heo")]
     [SerializeField]
     [Min(0.5f)]
     private float attackRange = 4.5f;
+    [Tooltip("Nới rộng bounds mục tiêu để dễ trúng khi ngắm")]
     [SerializeField]
     [Min(0f)]
     private float targetBoundsPadding = 0.35f;
 
     [Header("Roaming")]
+    [Tooltip("Bán kính khu vực heo đi lang thang")]
     [SerializeField]
     [Min(1f)]
     private float roamRadius = 8f;
+    [Tooltip("Khoảng thời gian nghỉ ngẫu nhiên giữa các lần di chuyển")]
     [SerializeField] private Vector2 idleDurationRange = new Vector2(1f, 2.4f);
+    [Tooltip("Ngưỡng khoảng cách coi là đã đến điểm đích")]
     [SerializeField]
     [Min(0.1f)]
     private float destinationTolerance = 0.4f;
 
     [Header("Movement")]
+    [Tooltip("Tốc độ di chuyển của heo")]
     [SerializeField]
     [Min(0.1f)]
     private float moveSpeed = 1.85f;
+    [Tooltip("Tốc độ xoay mặt theo hướng di chuyển")]
     [SerializeField]
     [Min(0.1f)]
     private float rotationSpeed = 8f;
+    [Tooltip("Khoảng cách tìm điểm NavMesh hợp lệ")]
     [SerializeField]
     [Min(0.5f)]
     private float navMeshSampleDistance = 5f;
+    [Tooltip("Độ cao bắt đầu raycast dò mặt đất")]
     [SerializeField]
     [Min(0.25f)]
     private float groundProbeHeight = 4f;
+    [Tooltip("Chiều dài raycast dò mặt đất")]
     [SerializeField]
     [Min(1f)]
     private float groundProbeDistance = 16f;
 
     [Header("Drop")]
+    [Tooltip("Offset vị trí rơi vật phẩm khi heo chết")]
     [SerializeField] private Vector3 dropOffset = new Vector3(0f, 0.15f, 0f);
+    [Tooltip("Khoảng random góc xoay Y của vật phẩm rơi")]
     [SerializeField] private Vector2 dropRandomYaw = new Vector2(0f, 360f);
 
     private ActionScript subscribedActionScript;

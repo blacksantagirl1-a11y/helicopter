@@ -11,22 +11,35 @@ public class CuttingTreeSystem : MonoBehaviour
     private const string DefaultPickupPrefabPath = "Assets/model/log/log2.prefab";
 
     [Header("References")]
+    [Tooltip("Script hành động để nhận sự kiện tấn công")]
     [SerializeField] private ActionScript actionScript;
+    [Tooltip("Camera dùng raycast để ngắm cây")]
     [SerializeField] private Camera sourceCamera;
+    [Tooltip("Terrain chứa cây sẽ bị chặt")]
     [SerializeField] private Terrain targetTerrain;
+    [Tooltip("Root player để bỏ qua va chạm tự thân khi raycast")]
     [SerializeField] private Transform playerRoot;
+    [Tooltip("Prefab log spawn ra sau khi chặt cây")]
     [SerializeField] private GameObject pickupPrefab;
+    [Tooltip("Layer mask kiểm tra vật cản giữa camera và cây")]
     [SerializeField] private LayerMask obstructionMask = Physics.DefaultRaycastLayers;
 
     [Header("Chop Settings")]
+    [Tooltip("Khoảng cách chặt cây tối đa")]
     [SerializeField] private float choppingRange = 7f;
+    [Tooltip("Độ cao điểm ngắm mục tiêu trên thân cây")]
     [SerializeField] private float targetHeight = 2f;
+    [Tooltip("Góc lệch tối đa giữa hướng nhìn và cây")]
     [SerializeField] private float maxTargetAngle = 12f;
+    [Tooltip("Số hit cần để đốn một cây")]
     [SerializeField] private int hitsToCutTree = 3;
+    [Tooltip("Từ khóa tên prototype cây được phép chặt")]
     [SerializeField] private string[] cuttablePrototypeKeywords = { "pine", "tree" };
 
     [Header("Pickup Spawn")]
+    [Tooltip("Offset vị trí spawn log so với gốc cây")]
     [SerializeField] private Vector3 pickupSpawnOffset = new Vector3(0f, 0.15f, 0f);
+    [Tooltip("Khoảng random góc xoay Y của log sau khi spawn")]
     [SerializeField] private Vector2 pickupRandomYaw = new Vector2(0f, 360f);
 
     private readonly Dictionary<string, int> treeHitCounts = new Dictionary<string, int>();

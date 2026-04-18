@@ -18,33 +18,51 @@ public class InventoryUIController : MonoBehaviour
     }
 
     [Header("Input")]
+    [Tooltip("Phím bật/tắt túi đồ")]
     [SerializeField] private KeyCode toggleInventoryKey = KeyCode.B;
 
     [Header("References")]
+    [Tooltip("Dữ liệu inventory của player")]
     [SerializeField] private PlayerInventory playerInventory;
+    [Tooltip("UI tương tác người chơi để đồng bộ prompt")]
     [SerializeField] private PlayerUI playerUI;
+    [Tooltip("Canvas chứa UI inventory")]
     [SerializeField] private Canvas targetCanvas;
+    [Tooltip("Volume hậu kỳ chứa hiệu ứng blur")]
     [SerializeField] private Volume blurVolume;
 
     [Header("Layout")]
+    [Tooltip("Số cột slot trong lưới inventory")]
     [SerializeField]
     [Min(1)]
     private int columns = 5;
+    [Tooltip("Kích thước mỗi slot (width, height)")]
     [SerializeField] private Vector2 slotSize = new Vector2(60f, 60f);
+    [Tooltip("Khoảng cách giữa các slot")]
     [SerializeField] private Vector2 slotSpacing = new Vector2(8f, 8f);
 
     [Header("Look")]
+    [Tooltip("Màu nền backdrop toàn màn hình")]
     [SerializeField] private Color backdropColor = new Color(0.02f, 0.17f, 0.20f, 0.58f);
+    [Tooltip("Màu panel chính của inventory")]
     [SerializeField] private Color panelColor = new Color(0.03f, 0.14f, 0.18f, 0.80f);
+    [Tooltip("Màu slot khi trống")]
     [SerializeField] private Color slotEmptyColor = new Color(0.06f, 0.20f, 0.24f, 0.78f);
+    [Tooltip("Màu slot khi có vật phẩm")]
     [SerializeField] private Color slotFilledColor = new Color(0.13f, 0.28f, 0.32f, 0.96f);
+    [Tooltip("Màu viền slot")]
     [SerializeField] private Color slotOutlineColor = new Color(0.21f, 0.68f, 0.77f, 0.56f);
+    [Tooltip("Màu chữ số lượng vật phẩm")]
     [SerializeField] private Color amountColor = new Color(1f, 0.42f, 0.34f, 1f);
+    [Tooltip("Màu chữ placeholder của slot trống")]
     [SerializeField] private Color placeholderColor = new Color(0.82f, 0.95f, 0.96f, 0.95f);
 
     [Header("Blur")]
+    [Tooltip("Giá trị GaussianStart khi bật blur")]
     [SerializeField] private float blurGaussianStart = 0.1f;
+    [Tooltip("Giá trị GaussianEnd khi bật blur")]
     [SerializeField] private float blurGaussianEnd = 4f;
+    [Tooltip("Bán kính blur")]
     [SerializeField] private float blurRadius = 1f;
 
     private readonly List<SlotView> slotViews = new List<SlotView>();

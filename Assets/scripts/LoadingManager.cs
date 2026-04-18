@@ -12,13 +12,19 @@ public class LoadingManager : MonoBehaviour
     static LoadingManager instance;
 
     [Header("Overlay")]
+    [Tooltip("Root của overlay loading (canvas/panel chứa nền và chữ loading)")]
     [SerializeField] GameObject overlayRoot;
+    [Tooltip("CanvasGroup dùng để fade in/out overlay")]
     [SerializeField] CanvasGroup overlayCanvasGroup;
+    [Tooltip("Nhãn chữ hiển thị trạng thái loading")]
     [SerializeField] TMP_Text loadingLabel;
 
     [Header("Timings")]
+    [Tooltip("Thời gian fade vào của overlay (giây)")]
     [SerializeField, Min(0f)] float fadeInDuration = 0.25f;
+    [Tooltip("Thời gian fade ra của overlay (giây)")]
     [SerializeField, Min(0f)] float fadeOutDuration = 0.5f;
+    [Tooltip("Thời gian tối thiểu overlay cần hiển thị để tránh chớp màn hình (giây)")]
     [SerializeField, Min(0f)] float minimumVisibleDuration = 0.45f;
 
     Coroutine activeLoadRoutine;

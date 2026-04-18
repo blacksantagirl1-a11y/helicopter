@@ -4,9 +4,14 @@ using UnityEngine;
 public class PickUpScript : MonoBehaviour
 {
     [Header("Raycast Interaction")]
+    [Tooltip("Khoảng cách raycast để tìm object có thể tương tác")]
     [SerializeField] private float interactionRange = 5f;
+    [Tooltip("Tham chiếu tới UI hiển thị prompt/hội thoại")]
     [SerializeField] private PlayerUI playerUI;
+    [Tooltip("Prompt mặc định khi object không có PromptText riêng")]
     [SerializeField] private string defaultInteractionMessage = "Tuong tac";
+
+    private FishingRob fishingRob;
 
     private void Start()
     {
@@ -14,33 +19,41 @@ public class PickUpScript : MonoBehaviour
         {
             playerUI = FindFirstObjectByType<PlayerUI>();
         }
+
+        fishingRob = FindFirstObjectByType<FishingRob>();
     }
 
     private void Update()
     {
-        if (DialogueController.IsDialogueActive)
+        if (fishingRob == null)
         {
-            HidePromptUI();
-            return;
+            fishingRob = FindFirstObjectByType<FishingRob>();
         }
 
-        CheckForInteractables();
+        if (fishingRob != null && fishingRob.ShouldOverrideDefaultInteraction)
+        {
+            ShowPromptUI(fishingRob.CurrentPrompt);
+        }
+        else
+        {
+            CheckForInteractables();
+        }
 
         // E kich hoat object dang duoc raycast vao.
         if (Input.GetKeyDown(KeyCode.E))
         {
+            if (fishingRob != null && fishingRob.TryConsumeInteractInput())
+            {
+                HidePromptUI();
+                return;
+            }
+
             HandleInteractInput();
         }
     }
 
     private void HandleInteractInput()
     {
-        if (DialogueController.IsDialogueActive)
-        {
-            HidePromptUI();
-            return;
-        }
-
         if (!TryGetLookInteractable(out Interactable interactable))
         {
             return;
@@ -58,12 +71,6 @@ public class PickUpScript : MonoBehaviour
 
     private void CheckForInteractables()
     {
-        if (DialogueController.IsDialogueActive)
-        {
-            HidePromptUI();
-            return;
-        }
-
         if (TryGetLookInteractable(out Interactable interactable))
         {
             // Khi panel cua chinh object dang mo thi an prompt de UI doan nay khong chong len nhau.
@@ -96,7 +103,7 @@ public class PickUpScript : MonoBehaviour
         }
 
         interactable = hit.transform.GetComponentInParent<Interactable>();
-        return interactable != null && interactable.CanLookInteract;
+        return interactable != null;
     }
 
     private string GetInteractablePrompt(Interactable interactable)

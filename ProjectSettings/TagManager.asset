@@ -8,6 +8,7 @@ TagManager:
   - Clue
   - Obstacle
   - wayPoints
+  - FishingArea
   layers:
   - Default
   - TransparentFX
