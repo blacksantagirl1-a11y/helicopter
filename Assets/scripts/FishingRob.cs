@@ -8,6 +8,8 @@ using UnityEngine.UI;
 [DefaultExecutionOrder(60)]
 public class FishingRob : MonoBehaviour
 {
+    private const float TargetZoneCenterNormalized = 0.5f;
+
     private enum FishingState
     {
         Inactive,
@@ -31,6 +33,8 @@ public class FishingRob : MonoBehaviour
 
     [Header("Fishing Area")]
     [SerializeField] private string targetWaterVolumeName = "WaterVolume (6)";
+    [SerializeField] private string fishingTriggerObjectName = "FishingTrigger";
+    [SerializeField] private Transform fishPointTransform;
     [SerializeField] [Min(1f)] private float fishingStartDistance = 4f;
     [SerializeField] [Range(0f, 90f)] private float facingAngleThreshold = 55f;
     [SerializeField] [Min(0f)] private float shoreOffset = 1.15f;
@@ -52,7 +56,6 @@ public class FishingRob : MonoBehaviour
     [SerializeField] [Range(1f, 20f)] private float cameraAimLerpSpeed = 8f;
 
     [Header("Rod Attach")]
-    [SerializeField] private string lineSpawnPointName = "SpawnPoint";
     [SerializeField] private Vector3 rodLocalPosition = new Vector3(0.05f, 0.03f, 0.02f);
     [SerializeField] private Vector3 rodLocalEulerAngles = new Vector3(6f, 92f, 94f);
     [SerializeField] [Min(0.2f)] private float preferredRodLength = 1.15f;
@@ -61,7 +64,6 @@ public class FishingRob : MonoBehaviour
     [Header("Runtime Resources")]
     [SerializeField] private string fishPreviewResourcePath = "Fishing/FishPreview";
     [SerializeField] private string fishItemResourcePath = "Inventory/Fish";
-    [SerializeField] private string alertSpriteResourcePath = "UI/alert";
 
     private readonly List<BehaviourRestoreState> disabledControls = new List<BehaviourRestoreState>();
     private readonly List<HandChildRestoreState> hiddenHandChildren = new List<HandChildRestoreState>();
@@ -78,21 +80,21 @@ public class FishingRob : MonoBehaviour
     private PickUpScript pickUpScript;
     private CuttingTreeSystem cuttingTreeSystem;
     private Rigidbody playerRigidbody;
+    private CapsuleCollider playerCollider;
     private Animator animator;
     private Transform leftHand;
     private Transform rightHand;
     private Terrain terrain;
 
-    private Transform targetWaterTransform;
     private Renderer targetWaterRenderer;
+    private readonly List<Collider> fishingInteractionTriggers = new List<Collider>();
 
     private GameObject fishingRodPrefab;
     private GameObject fishPreviewPrefab;
     private InventoryItemDefinition fishItemDefinition;
-    private Sprite alertSprite;
 
     private GameObject rodInstance;
-    private Transform lineSpawnPoint;
+    private Transform robPointTransform;
     private LineRenderer lineRenderer;
     private Material lineMaterial;
 
@@ -103,7 +105,6 @@ public class FishingRob : MonoBehaviour
     private RectTransform trackRect;
     private RectTransform targetRect;
     private RectTransform fishRect;
-    private Image alertImage;
     private RawImage fishPreviewImage;
     private TextMeshProUGUI fishingHintLabel;
     private TextMeshProUGUI statusLabel;
@@ -125,61 +126,70 @@ public class FishingRob : MonoBehaviour
     private Vector3 castPoint;
     private Vector3 currentHookPoint;
     private float biteDeadline;
-    private float targetZoneCenterNormalized = 0.5f;
     private float fishMotionOffset;
     private string transientStatus = string.Empty;
-    private bool missingLineSpawnPointWarningLogged;
+    private bool missingRobPointWarningLogged;
+    private bool missingFishPointWarningLogged;
+    private bool isInsideFishingTrigger;
 
     public bool ShouldOverrideDefaultInteraction => currentState != FishingState.Inactive || hasFishingCandidate;
 
-    public string CurrentPrompt
-    {
-        get
-        {
-            switch (currentState)
-            {
-                default:
-                    return currentState == FishingState.Inactive && hasFishingCandidate
-                        ? "Nhan E de cau ca"
-                        : string.Empty;
-            }
-        }
-    }
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void Bootstrap()
-    {
-        PlayerMovement player = FindFirstObjectByType<PlayerMovement>();
-        if (player != null && player.GetComponent<FishingRob>() == null)
-        {
-            player.gameObject.AddComponent<FishingRob>();
-        }
-    }
+    public string CurrentPrompt =>
+        currentState == FishingState.Inactive && hasFishingCandidate
+            ? "Nhan E de cau ca"
+            : string.Empty;
 
     private void Awake()
     {
-        TryAssignReferences();
-        TryLoadRuntimeResources();
-        EnsureUi();
+        InitializeFishingRuntime();
     }
 
     private void OnEnable()
     {
-        TryAssignReferences();
-        TryLoadRuntimeResources();
-        EnsureUi();
+        InitializeFishingRuntime();
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (IsFishingInteractionTrigger(other))
+        {
+            isInsideFishingTrigger = true;
+        }
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (IsFishingInteractionTrigger(other))
+        {
+            isInsideFishingTrigger = true;
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (IsFishingInteractionTrigger(other))
+        {
+            RefreshFishingTriggerState();
+        }
     }
 
     private void Update()
     {
-        TryAssignReferences();
-        TryLoadRuntimeResources();
+        if (mainCamera == null || playerUI == null || actionScript == null || pickUpScript == null)
+        {
+            TryAssignReferences();
+        }
+
+        if (fishingRodPrefab == null || fishPreviewPrefab == null || fishItemDefinition == null)
+        {
+            TryLoadRuntimeResources();
+        }
+
         RefreshFishingCandidate();
         UpdatePromptIfNeeded();
         UpdateHookPoint();
         UpdateLineRenderer();
         UpdateFishingCamera();
-        UpdateAlertUi();
         UpdateMinigameUi();
         UpdateFishPreviewStage();
 
@@ -253,6 +263,7 @@ public class FishingRob : MonoBehaviour
         fishingSpot = candidateFishingSpot;
         castPoint = candidateCastPoint;
         transientStatus = string.Empty;
+        missingFishPointWarningLogged = false;
 
         SnapPlayerToFishingSpot();
         HideCurrentHandItems();
@@ -351,7 +362,6 @@ public class FishingRob : MonoBehaviour
         if (currentState == FishingState.BiteReady)
         {
             transientStatus = "Ca da bo di.";
-            HideAlert();
             biteRoutine = null;
             ScheduleNextBite();
             yield break;
@@ -375,7 +385,6 @@ public class FishingRob : MonoBehaviour
     {
         currentState = FishingState.HookChallenge;
         fishMotionOffset = Random.Range(0f, 100f);
-        targetZoneCenterNormalized = 0.5f;
         transientStatus = "Nhan E khi ca vao o vuong giua.";
 
         EnsureUi();
@@ -383,8 +392,6 @@ public class FishingRob : MonoBehaviour
         {
             minigamePanel.gameObject.SetActive(true);
         }
-
-        HideAlert();
     }
 
     private void ResolveHookAttempt()
@@ -443,7 +450,6 @@ public class FishingRob : MonoBehaviour
         RestoreGameplayControls();
         RestoreHandItems();
         DestroyFishingRod();
-        HideAlert();
 
         if (minigamePanel != null)
         {
@@ -575,7 +581,8 @@ public class FishingRob : MonoBehaviour
         rodInstance.transform.localRotation = Quaternion.Euler(localEulerAngles);
         rodInstance.transform.localScale = Vector3.one * GetRodScaleFactor() * rodScaleMultiplier;
         SetLayerRecursively(rodInstance.transform, gameObject.layer);
-        lineSpawnPoint = FindLineSpawnPoint();
+        missingRobPointWarningLogged = false;
+        robPointTransform = ResolveRobPointTransform();
     }
 
     private void DestroyFishingRod()
@@ -586,7 +593,7 @@ public class FishingRob : MonoBehaviour
             rodInstance = null;
         }
 
-        lineSpawnPoint = null;
+        robPointTransform = null;
     }
 
     private float GetRodScaleFactor()
@@ -647,21 +654,26 @@ public class FishingRob : MonoBehaviour
             return;
         }
 
-        lineRenderer.SetPosition(0, GetRodTipPosition());
-        lineRenderer.SetPosition(1, currentHookPoint);
+        if (!TryGetLineStartPosition(out Vector3 lineStartPosition) ||
+            !TryGetLineEndPosition(out Vector3 lineEndPosition))
+        {
+            lineRenderer.enabled = false;
+            return;
+        }
+
+        lineRenderer.SetPosition(0, lineStartPosition);
+        lineRenderer.SetPosition(1, lineEndPosition);
     }
 
     private Vector3 GetRodTipPosition()
     {
-        if (lineSpawnPoint != null)
+        if (robPointTransform != null)
         {
-            return lineSpawnPoint.position;
+            return robPointTransform.position;
         }
 
         if (rodInstance != null)
         {
-            WarnMissingLineSpawnPointOnce();
-
             Renderer[] rodRenderers = rodInstance.GetComponentsInChildren<Renderer>();
             Bounds? bounds = GetCombinedBounds(rodRenderers);
             if (bounds.HasValue)
@@ -690,6 +702,32 @@ public class FishingRob : MonoBehaviour
         }
 
         return transform.position + transform.forward * 0.75f;
+    }
+
+    private bool TryGetLineStartPosition(out Vector3 lineStartPosition)
+    {
+        if (robPointTransform == null)
+        {
+            lineStartPosition = Vector3.zero;
+            WarnMissingRobPointOnce();
+            return false;
+        }
+
+        lineStartPosition = robPointTransform.position;
+        return true;
+    }
+
+    private bool TryGetLineEndPosition(out Vector3 lineEndPosition)
+    {
+        if (fishPointTransform == null)
+        {
+            lineEndPosition = Vector3.zero;
+            WarnMissingFishPointOnce();
+            return false;
+        }
+
+        lineEndPosition = fishPointTransform.position;
+        return true;
     }
 
     private void HideHandChildren(Transform hand)
@@ -721,47 +759,53 @@ public class FishingRob : MonoBehaviour
         return leftHand != null ? leftHand : rightHand;
     }
 
-    private Transform FindLineSpawnPoint()
+    private Transform ResolveRobPointTransform()
     {
         if (rodInstance == null)
         {
             return null;
         }
 
-        Transform[] allChildren = rodInstance.GetComponentsInChildren<Transform>(true);
-        for (int i = 0; i < allChildren.Length; i++)
-        {
-            Transform child = allChildren[i];
-            if (child == null || child == rodInstance.transform)
-            {
-                continue;
-            }
-
-            if (string.Equals(child.name, lineSpawnPointName, System.StringComparison.OrdinalIgnoreCase))
-            {
-                return child;
-            }
-        }
-
-        return null;
+        FishingRodReferences rodReferences = rodInstance.GetComponentInChildren<FishingRodReferences>(true);
+        return rodReferences != null ? rodReferences.RobPoint : null;
     }
 
-    private void WarnMissingLineSpawnPointOnce()
+    private void WarnMissingRobPointOnce()
     {
-        if (missingLineSpawnPointWarningLogged || rodInstance == null)
+        if (missingRobPointWarningLogged)
         {
             return;
         }
 
-        missingLineSpawnPointWarningLogged = true;
+        missingRobPointWarningLogged = true;
+        string rodName = rodInstance != null ? rodInstance.name : "FishingRodPrefab";
         Debug.LogWarning(
-            $"FishingRob could not find '{lineSpawnPointName}' on rod prefab '{rodInstance.name}'. Falling back to heuristic rod tip detection.",
+            $"FishingRob is missing a RobPoint reference on rod '{rodName}'. Assign FishingRodReferences.robPoint on the fishing rod prefab.",
+            this);
+    }
+
+    private void WarnMissingFishPointOnce()
+    {
+        if (missingFishPointWarningLogged)
+        {
+            return;
+        }
+
+        missingFishPointWarningLogged = true;
+        Debug.LogWarning(
+            "FishingRob is missing FishPoint. Assign FishingRob.fishPointTransform in the Inspector to render the fishing line.",
             this);
     }
 
     private void RefreshFishingCandidate()
     {
         if (currentState != FishingState.Inactive)
+        {
+            hasFishingCandidate = false;
+            return;
+        }
+
+        if (!IsPlayerInsideFishingTrigger())
         {
             hasFishingCandidate = false;
             return;
@@ -855,7 +899,7 @@ public class FishingRob : MonoBehaviour
     {
         hookPoint = Vector3.zero;
         Vector3 spawnWorldPosition = GetRodTipPosition();
-        Vector3 castDirection = Vector3.ProjectOnPlane(lineSpawnPoint != null ? lineSpawnPoint.forward : transform.forward, Vector3.up);
+        Vector3 castDirection = Vector3.ProjectOnPlane(robPointTransform != null ? robPointTransform.forward : transform.forward, Vector3.up);
         if (castDirection.sqrMagnitude <= 0.001f)
         {
             return false;
@@ -931,7 +975,7 @@ public class FishingRob : MonoBehaviour
     private bool TryResolveWaterBounds(out Bounds waterBounds)
     {
         waterBounds = default;
-        if (targetWaterRenderer == null || targetWaterTransform == null)
+        if (targetWaterRenderer == null)
         {
             ResolveTargetWater();
         }
@@ -947,7 +991,7 @@ public class FishingRob : MonoBehaviour
 
     private void ResolveTargetWater()
     {
-        if (targetWaterTransform != null && targetWaterRenderer != null)
+        if (targetWaterRenderer != null)
         {
             return;
         }
@@ -977,7 +1021,6 @@ public class FishingRob : MonoBehaviour
             return;
         }
 
-        targetWaterTransform = waterObject.transform;
         targetWaterRenderer = waterObject.GetComponent<Renderer>();
         if (targetWaterRenderer == null)
         {
@@ -1082,48 +1125,6 @@ public class FishingRob : MonoBehaviour
         fishingHintLabel.gameObject.SetActive(!string.IsNullOrWhiteSpace(hintText));
     }
 
-    private void UpdateAlertUi()
-    {
-        if (alertImage == null)
-        {
-            return;
-        }
-
-        bool shouldShowAlert = currentState == FishingState.BiteReady;
-        alertImage.gameObject.SetActive(shouldShowAlert);
-        if (!shouldShowAlert || canvasRect == null || mainCamera == null)
-        {
-            return;
-        }
-
-        Vector3 worldPoint = currentHookPoint + Vector3.up * 0.65f;
-        Vector3 screenPoint = mainCamera.WorldToScreenPoint(worldPoint);
-        if (screenPoint.z <= 0f)
-        {
-            alertImage.gameObject.SetActive(false);
-            return;
-        }
-
-        RectTransform alertRect = alertImage.rectTransform;
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            canvasRect,
-            screenPoint,
-            canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera,
-            out Vector2 localPoint))
-        {
-            alertRect.anchoredPosition = localPoint;
-            alertRect.localScale = Vector3.one * (1f + Mathf.Sin(Time.time * 8f) * 0.08f);
-        }
-    }
-
-    private void HideAlert()
-    {
-        if (alertImage != null)
-        {
-            alertImage.gameObject.SetActive(false);
-        }
-    }
-
     private void UpdateMinigameUi()
     {
         if (minigamePanel == null || trackRect == null || targetRect == null || fishRect == null)
@@ -1200,8 +1201,8 @@ public class FishingRob : MonoBehaviour
     {
         float fishPosition = GetFishPositionNormalized();
         float halfZone = targetZoneWidth * 0.5f;
-        return fishPosition >= targetZoneCenterNormalized - halfZone &&
-               fishPosition <= targetZoneCenterNormalized + halfZone;
+        return fishPosition >= TargetZoneCenterNormalized - halfZone &&
+               fishPosition <= TargetZoneCenterNormalized + halfZone;
     }
 
     private void EnsureUi()
@@ -1232,7 +1233,6 @@ public class FishingRob : MonoBehaviour
         if (existingRoot != null)
         {
             fishingUiRoot = existingRoot as RectTransform;
-            alertImage = existingRoot.Find("AlertIcon")?.GetComponent<Image>();
             fishingHintLabel = existingRoot.Find("FishingHintLabel")?.GetComponent<TextMeshProUGUI>();
             minigamePanel = existingRoot.Find("MiniGamePanel") as RectTransform;
             if (minigamePanel != null)
@@ -1255,14 +1255,6 @@ public class FishingRob : MonoBehaviour
 
         fishingUiRoot = CreateRect("FishingUIRoot", canvas.transform);
         StretchToParent(fishingUiRoot);
-
-        alertImage = CreateImage("AlertIcon", fishingUiRoot, Color.white);
-        RectTransform alertRect = alertImage.rectTransform;
-        alertRect.sizeDelta = new Vector2(56f, 56f);
-        alertImage.raycastTarget = false;
-        alertImage.sprite = alertSprite;
-        alertImage.preserveAspect = true;
-        alertImage.gameObject.SetActive(false);
 
         fishingHintLabel = CreateText("FishingHintLabel", fishingUiRoot);
         fishingHintLabel.alignment = TextAlignmentOptions.TopRight;
@@ -1334,6 +1326,15 @@ public class FishingRob : MonoBehaviour
         fishRect.sizeDelta = new Vector2(52f, 52f);
 
         EnsureFishPreviewResources();
+    }
+
+    private void InitializeFishingRuntime()
+    {
+        TryAssignReferences();
+        CacheFishingInteractionTriggers();
+        RefreshFishingTriggerState();
+        TryLoadRuntimeResources();
+        EnsureUi();
     }
 
     private void EnsureFishPreviewResources()
@@ -1434,6 +1435,7 @@ public class FishingRob : MonoBehaviour
         inventoryUI ??= GetComponent<InventoryUIController>();
         jump ??= GetComponent<Jump>();
         playerRigidbody ??= GetComponent<Rigidbody>();
+        playerCollider ??= GetComponent<CapsuleCollider>();
         animator ??= GetComponent<Animator>();
         terrain ??= Terrain.activeTerrain;
         terrain ??= FindFirstObjectByType<Terrain>();
@@ -1465,29 +1467,29 @@ public class FishingRob : MonoBehaviour
             rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
         }
 
-        if (leftHand == null && animator != null)
+        if ((leftHand == null || rightHand == null) && animator != null)
         {
             Transform[] allChildren = animator.GetComponentsInChildren<Transform>(true);
             for (int i = 0; i < allChildren.Length; i++)
             {
                 Transform child = allChildren[i];
-                if (child != null && child.name.Contains("LeftHand"))
+                if (child == null)
+                {
+                    continue;
+                }
+
+                if (leftHand == null && child.name.Contains("LeftHand"))
                 {
                     leftHand = child;
-                    break;
                 }
-            }
-        }
 
-        if (rightHand == null && animator != null)
-        {
-            Transform[] allChildren = animator.GetComponentsInChildren<Transform>(true);
-            for (int i = 0; i < allChildren.Length; i++)
-            {
-                Transform child = allChildren[i];
-                if (child != null && child.name.Contains("RightHand"))
+                if (rightHand == null && child.name.Contains("RightHand"))
                 {
                     rightHand = child;
+                }
+
+                if (leftHand != null && rightHand != null)
+                {
                     break;
                 }
             }
@@ -1502,17 +1504,106 @@ public class FishingRob : MonoBehaviour
         }
         fishPreviewPrefab ??= Resources.Load<GameObject>(fishPreviewResourcePath);
         fishItemDefinition ??= Resources.Load<InventoryItemDefinition>(fishItemResourcePath);
-        alertSprite ??= Resources.Load<Sprite>(alertSpriteResourcePath);
-
-        if (alertImage != null && alertImage.sprite == null)
-        {
-            alertImage.sprite = alertSprite;
-        }
 
         if (fishPreviewImage != null && fishPreviewImage.texture == null)
         {
             EnsureFishPreviewResources();
         }
+    }
+
+    private void CacheFishingInteractionTriggers()
+    {
+        fishingInteractionTriggers.Clear();
+        TryCacheNamedFishingTrigger();
+    }
+
+    private bool TryCacheNamedFishingTrigger()
+    {
+        if (string.IsNullOrWhiteSpace(fishingTriggerObjectName))
+        {
+            return false;
+        }
+
+        GameObject triggerObject = GameObject.Find(fishingTriggerObjectName);
+        if (triggerObject == null)
+        {
+            return false;
+        }
+
+        Collider[] colliders = triggerObject.GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider collider = colliders[i];
+            if (collider == null || !collider.isTrigger)
+            {
+                continue;
+            }
+
+            fishingInteractionTriggers.Add(collider);
+        }
+
+        return fishingInteractionTriggers.Count > 0;
+    }
+
+    private bool IsFishingInteractionTrigger(Collider collider)
+    {
+        if (collider == null)
+        {
+            return false;
+        }
+
+        if (fishingInteractionTriggers.Count == 0)
+        {
+            CacheFishingInteractionTriggers();
+        }
+
+        return fishingInteractionTriggers.Contains(collider);
+    }
+
+    private void RefreshFishingTriggerState()
+    {
+        isInsideFishingTrigger = false;
+
+        if (fishingInteractionTriggers.Count == 0)
+        {
+            CacheFishingInteractionTriggers();
+        }
+
+        Bounds playerBounds = playerCollider != null
+            ? playerCollider.bounds
+            : new Bounds(transform.position, new Vector3(0.5f, 1.8f, 0.5f));
+
+        for (int i = fishingInteractionTriggers.Count - 1; i >= 0; i--)
+        {
+            Collider trigger = fishingInteractionTriggers[i];
+            if (trigger == null)
+            {
+                fishingInteractionTriggers.RemoveAt(i);
+                continue;
+            }
+
+            if (!trigger.enabled || !trigger.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            if (trigger.bounds.Intersects(playerBounds))
+            {
+                isInsideFishingTrigger = true;
+                return;
+            }
+        }
+    }
+
+    private bool IsPlayerInsideFishingTrigger()
+    {
+        if (isInsideFishingTrigger)
+        {
+            return true;
+        }
+
+        RefreshFishingTriggerState();
+        return isInsideFishingTrigger;
     }
 
     private bool IsInventoryOpen()
@@ -1525,19 +1616,6 @@ public class FishingRob : MonoBehaviour
         GameObject gameObject = new GameObject(objectName, typeof(RectTransform));
         gameObject.transform.SetParent(parent, false);
         return gameObject.GetComponent<RectTransform>();
-    }
-
-    private static Image CreateImage(string objectName, Transform parent, Color color)
-    {
-        GameObject gameObject = new GameObject(
-            objectName,
-            typeof(RectTransform),
-            typeof(CanvasRenderer),
-            typeof(Image));
-        gameObject.transform.SetParent(parent, false);
-        Image image = gameObject.GetComponent<Image>();
-        image.color = color;
-        return image;
     }
 
     private static TextMeshProUGUI CreateText(string objectName, Transform parent)
