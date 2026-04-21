@@ -8,7 +8,7 @@ public class DialogueTrigger : Interactable
 
     private bool hasTriggered;
 
-    public override bool CanLookInteract => false;
+    //public override bool CanLookInteract => false;
 
     private void Reset()
     {
@@ -37,7 +37,7 @@ public class DialogueTrigger : Interactable
             return;
         }
 
-        if (!TryRequestDialogueEvent())
+        //if (!TryRequestDialogueEvent())
         {
             return;
         }
