@@ -112,7 +112,6 @@ public class FishingRob : MonoBehaviour
     private GameObject fishPreviewStage;
     private GameObject fishPreviewInstance;
     private Camera fishPreviewCamera;
-    private Light fishPreviewLight;
     private RenderTexture fishPreviewTexture;
 
     private FishingState currentState = FishingState.Inactive;
@@ -1359,12 +1358,6 @@ public class FishingRob : MonoBehaviour
         fishPreviewInstance.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
         SetLayerRecursively(fishPreviewInstance.transform, 0);
 
-        fishPreviewLight = new GameObject("FishingPreviewLight").AddComponent<Light>();
-        fishPreviewLight.transform.SetParent(fishPreviewStage.transform, false);
-        fishPreviewLight.type = LightType.Directional;
-        fishPreviewLight.intensity = 1.1f;
-        fishPreviewLight.transform.rotation = Quaternion.Euler(40f, -25f, 0f);
-
         fishPreviewTexture = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32);
         fishPreviewTexture.Create();
 
@@ -1409,12 +1402,6 @@ public class FishingRob : MonoBehaviour
         {
             Destroy(fishPreviewCamera.gameObject);
             fishPreviewCamera = null;
-        }
-
-        if (fishPreviewLight != null)
-        {
-            Destroy(fishPreviewLight.gameObject);
-            fishPreviewLight = null;
         }
 
         if (fishPreviewStage != null)
