@@ -1,3 +1,6 @@
+// Enum nay la danh sach cac "su kien" co the goi hoi thoai.
+// Vi du: vao game, nhat do, gap heo rung, bat dau ending...
+// Moi script gameplay chi can goi dung EventId, controller se tu tra database.
 public enum DialogueEventId
 {
     None = 0,

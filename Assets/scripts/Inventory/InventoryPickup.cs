@@ -1,5 +1,7 @@
 using UnityEngine;
 
+// InventoryPickup la vat the nhat duoc trong scene.
+// Khi tuong tac, no yeu cau PlayerInventory them item vao tui.
 public class InventoryPickup : Interactable
 {
     [Tooltip("Định nghĩa vật phẩm sẽ được nhặt")]
@@ -26,6 +28,10 @@ public class InventoryPickup : Interactable
         itemDefinition = definition;
     }
 
+    // Logic nhat do:
+    // - tim PlayerInventory
+    // - thu them item vao tui
+    // - neu nhat het thi huy object pickup
     protected override void Interact()
     {
         PlayerInventory inventory = FindFirstObjectByType<PlayerInventory>();
@@ -56,6 +62,7 @@ public class InventoryPickup : Interactable
         Amount = remainingAmount;
     }
 
+    // Pickup nay chi can prompt, khong can mo panel noi dung rieng.
     protected override void PresentInteraction(PlayerUI playerUI)
     {
     }
@@ -65,6 +72,7 @@ public class InventoryPickup : Interactable
         amount = Mathf.Max(1, amount);
     }
 
+    // Tao dong prompt hien len man hinh khi nguoi choi nhin vao pickup.
     private string BuildPromptText()
     {
         if (!string.IsNullOrWhiteSpace(pickupPromptOverride))

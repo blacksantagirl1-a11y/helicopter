@@ -6,6 +6,12 @@ using UnityEditor;
 #endif
 
 [DisallowMultipleComponent]
+// CuttingTreeSystem xu ly co che chat cay tren Terrain.
+// Luong chinh:
+// 1. Nghe su kien AttackPerformed tu ActionScript.
+// 2. Moi cu danh, tim cay hop le dang o truoc camera.
+// 3. Cong so hit cho cay do.
+// 4. Du hit thi xoa cay khoi terrain va spawn ra log de nhat.
 public class CuttingTreeSystem : MonoBehaviour
 {
     private const string DefaultPickupPrefabPath = "Assets/model/log/log2.prefab";
@@ -42,6 +48,7 @@ public class CuttingTreeSystem : MonoBehaviour
     [Tooltip("Khoảng random góc xoay Y của log sau khi spawn")]
     [SerializeField] private Vector2 pickupRandomYaw = new Vector2(0f, 360f);
 
+    // Nho xem moi cay da bi chat bao nhieu lan.
     private readonly Dictionary<string, int> treeHitCounts = new Dictionary<string, int>();
     private ActionScript subscribedActionScript;
 
@@ -84,6 +91,7 @@ public class CuttingTreeSystem : MonoBehaviour
         }
     }
 
+    // Duoc goi moi khi don danh den thoi diem tinh hit.
     private void HandleAttackPerformed()
     {
         if (!enabled || !gameObject.activeInHierarchy)
@@ -112,6 +120,12 @@ public class CuttingTreeSystem : MonoBehaviour
         Debug.Log($"Tree hit {nextHitCount}/{hitsToCutTree}: {GetPrototypeName(terrain, treeInstance.prototypeIndex)}");
     }
 
+    // Thu tim cay dang duoc nham toi.
+    // Cay hop le phai:
+    // - nam trong tam
+    // - nam trong goc nhin cho phep
+    // - dung loai cay co the chat
+    // - khong bi vat can che
     private bool TryGetTargetTree(
         out Terrain terrain,
         out TreeInstance treeInstance,
@@ -183,6 +197,7 @@ public class CuttingTreeSystem : MonoBehaviour
         return treeIndex >= 0;
     }
 
+    // Xoa cay khoi danh sach treeInstances cua terrain.
     private void RemoveTree(Terrain terrain, int treeIndex)
     {
         if (terrain == null || terrain.terrainData == null)
@@ -202,6 +217,7 @@ public class CuttingTreeSystem : MonoBehaviour
         terrain.Flush();
     }
 
+    // Spawn khuc go sau khi cay bi chat do.
     private void SpawnPickup(Vector3 treeWorldPosition)
     {
         if (pickupPrefab == null)
@@ -235,6 +251,7 @@ public class CuttingTreeSystem : MonoBehaviour
         }
     }
 
+    // Dam bao pickup co collider de co the duoc nhin va nhat.
     private void EnsurePickupCollider(GameObject pickupObject, Bounds worldBounds)
     {
         if (pickupObject == null || pickupObject.GetComponentInChildren<Collider>() != null)
@@ -247,6 +264,7 @@ public class CuttingTreeSystem : MonoBehaviour
         boxCollider.size = WorldSizeToLocalSize(pickupObject.transform, worldBounds.size);
     }
 
+    // Chi cho phep chat nhung cay co ten prototype khop voi tu khoa cau hinh.
     private bool IsTreePrototypeCuttable(TreePrototype[] prototypes, int prototypeIndex)
     {
         if (prototypes == null || prototypeIndex < 0 || prototypeIndex >= prototypes.Length)
@@ -287,6 +305,7 @@ public class CuttingTreeSystem : MonoBehaviour
         return false;
     }
 
+    // Neu giua camera va cay co vat can thi bo qua cay do.
     private bool IsViewObstructed(Vector3 origin, Vector3 targetPoint, float distanceToTarget)
     {
         Vector3 direction = targetPoint - origin;
@@ -314,6 +333,7 @@ public class CuttingTreeSystem : MonoBehaviour
         return false;
     }
 
+    // Tu tim terrain dang duoc dung trong scene.
     private Terrain ResolveTerrain()
     {
         if (targetTerrain != null)
@@ -330,6 +350,7 @@ public class CuttingTreeSystem : MonoBehaviour
         return targetTerrain;
     }
 
+    // Co gang auto gan cac reference can thiet.
     private void TryAutoAssignReferences()
     {
         actionScript ??= GetComponent<ActionScript>();
@@ -356,6 +377,7 @@ public class CuttingTreeSystem : MonoBehaviour
 #endif
     }
 
+    // Dang ky / huy dang ky nghe event AttackPerformed tu ActionScript.
     private void RefreshAttackSubscription()
     {
         if (subscribedActionScript == actionScript)
@@ -376,6 +398,7 @@ public class CuttingTreeSystem : MonoBehaviour
         }
     }
 
+    // Khoa cac gia tri config ve mien hop le.
     private void ClampSerializedValues()
     {
         choppingRange = Mathf.Max(1f, choppingRange);
@@ -384,6 +407,7 @@ public class CuttingTreeSystem : MonoBehaviour
         hitsToCutTree = Mathf.Max(1, hitsToCutTree);
     }
 
+    // Lay so hit hien tai cua cay.
     private int GetHitCount(string treeKey)
     {
         if (string.IsNullOrWhiteSpace(treeKey))
@@ -396,6 +420,7 @@ public class CuttingTreeSystem : MonoBehaviour
             : 0;
     }
 
+    // Tao key gan nhu duy nhat cho tung cay de luu hit count rieng.
     private static string BuildTreeKey(TreeInstance treeInstance)
     {
         return string.Concat(
@@ -408,6 +433,7 @@ public class CuttingTreeSystem : MonoBehaviour
             Mathf.RoundToInt(treeInstance.position.z * 10000f));
     }
 
+    // Doi vi tri normalized cua TreeInstance thanh vi tri world that.
     private static Vector3 GetTreeWorldPosition(Terrain terrain, TreeInstance treeInstance)
     {
         Vector3 terrainPosition = terrain.GetPosition();
@@ -417,6 +443,7 @@ public class CuttingTreeSystem : MonoBehaviour
         return worldPosition;
     }
 
+    // Lay ten prefab goc cua prototype cay, chu yeu de log / debug.
     private static string GetPrototypeName(Terrain terrain, int prototypeIndex)
     {
         if (terrain == null || terrain.terrainData == null)
@@ -435,6 +462,7 @@ public class CuttingTreeSystem : MonoBehaviour
             : "Unknown";
     }
 
+    // Gom bounds cua cac renderer con lai thanh 1 bounds chung.
     private static bool TryGetCombinedRendererBounds(GameObject target, out Bounds bounds)
     {
         Renderer[] renderers = target.GetComponentsInChildren<Renderer>();
@@ -453,6 +481,7 @@ public class CuttingTreeSystem : MonoBehaviour
         return true;
     }
 
+    // Doi kich thuoc world space ve local space cua object.
     private static Vector3 WorldSizeToLocalSize(Transform targetTransform, Vector3 worldSize)
     {
         Vector3 lossyScale = targetTransform.lossyScale;

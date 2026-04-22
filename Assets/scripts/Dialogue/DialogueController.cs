@@ -8,8 +8,18 @@ using UnityEditor;
 #endif
 
 [DisallowMultipleComponent]
+// Day la bo dieu phoi trung tam cua he thong hoi thoai.
+// Cach no hoat dong, theo ngon ngu de hieu:
+// 1. Mot script bat ky trong game goi RequestDialogue(eventId).
+// 2. Controller xem "hom nay la ngay may" trong save.
+// 3. Controller tim doan hoi thoai dung voi cap: Day + EventId.
+// 4. Doan hoi thoai duoc dua vao hang doi, roi hien tung dong len UI.
+// 5. Trong luc hoi thoai chay, mot so dieu khien cua nguoi choi se bi tam khoa.
+// 6. Ket thuc hoi thoai thi UI bien mat va cac dieu khien duoc bat lai nhu cu.
 public class DialogueController : MonoBehaviour
 {
+    // Lop nho nay la "phieu yeu cau" cho 1 lan hoi thoai.
+    // No luu lai du lieu da tim thay de controller xu ly lan luot trong hang doi.
     private sealed class DialogueRequest
     {
         public DialogueRequest(DialogueDay day, DialogueEventId eventId, DialogueEntry entry)
@@ -24,20 +34,28 @@ public class DialogueController : MonoBehaviour
         public DialogueEntry Entry { get; }
     }
 
+    // Neu khong keo tay trong Inspector thi controller se tu load database o duong dan nay.
     private const string DefaultDatabaseResourcePath = "Dialogue/DialogueDatabase";
+    // Toc do mac dinh cua hieu ung "go chu" (typewriter).
     private const float DefaultCharactersPerSecond = 48f;
 
+    // instance giup he thong dung theo kieu "chi co 1 controller dang hoat dong".
     private static DialogueController instance;
     private static bool isCreatingInstance;
 
     [Header("Data")]
+    // Database la noi chua toan bo kich ban hoi thoai cua game.
     [SerializeField] private DialogueDatabase database;
+    // Duong dan Resources de auto tim database neu o tren chua duoc gan tay.
     [SerializeField] private string databaseResourcePath = DefaultDatabaseResourcePath;
     [SerializeField]
     [Min(1f)]
+    // So ky tu hien ra moi giay khi dong thoai dang duoc "go" dan ra.
     private float charactersPerSecond = DefaultCharactersPerSecond;
 
     [Header("References")]
+    // Cac reference ben duoi la nhung thanh phan gameplay co the bi an / khoa
+    // trong luc dang hien hoi thoai.
     [SerializeField] private PlayerUI playerUI;
     [SerializeField] private InventoryUIController inventoryUIController;
     [SerializeField] private PlayerMovement playerMovement;
@@ -55,21 +73,29 @@ public class DialogueController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI speakerText;
     [SerializeField] private TextMeshProUGUI bodyText;
 
+    // Hang doi nay tranh truong hop nhieu noi trong game cung yeu cau hoi thoai mot luc.
     private readonly Queue<DialogueRequest> pendingRequests = new Queue<DialogueRequest>();
+    // Truoc khi tat control cua player, ta nho lai trang thai cu de sau hoi thoai con tra lai dung.
     private readonly Dictionary<Behaviour, bool> cachedControlStates = new Dictionary<Behaviour, bool>();
 
+    // currentRequest = doan hoi thoai dang chay ngay luc nay.
     private DialogueRequest currentRequest;
     private bool isDialogueActive;
+    // isTyping = true khi dong hien tai van dang hien dan tung chu.
     private bool isTyping;
+    // Co nay tranh viec nguoi choi dang giu chuot luc mo hoi thoai lam skip mat dong dau tien.
     private bool ignoreAdvanceUntilMouseReleased;
     private float currentVisibleCharacters;
     private int currentLineCharacterCount;
     private int currentLineIndex = -1;
+    // TimeScale co the bi doi trong hoi thoai, nen can nho lai gia tri cu.
     private float cachedTimeScale = 1f;
     private bool hasCachedTimeScale;
 
     public static bool IsDialogueActive => instance != null && instance.isDialogueActive;
 
+    // Day la "cua vao" don gian nhat de script khac bat dau hoi thoai.
+    // Chi can dua vao EventId, controller se tu lo viec tim data theo ngay hien tai.
     public static bool RequestDialogue(DialogueEventId eventId)
     {
         if (eventId == DialogueEventId.None)
@@ -98,16 +124,20 @@ public class DialogueController : MonoBehaviour
         return DialogueSaveService.GetCurrentDay();
     }
 
+    // Cho phep script khac dat ngay hien tai cua he thong hoi thoai.
     public static void SetCurrentDay(DialogueDay day)
     {
         DialogueSaveService.SetCurrentDay(day);
     }
 
+    // Tang ngay len 1 buoc va luu lai.
     public static DialogueDay AdvanceDay()
     {
         return DialogueSaveService.AdvanceDay();
     }
 
+    // Moi lan vao Play Mode hoac load lai domain, can reset bien static
+    // de tranh giu lai instance cu mot cach sai lech.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStaticState()
     {
@@ -115,6 +145,7 @@ public class DialogueController : MonoBehaviour
         isCreatingInstance = false;
     }
 
+    // Awake: chuan bi database, tim reference, tao UI neu can va dam bao hop hoi thoai dang an.
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -131,6 +162,7 @@ public class DialogueController : MonoBehaviour
         SetDialogueVisible(false);
     }
 
+    // Neu component bi tat trong luc dialogue dang mo, ta van phai tra gameplay ve trang thai an toan.
     private void OnDisable()
     {
         RestoreDialogueState();
@@ -146,6 +178,7 @@ public class DialogueController : MonoBehaviour
         }
     }
 
+    // OnValidate chay trong Editor de giu gia tri hop le va auto tim reference som.
     private void OnValidate()
     {
         charactersPerSecond = Mathf.Max(1f, charactersPerSecond);
@@ -153,6 +186,9 @@ public class DialogueController : MonoBehaviour
         ResolveReferences();
     }
 
+    // Update la "vong lap" chay moi frame.
+    // Neu chua co hoi thoai thi thu lay yeu cau tiep theo trong hang doi.
+    // Neu dang co hoi thoai thi cap nhat hieu ung go chu va lang nghe click chuot de qua dong.
     private void Update()
     {
         if (!isDialogueActive)
@@ -180,6 +216,7 @@ public class DialogueController : MonoBehaviour
         }
     }
 
+    // Thu tim instance da ton tai san trong scene.
     private static bool TryGetExistingInstance(out DialogueController controller)
     {
         if (instance != null)
@@ -198,6 +235,7 @@ public class DialogueController : MonoBehaviour
         return false;
     }
 
+    // Neu scene chua co DialogueController, ham nay se tu tao mot GameObject moi va gan script vao.
     private static DialogueController EnsureInstance()
     {
         if (TryGetExistingInstance(out DialogueController controller))
@@ -219,6 +257,8 @@ public class DialogueController : MonoBehaviour
         return controller;
     }
 
+    // Buoc nay bien "toi muon mo hoi thoai X" thanh "toi da tim duoc du lieu hoi thoai cu the".
+    // Sau do dua vao hang doi de xu ly lan luot.
     private bool EnqueueRequest(DialogueEventId eventId)
     {
         ResolveDatabase();
@@ -252,6 +292,7 @@ public class DialogueController : MonoBehaviour
         return true;
     }
 
+    // Neu khong co hoi thoai nao dang chay thi bat dau hoi thoai ke tiep trong hang doi.
     private void TryStartNextDialogue()
     {
         if (isDialogueActive || pendingRequests.Count == 0)
@@ -281,6 +322,7 @@ public class DialogueController : MonoBehaviour
         }
     }
 
+    // Thiet lap trang thai ban dau cho 1 doan hoi thoai moi.
     private void BeginDialogue(DialogueRequest request)
     {
         currentRequest = request;
@@ -300,6 +342,9 @@ public class DialogueController : MonoBehaviour
         ShowLine(0);
     }
 
+    // Click chuot khi dang hoi thoai se co 2 nghia:
+    // - Neu dong hien tai dang hien dan: hien ra het ngay lap tuc.
+    // - Neu dong hien tai da hien xong: sang dong tiep theo, hoac ket thuc neu da het dong.
     private void HandleAdvanceInput()
     {
         if (!isDialogueActive || currentRequest == null)
@@ -323,6 +368,7 @@ public class DialogueController : MonoBehaviour
         EndCurrentDialogue();
     }
 
+    // Nap 1 dong thoai len UI va reset hieu ung go chu cho dong moi.
     private void ShowLine(int lineIndex)
     {
         if (currentRequest == null || !currentRequest.Entry.TryGetLine(lineIndex, out DialogueLineData line) || line == null)
@@ -360,6 +406,8 @@ public class DialogueController : MonoBehaviour
         }
     }
 
+    // Moi frame tang so ky tu duoc hien ra, tao cam giac text dang duoc go dan.
+    // Dung unscaledDeltaTime de van chay dung ngay ca khi Time.timeScale dang bi giam.
     private void UpdateTypewriter()
     {
         if (!isTyping || bodyText == null)
@@ -377,6 +425,7 @@ public class DialogueController : MonoBehaviour
         }
     }
 
+    // Dung khi nguoi choi click de bo qua hieu ung go chu va hien het dong ngay lap tuc.
     private void RevealCurrentLineImmediately()
     {
         if (bodyText == null)
@@ -389,6 +438,7 @@ public class DialogueController : MonoBehaviour
         isTyping = false;
     }
 
+    // Dong hoi thoai hien tai, an UI va tra gameplay ve trang thai cu.
     private void EndCurrentDialogue()
     {
         SetDialogueVisible(false);
@@ -396,6 +446,7 @@ public class DialogueController : MonoBehaviour
         TryStartNextDialogue();
     }
 
+    // Gom tat ca buoc "don dep" de dua game tro lai trang thai truoc hoi thoai.
     private void RestoreDialogueState()
     {
         RestoreTimeScale();
@@ -421,6 +472,10 @@ public class DialogueController : MonoBehaviour
         }
     }
 
+    // Chuan bi gameplay truoc khi mo hoi thoai:
+    // - an prompt tuong tac
+    // - dong inventory neu dang mo
+    // - khoa nhung script de tranh nguoi choi vua hoi thoai vua thao tac linh tinh
     private void PrepareGameplayForDialogue(bool playerCanMove)
     {
         ResolveReferences();
@@ -451,6 +506,7 @@ public class DialogueController : MonoBehaviour
         }
     }
 
+    // Mo lai cac control theo dung trang thai da nho truoc do.
     private void RestoreGameplayState()
     {
         if (cachedControlStates.Count == 0)
@@ -469,6 +525,7 @@ public class DialogueController : MonoBehaviour
         cachedControlStates.Clear();
     }
 
+    // Nho xem component nay dang bat hay tat, roi tat di tam thoi.
     private void CacheAndDisableControl(Behaviour behaviour)
     {
         if (behaviour == null)
@@ -484,6 +541,7 @@ public class DialogueController : MonoBehaviour
         behaviour.enabled = false;
     }
 
+    // Neu hoi thoai khoa di chuyen thi dat van toc ve 0 de player dung yen ngay.
     private void ClearPlayerMotion()
     {
         if (playerRigidbody == null)
@@ -495,6 +553,7 @@ public class DialogueController : MonoBehaviour
         playerRigidbody.angularVelocity = Vector3.zero;
     }
 
+    // Luu lai toc do thoi gian hien tai cua game.
     private void CacheTimeScale()
     {
         if (hasCachedTimeScale)
@@ -506,11 +565,13 @@ public class DialogueController : MonoBehaviour
         hasCachedTimeScale = true;
     }
 
+    // DialogueEntry co the yeu cau game chay cham lai, dung lai, hoac giu nguyen toc do.
     private void ApplyTimeScale(float targetTimeScale)
     {
         Time.timeScale = Mathf.Max(0f, targetTimeScale);
     }
 
+    // Sau hoi thoai, tra Time.timeScale lai nhu cu.
     private void RestoreTimeScale()
     {
         if (!hasCachedTimeScale)
@@ -522,6 +583,11 @@ public class DialogueController : MonoBehaviour
         hasCachedTimeScale = false;
     }
 
+    // Tim database theo thu tu uu tien:
+    // 1. Database da gan san trong Inspector.
+    // 2. File Resources theo duong dan cau hinh.
+    // 3. Bat ky DialogueDatabase nao tim thay trong Resources.
+    // 4. Trong Editor: tim asset bang AssetDatabase de de setup hon.
     private void ResolveDatabase()
     {
         if (database != null)
@@ -556,6 +622,8 @@ public class DialogueController : MonoBehaviour
 #endif
     }
 
+    // Co gang tu tim cac script / component can thiet trong scene
+    // de nguoi lam game khong can gan tay tat ca.
     private void ResolveReferences()
     {
         playerUI ??= FindFirstObjectByType<PlayerUI>();
@@ -592,6 +660,8 @@ public class DialogueController : MonoBehaviour
         pickUpScript ??= FindFirstObjectByType<PickUpScript>();
     }
 
+    // Dam bao UI hoi thoai ton tai.
+    // Neu scene chua co san, script se tu tao ra mot khung don gian trong Canvas.
     private void EnsureDialogueUI()
     {
         if (dialogueRoot != null && dialogueBackground != null && speakerText != null && bodyText != null)
@@ -652,6 +722,7 @@ public class DialogueController : MonoBehaviour
         ConfigureBodyText();
     }
 
+    // Co gang tim Canvas de dat UI hoi thoai vao do.
     private Canvas ResolveCanvas()
     {
         if (playerUI != null && playerUI.PickUpText != null && playerUI.PickUpText.canvas != null)
@@ -662,6 +733,7 @@ public class DialogueController : MonoBehaviour
         return FindFirstObjectByType<Canvas>();
     }
 
+    // Cai dat vi tri va mau nen cua hop hoi thoai.
     private void ConfigureDialogueRoot()
     {
         if (dialogueRoot == null || dialogueBackground == null)
@@ -680,6 +752,7 @@ public class DialogueController : MonoBehaviour
         dialogueBackground.raycastTarget = false;
     }
 
+    // Cai dat o hien ten nguoi noi.
     private void ConfigureSpeakerText()
     {
         if (speakerText == null)
@@ -702,6 +775,7 @@ public class DialogueController : MonoBehaviour
         speakerText.raycastTarget = false;
     }
 
+    // Cai dat o hien noi dung dong thoai.
     private void ConfigureBodyText()
     {
         if (bodyText == null)
@@ -725,6 +799,7 @@ public class DialogueController : MonoBehaviour
         bodyText.raycastTarget = false;
     }
 
+    // Hien hoac an toan bo khung hoi thoai.
     private void SetDialogueVisible(bool visible)
     {
         if (visible)
@@ -738,6 +813,7 @@ public class DialogueController : MonoBehaviour
         }
     }
 
+    // Ham ho tro de tao nhanh mot o TextMeshPro moi neu scene chua co san.
     private static TextMeshProUGUI CreateTextElement(string objectName, Transform parent)
     {
         GameObject textObject = new GameObject(

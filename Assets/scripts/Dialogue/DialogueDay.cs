@@ -1,3 +1,5 @@
+// Enum nay dong vai tro nhu "cac moc ngay" trong cau chuyen.
+// He thong hoi thoai se dua vao ngay hien tai de lay dung kich ban.
 public enum DialogueDay
 {
     Day1 = 1,

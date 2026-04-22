@@ -2,6 +2,10 @@ using System.Collections;
 using UnityEngine;
 
 [DisallowMultipleComponent]
+// ActionScript dieu khien hanh dong tay cua player:
+// rut riu, cat riu, danh, giu vu khi...
+// Diem quan trong voi co che chat cay la event AttackPerformed.
+// Event nay duoc ban ra dung luc "cu danh tinh hit", de he thong khac cung nghe.
 public class ActionScript : MonoBehaviour
 {
     private const int HandStateHolding = -1;
@@ -62,6 +66,7 @@ public class ActionScript : MonoBehaviour
 
     public bool IsWeaponEquipped => isWeaponEquipped;
     public GameObject FishingRodPrefab => fishingRodPrefab;
+    // Tin hieu cho biet cu danh da xay ra that su.
     public event System.Action AttackPerformed;
 
     private void Reset()
@@ -136,6 +141,7 @@ public class ActionScript : MonoBehaviour
         ApplyHandState(HandStateFishing, true);
     }
 
+    // Chay animation rut riu ra.
     private IEnumerator PlayEquipSequence()
     {
         isHandActionLocked = true;
@@ -154,6 +160,7 @@ public class ActionScript : MonoBehaviour
         handActionRoutine = null;
     }
 
+    // Chay animation cat riu di.
     private IEnumerator PlayUnequipSequence()
     {
         isHandActionLocked = true;
@@ -171,6 +178,9 @@ public class ActionScript : MonoBehaviour
         handActionRoutine = null;
     }
 
+    // Chay animation danh.
+    // Luu y: bam chuot khong dong nghia hit xay ra ngay.
+    // Hit duoc tinh sau mot do tre nho de khop voi animation.
     private IEnumerator PlayAttackSequence()
     {
         isHandActionLocked = true;
@@ -191,6 +201,7 @@ public class ActionScript : MonoBehaviour
         handActionRoutine = null;
     }
 
+    // Doi attackImpactDelay roi moi ban event AttackPerformed.
     private IEnumerator InvokeAttackAfterDelay(System.Action onCompleted)
     {
         float impactDelay = Mathf.Max(0f, attackImpactDelay);

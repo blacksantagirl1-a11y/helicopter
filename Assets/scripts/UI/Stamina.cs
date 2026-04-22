@@ -3,6 +3,11 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Stamina lo viec giam the luc theo di chuyen va hanh dong.
+// Lien quan den chat cay:
+// - nghe event AttackPerformed
+// - neu camera dang huong vao cay co the chat
+// - tru stamina theo chopStaminaCost
 public class Stamina : MonoBehaviour
 {
     [Tooltip("Slider hiển thị và lưu giá trị stamina hiện tại")]
@@ -121,6 +126,7 @@ public class Stamina : MonoBehaviour
         staminaSlider.value = Mathf.Clamp(staminaSlider.value, 0, maxStamina);
     }
 
+    // Moi cu danh co the tru stamina cho viec chat cay hoac giet heo.
     private void HandleAttackPerformed()
     {
         if (staminaSlider == null)
@@ -245,6 +251,7 @@ public class Stamina : MonoBehaviour
         return fallbackHitsToKill;
     }
 
+    // Kiem tra camera co dang nham vao mot cay hop le de chat hay khong.
     private bool IsLookingAtCuttableTree()
     {
         Terrain terrain = ResolveTerrain();

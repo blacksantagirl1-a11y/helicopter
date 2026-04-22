@@ -1,6 +1,8 @@
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "InventoryItem", menuName = "Inventory/Item Definition")]
+// InventoryItemDefinition la "mau dinh nghia" cua 1 loai item:
+// ten, icon, stack toi da, co dung duoc hay khong...
 public class InventoryItemDefinition : ScriptableObject
 {
     [Tooltip("ID nội bộ duy nhất của vật phẩm")]
@@ -41,6 +43,8 @@ public class InventoryItemDefinition : ScriptableObject
         ? $"{DisplayName} chua the su dung."
         : cannotUseMessage;
 
+    // Hanh vi mac dinh khi dung item tu inventory.
+    // Neu can item dac biet hon, co the override ham nay o class ke thua.
     public virtual bool TryUse(GameObject user, PlayerInventory inventory, out string feedbackMessage, out bool consumeItem)
     {
         if (!CanUse)
@@ -55,6 +59,7 @@ public class InventoryItemDefinition : ScriptableObject
         return true;
     }
 
+    // Don dep du lieu trong Editor de tranh gia tri loi.
     private void OnValidate()
     {
         maxStack = Mathf.Max(1, maxStack);
