@@ -345,6 +345,26 @@ Ba thành phần này giúp sản phẩm có một luồng vào game hoàn chỉ
 - Hình 4.15: Ảnh panel Options.
 - Hình 4.16: Ảnh loading overlay khi chuyển scene.
 
+##### 4.2.4.8. Hệ thống hội thoại
+
+`DialogueController` là script trung tâm quản lý toàn bộ hệ thống hội thoại trong game. Hệ thống này sử dụng mô hình dựa trên ngày (DialogueDay) và sự kiện (DialogueEventId) để tìm và hiển thị đoạn hội thoại phù hợp từ DialogueDatabase.
+
+Các thành phần chính:
+
+1. `DialogueController`: Điều khiển UI, khóa controls, hiển thị text typewriter, quản lý hàng đợi hội thoại.
+2. `DialogueDatabase`: ScriptableObject chứa tất cả dữ liệu hội thoại, được tổ chức theo ngày và event.
+3. `DialogueEntry`: Mỗi entry chứa danh sách dòng thoại, settings như playerCanMove, timeScale.
+4. `DialogueLineData`: Dữ liệu từng dòng với speakerName và text.
+5. `DialogueSaveService`: Lưu ngày hiện tại vào PlayerPrefs.
+6. `MamboSixDayStoryPlan.md`: Kịch bản 6 ngày với các events như IntroWakeUp, DayStart, InvestigationComplete, EndingStart.
+
+Hệ thống hỗ trợ typewriter effect, khóa controls khi hội thoại chạy, và có thể điều chỉnh timeScale để tạo hiệu ứng chậm lại hoặc dừng game.
+
+**Gợi ý ảnh chèn:**
+- Hình 4.17: Ảnh UI hội thoại đang hiển thị.
+- Hình 4.18: Ảnh DialogueDatabase trong Project Window.
+- Hình 4.19: Sơ đồ kiến trúc hệ thống hội thoại.
+
 ### 4.3. Phân tích thiết kế hệ thống
 
 #### 4.3.1. Thiết kế luồng vào game
@@ -393,6 +413,52 @@ Những lớp giao diện này giúp người chơi luôn biết mình đang ở
 - Hình 4.17: Sơ đồ luồng vào game.
 - Hình 4.18: Sơ đồ vòng lặp gameplay.
 - Hình 4.19: Sơ đồ mối quan hệ giữa `InventoryPickup`, `PlayerInventory`, `InventoryUIController`.
+- Hình 4.20: Sơ đồ kiến trúc hệ thống hội thoại.
+
+##### Hình 4.17. Sơ đồ luồng vào game
+
+```mermaid
+flowchart TD
+    A["Main Menu"] -->|"Chọn Play"| B["Loading Overlay"]
+    B -->|"Tải scene"| C["Scene Suml"]
+    C -->|"Bắt đầu"| D["Gameplay"]
+```
+
+##### Hình 4.18. Sơ đồ vòng lặp gameplay
+
+```mermaid
+flowchart TD
+    A["Di chuyển khám phá môi trường"] --> B["Nhìn vào object"]
+    B --> C["Tương tác hoặc tấn công"]
+    C --> D["Nhận vật phẩm"]
+    D --> E["Mở inventory kiểm tra"]
+    E --> A
+```
+
+##### Hình 4.19. Sơ đồ mối quan hệ giữa `InventoryPickup`, `PlayerInventory`, `InventoryUIController`
+
+```mermaid
+flowchart LR
+    A["InventoryPickup<br/>Vật thể nhặt được trong scene"] -->|"Interact()<br/>FindFirstObjectByType&lt;PlayerInventory&gt;()<br/>TryAddItem(itemDefinition, amount, out remainingAmount)"| B["PlayerInventory<br/>Trung tâm lưu dữ liệu slot và số lượng vật phẩm"]
+    B -->|"InventoryChanged<br/>FeedbackRequested"| C["InventoryUIController<br/>Hiển thị lưới inventory và thông báo phản hồi"]
+    C -->|"RefreshSlots()<br/>đọc Slots, SlotCount"| B
+    C -->|"HandleSlotClicked()<br/>TryUseSlot(slotIndex)"| B
+```
+
+Sơ đồ trên cho thấy `PlayerInventory` là thành phần trung tâm của hệ thống inventory. `InventoryPickup` chỉ chịu trách nhiệm phát sinh hành động nhặt vật phẩm trong scene và chuyển yêu cầu thêm item vào `PlayerInventory`. Sau khi dữ liệu inventory thay đổi, `PlayerInventory` phát event `InventoryChanged` và `FeedbackRequested` để `InventoryUIController` cập nhật lại giao diện, đồng thời khi người chơi bấm vào một ô vật phẩm trên UI thì `InventoryUIController` sẽ gọi ngược `TryUseSlot()` để yêu cầu inventory xử lý logic sử dụng vật phẩm.
+
+##### Hình 4.20. Sơ đồ kiến trúc hệ thống hội thoại
+
+```mermaid
+flowchart TD
+    A["Script Gameplay<br/>(e.g., Boar.cs, CuttingTreeSystem.cs)"] -->|"DialogueController.RequestDialogue(EventId)"| B["DialogueController<br/>Quản lý UI, khóa controls, typewriter"]
+    B -->|"GetCurrentDay()"| C["DialogueSaveService<br/>Lưu ngày vào PlayerPrefs"]
+    B -->|"TryGetEntry(Day, EventId)"| D["DialogueDatabase<br/>ScriptableObject chứa entries"]
+    D -->|"DialogueEntry<br/>Lines, PlayerCanMove, TimeScale"| E["DialogueLineData<br/>SpeakerName, Text"]
+    B -->|"Hiển thị UI<br/>Typewriter effect"| F["Canvas UI<br/>SpeakerText, BodyText"]
+```
+
+Sơ đồ trên minh họa kiến trúc hệ thống hội thoại. Các script gameplay gọi `RequestDialogue` với EventId, DialogueController lấy ngày hiện tại từ SaveService, tìm entry phù hợp trong Database, sau đó hiển thị từng dòng với hiệu ứng typewriter trên UI.
 
 ## CHƯƠNG 5: THIẾT KẾ GIAO DIỆN ĐỒ HỌA GAME
 
@@ -527,6 +593,7 @@ Sau quá trình thực hiện, đề tài đã xây dựng được một mẫu 
 7. Có cơ chế câu cá với mini game.
 8. Có hệ thống inventory hiển thị vật phẩm và số lượng.
 9. Có hệ thống lưu cài đặt người dùng qua PlayerPrefs.
+10. Có hệ thống hội thoại với typewriter effect và quản lý theo ngày/sự kiện.
 
 ### 6.2. Đánh giá
 
@@ -539,13 +606,14 @@ Project có một số điểm mạnh đáng ghi nhận:
 3. Module câu cá và inventory có mức hoàn thiện khá tốt.
 4. Luồng từ menu đến gameplay tạo cảm giác sản phẩm hoàn chỉnh hơn.
 5. Dữ liệu vật phẩm đã được tách riêng bằng ScriptableObject.
+6. Hệ thống hội thoại đã được triển khai với kiến trúc rõ ràng.
 
 #### 6.2.2. Những điểm chưa làm được
 
 Bên cạnh các kết quả đã đạt được, project vẫn còn một số hạn chế:
 
-1. Dữ liệu hội thoại hiện còn ở mức mẫu thử, chưa thể xem là phần nội dung hoàn thiện.
-2. Trigger hội thoại chưa khép kín hoàn toàn.
+1. Dữ liệu hội thoại đã có framework hoàn chỉnh, nội dung còn ở mức mẫu thử.
+2. Một số trigger hội thoại chưa được tích hợp đầy đủ vào gameplay.
 3. Hệ thống clue vision vẫn còn xung đột phím với trang bị rìu trong scene hiện tại.
 4. Chưa có cơ chế lưu tiến trình tổng thể như vị trí nhân vật, trạng thái môi trường hoặc inventory qua nhiều phiên chơi.
 5. Chưa có hệ thống nhiệm vụ, cốt truyện hoàn chỉnh hoặc màn chơi phân chương rõ ràng.
@@ -554,7 +622,7 @@ Bên cạnh các kết quả đã đạt được, project vẫn còn một số
 
 Trong thời gian tới, đề tài có thể được phát triển tiếp theo các hướng sau:
 
-1. Hoàn thiện hệ thống hội thoại và cốt truyện.
+1. Hoàn thiện nội dung hội thoại và tích hợp trigger vào gameplay.
 2. Bổ sung hệ thống nhiệm vụ để dẫn dắt người chơi.
 3. Bổ sung cơ chế save/load đầy đủ.
 4. Mở rộng số lượng vật phẩm và hoạt động tương tác.
@@ -611,6 +679,9 @@ Bạn có thể chụp và đặt tên ảnh theo danh sách sau để lúc đư
 30. `Hinh_5_9_Tree_Area.png`: khu vực cây cối.
 31. `Hinh_5_10_Water_Area.png`: khu vực nước.
 32. `Hinh_5_11_Boar_Area.png`: khu vực lợn rừng.
+33. `Hinh_4_17_Dialogue_UI.png`: UI hội thoại đang hiển thị.
+34. `Hinh_4_18_Dialogue_Database.png`: DialogueDatabase trong Project Window.
+35. `Hinh_4_20_Dialogue_Architecture.png`: sơ đồ kiến trúc hệ thống hội thoại.
 
 > Gợi ý:
 > - Với ảnh giao diện, nên chụp ở độ phân giải giống nhau để báo cáo đồng bộ hơn.

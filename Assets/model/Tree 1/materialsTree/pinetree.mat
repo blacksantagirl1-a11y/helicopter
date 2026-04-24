@@ -120,7 +120,7 @@ Material:
     - _BlendModePreserveSpecular: 0
     - _BumpScale: 1
     - _Cull: 0
-    - _Cutoff: 0.6
+    - _Cutoff: 0.183
     - _DetailNormalMapScale: 1
     - _DstBlend: 10
     - _DstBlendAlpha: 10
