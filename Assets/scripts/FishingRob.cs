@@ -52,6 +52,7 @@ public class FishingRob : MonoBehaviour
     [SerializeField] [Min(0f)] private float fishSpinSpeed = 120f;
 
     [Header("Fishing Camera")]
+    [SerializeField] private bool lockCameraDuringFishing = false;
     [SerializeField] [Min(0f)] private float cameraFocusHeight = 0.38f;
     [SerializeField] [Range(1f, 20f)] private float cameraAimLerpSpeed = 8f;
 
@@ -271,28 +272,18 @@ public class FishingRob : MonoBehaviour
         currentHookPoint = GetRodTipPosition();
         UpdateLineRenderer();
 
-        bool cutsceneStarted = playerMovement != null &&
-                               playerMovement.TryPlayConfiguredCutscene(false, null);
-
-        if (cutsceneStarted)
-        {
-            while (playerMovement != null && playerMovement.IsCutscenePlaying)
-            {
-                yield return null;
-            }
-        }
-        else
-        {
-            yield return new WaitForSeconds(0.25f);
-        }
-
         LockGameplayControls();
         TryRefreshCastPointFromSpawnPoint();
-        yield return AnimateCastLine();
+        currentHookPoint = castPoint;
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = true;
+            UpdateLineRenderer();
+        }
 
-        currentState = FishingState.WaitingForBite;
-        ScheduleNextBite();
+        EnterHookChallengeState();
         fishingRoutine = null;
+        yield break;
     }
 
     private IEnumerator AnimateCastLine()
@@ -483,7 +474,10 @@ public class FishingRob : MonoBehaviour
 
         CacheAndDisableBehaviour(playerMovement);
         CacheAndDisableBehaviour(jump);
-        CacheAndDisableBehaviour(playerLook);
+        if (lockCameraDuringFishing)
+        {
+            CacheAndDisableBehaviour(playerLook);
+        }
         CacheAndDisableBehaviour(zoom);
         CacheAndDisableBehaviour(pickUpScript);
         CacheAndDisableBehaviour(actionScript);
@@ -1059,6 +1053,11 @@ public class FishingRob : MonoBehaviour
 
     private void UpdateFishingCamera()
     {
+        if (!lockCameraDuringFishing)
+        {
+            return;
+        }
+
         if (!controlsLocked || mainCamera == null || playerLook == null)
         {
             return;
