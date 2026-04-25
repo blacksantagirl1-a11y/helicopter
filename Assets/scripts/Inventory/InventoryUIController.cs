@@ -6,8 +6,12 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 [DisallowMultipleComponent]
+// InventoryUIController lo phan "nhin thay va thao tac" cua tui do.
+// No doc du lieu tu PlayerInventory, sau do tao UI, cap nhat slot,
+// mo / dong inventory, va tam khoa gameplay khi inventory dang mo.
 public class InventoryUIController : MonoBehaviour
 {
+    // SlotView la bo tham chieu UI cho 1 slot tren man hinh.
     private sealed class SlotView
     {
         public Button Button;
@@ -18,33 +22,51 @@ public class InventoryUIController : MonoBehaviour
     }
 
     [Header("Input")]
+    [Tooltip("Phím bật/tắt túi đồ")]
     [SerializeField] private KeyCode toggleInventoryKey = KeyCode.B;
 
     [Header("References")]
+    [Tooltip("Dữ liệu inventory của player")]
     [SerializeField] private PlayerInventory playerInventory;
+    [Tooltip("UI tương tác người chơi để đồng bộ prompt")]
     [SerializeField] private PlayerUI playerUI;
+    [Tooltip("Canvas chứa UI inventory")]
     [SerializeField] private Canvas targetCanvas;
+    [Tooltip("Volume hậu kỳ chứa hiệu ứng blur")]
     [SerializeField] private Volume blurVolume;
 
     [Header("Layout")]
+    [Tooltip("Số cột slot trong lưới inventory")]
     [SerializeField]
     [Min(1)]
     private int columns = 5;
+    [Tooltip("Kích thước mỗi slot (width, height)")]
     [SerializeField] private Vector2 slotSize = new Vector2(60f, 60f);
+    [Tooltip("Khoảng cách giữa các slot")]
     [SerializeField] private Vector2 slotSpacing = new Vector2(8f, 8f);
 
     [Header("Look")]
+    [Tooltip("Màu nền backdrop toàn màn hình")]
     [SerializeField] private Color backdropColor = new Color(0.02f, 0.17f, 0.20f, 0.58f);
+    [Tooltip("Màu panel chính của inventory")]
     [SerializeField] private Color panelColor = new Color(0.03f, 0.14f, 0.18f, 0.80f);
+    [Tooltip("Màu slot khi trống")]
     [SerializeField] private Color slotEmptyColor = new Color(0.06f, 0.20f, 0.24f, 0.78f);
+    [Tooltip("Màu slot khi có vật phẩm")]
     [SerializeField] private Color slotFilledColor = new Color(0.13f, 0.28f, 0.32f, 0.96f);
+    [Tooltip("Màu viền slot")]
     [SerializeField] private Color slotOutlineColor = new Color(0.21f, 0.68f, 0.77f, 0.56f);
+    [Tooltip("Màu chữ số lượng vật phẩm")]
     [SerializeField] private Color amountColor = new Color(1f, 0.42f, 0.34f, 1f);
+    [Tooltip("Màu chữ placeholder của slot trống")]
     [SerializeField] private Color placeholderColor = new Color(0.82f, 0.95f, 0.96f, 0.95f);
 
     [Header("Blur")]
+    [Tooltip("Giá trị GaussianStart khi bật blur")]
     [SerializeField] private float blurGaussianStart = 0.1f;
+    [Tooltip("Giá trị GaussianEnd khi bật blur")]
     [SerializeField] private float blurGaussianEnd = 4f;
+    [Tooltip("Bán kính blur")]
     [SerializeField] private float blurRadius = 1f;
 
     private readonly List<SlotView> slotViews = new List<SlotView>();
@@ -92,6 +114,7 @@ public class InventoryUIController : MonoBehaviour
         SetInventoryVisible(false);
     }
 
+    // Lang nghe event tu inventory de UI tu dong cap nhat.
     private void OnEnable()
     {
         TryAutoAssignReferences();
@@ -127,8 +150,20 @@ public class InventoryUIController : MonoBehaviour
         blurGaussianEnd = Mathf.Max(blurGaussianStart + 0.1f, blurGaussianEnd);
     }
 
+    // Bam phim toggle se mo / dong inventory.
+    // Neu dialogue dang mo thi inventory se tu dong dong lai.
     private void Update()
     {
+        if (DialogueController.IsDialogueActive)
+        {
+            if (isInventoryOpen)
+            {
+                SetInventoryOpen(false);
+            }
+
+            return;
+        }
+
         if (Input.GetKeyDown(toggleInventoryKey))
         {
             ToggleInventory();
@@ -158,8 +193,16 @@ public class InventoryUIController : MonoBehaviour
         SetInventoryOpen(!isInventoryOpen);
     }
 
+    // Ham trung tam dieu khien trang thai mo / dong inventory.
+    // Khi mo: hien UI, bat blur, khoa control, mo chuot.
+    // Khi dong: tra lai control, tat blur, khoa chuot ve game.
     public void SetInventoryOpen(bool shouldOpen)
     {
+        if (shouldOpen && DialogueController.IsDialogueActive)
+        {
+            return;
+        }
+
         if (isInventoryOpen == shouldOpen)
         {
             return;
@@ -192,6 +235,7 @@ public class InventoryUIController : MonoBehaviour
         Cursor.visible = false;
     }
 
+    // Co gang tu tim reference can thiet trong scene.
     private void TryAutoAssignReferences()
     {
         playerInventory ??= GetComponent<PlayerInventory>();
@@ -226,6 +270,8 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
+    // Dam bao UI inventory da ton tai.
+    // Neu scene chua co san, script se tu tao UI runtime.
     private void EnsureInventoryUI()
     {
         if (targetCanvas == null)
@@ -270,6 +316,7 @@ public class InventoryUIController : MonoBehaviour
         CreateInventoryUI();
     }
 
+    // Tao cau truc UI chinh cua inventory.
     private void CreateInventoryUI()
     {
         slotViews.Clear();
@@ -390,6 +437,7 @@ public class InventoryUIController : MonoBehaviour
         return footer;
     }
 
+    // Tao lai danh sach slot UI sao cho khop voi so slot that trong inventory.
     private void RebuildSlotGrid()
     {
         if (slotGridRoot == null)
@@ -422,6 +470,7 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
+    // Tao UI cho 1 slot don le.
     private SlotView CreateSlotView(Transform parent, int slotIndex)
     {
         GameObject slotObject = new GameObject(
@@ -493,6 +542,7 @@ public class InventoryUIController : MonoBehaviour
         };
     }
 
+    // Dong bo du lieu inventory sang UI.
     private void RefreshSlots()
     {
         if (playerInventory == null)
@@ -518,6 +568,7 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
+    // Ve lai 1 slot dua tren du lieu that.
     private void UpdateSlot(SlotView slotView, PlayerInventory.InventorySlot slot)
     {
         if (slotView == null || slot == null)
@@ -544,6 +595,7 @@ public class InventoryUIController : MonoBehaviour
         slotView.AmountLabel.text = slot.Amount > 1 ? slot.Amount.ToString() : string.Empty;
     }
 
+    // Click vao slot = yeu cau inventory thu dung item o slot do.
     private void HandleSlotClicked(int slotIndex)
     {
         if (!isInventoryOpen || playerInventory == null)
@@ -554,6 +606,7 @@ public class InventoryUIController : MonoBehaviour
         playerInventory.TryUseSlot(slotIndex);
     }
 
+    // Hien thong bao ngan do inventory gui len.
     private void HandleInventoryFeedback(string message)
     {
         if (statusLabel == null || string.IsNullOrWhiteSpace(message))
@@ -564,6 +617,8 @@ public class InventoryUIController : MonoBehaviour
         statusLabel.text = message;
     }
 
+    // Trong luc inventory mo, khoa cac control gameplay de tranh thao tac chong len nhau.
+    // Co khoa ca CuttingTreeSystem de khong chat cay trong khi dang mo tui.
     private void CacheAndDisableControls()
     {
         cachedControlStates.Clear();
@@ -583,6 +638,7 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
+    // Tra lai control theo dung trang thai da nho truoc do.
     private void RestoreControls()
     {
         foreach (KeyValuePair<Behaviour, bool> state in cachedControlStates)
@@ -596,6 +652,7 @@ public class InventoryUIController : MonoBehaviour
         cachedControlStates.Clear();
     }
 
+    // Luu trang thai enabled roi tat component di tam thoi.
     private void CacheBehaviour(Behaviour behaviour)
     {
         if (behaviour == null || cachedControlStates.ContainsKey(behaviour))
@@ -607,6 +664,7 @@ public class InventoryUIController : MonoBehaviour
         behaviour.enabled = false;
     }
 
+    // Hien / an root UI inventory.
     private void SetInventoryVisible(bool isVisible)
     {
         if (inventoryRoot == null || inventoryCanvasGroup == null)
@@ -620,6 +678,7 @@ public class InventoryUIController : MonoBehaviour
         inventoryCanvasGroup.blocksRaycasts = isVisible;
     }
 
+    // Bat / tat blur hau canh khi inventory duoc mo.
     private void SetBlurActive(bool shouldEnable)
     {
         if (!EnsureBlurEffect())

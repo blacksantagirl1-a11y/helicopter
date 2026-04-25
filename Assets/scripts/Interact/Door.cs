@@ -4,11 +4,15 @@ using UnityEngine;
 public class Door : Interactable
 {
     [Header("Door Setup")]
+    [Tooltip("Transform của cánh cửa sẽ được xoay")]
     [SerializeField] private Transform doorTransform;
 
     [Header("Motion")]
+    [Tooltip("Góc mở tối đa của cửa (độ)")]
     [SerializeField] private float openAngle = 90f;
+    [Tooltip("Tốc độ nội suy mở/đóng cửa")]
     [SerializeField] private float openCloseSpeed = 6f;
+    [Tooltip("Bật để mở cửa theo chiều dương trục Y")]
     [SerializeField] private bool openPositiveY = true;
 
     // Luu san goc dong/mo de moi lan tuong tac chi can noi suy den dich.

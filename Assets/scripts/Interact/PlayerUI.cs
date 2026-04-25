@@ -6,17 +6,27 @@ using UnityEngine.UI;
 public class PlayerUI : MonoBehaviour
 {
     [Header("Prompt UI")]
+    [Tooltip("Text prompt tương tác hiển thị giữa màn hình")]
     [SerializeField] public TextMeshProUGUI PickUpText;
 
     [Header("Interaction UI")]
+    [Tooltip("Panel hiển thị hội thoại khi tương tác")]
     [SerializeField] private GameObject interactionPanel;
+    [Tooltip("Nền của panel hội thoại")]
     [SerializeField] private Image interactionPanelBackground;
+    [Tooltip("Text nội dung hội thoại")]
     [SerializeField] private TextMeshProUGUI interactionText;
+    [Tooltip("Panel hiển thị ảnh minh họa khi tương tác")]
     [SerializeField] private GameObject interactionImagePanel;
+    [Tooltip("Ảnh minh họa hiển thị trong panel")]
     [SerializeField] private Image interactionImage;
 
     private Interactable currentInteractionSource;
     private Coroutine autoHideRoutine;
+
+    public bool IsShowingAnyContent =>
+        (interactionPanel != null && interactionPanel.activeSelf) ||
+        (interactionImagePanel != null && interactionImagePanel.activeSelf);
 
     private void Awake()
     {
@@ -39,6 +49,12 @@ public class PlayerUI : MonoBehaviour
 
     public void ShowInteractionContent(Interactable interactable)
     {
+        if (DialogueController.IsDialogueActive)
+        {
+            HideInteractionContent();
+            return;
+        }
+
         if (interactable == null)
         {
             HideInteractionContent();
@@ -124,11 +140,7 @@ public class PlayerUI : MonoBehaviour
 
     public bool IsShowingContent(Interactable interactable)
     {
-        bool isDialogueVisible = interactionPanel != null && interactionPanel.activeSelf;
-        bool isImageVisible = interactionImagePanel != null && interactionImagePanel.activeSelf;
-
-        return (isDialogueVisible || isImageVisible) &&
-               currentInteractionSource == interactable;
+        return IsShowingAnyContent && currentInteractionSource == interactable;
     }
 
     private void EnsureInteractionUI()

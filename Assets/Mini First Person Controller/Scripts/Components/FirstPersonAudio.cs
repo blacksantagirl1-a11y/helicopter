@@ -3,11 +3,15 @@ using UnityEngine;
 
 public class FirstPersonAudio : MonoBehaviour
 {
+    [Tooltip("Script điều khiển di chuyển nhân vật")]
     public PlayerMovement character;
+    [Tooltip("Component kiểm tra chạm đất")]
     public GroundCheck groundCheck;
 
     [Header("Step")]
+    [Tooltip("AudioSource phát tiếng bước chân đi bộ")]
     public AudioSource stepAudio;
+    [Tooltip("AudioSource phát tiếng bước chân khi chạy")]
     public AudioSource runningAudio;
     [Tooltip("Minimum velocity for moving audio to play")]
     /// <summary> "Minimum velocity for moving audio to play" </summary>
@@ -16,17 +20,25 @@ public class FirstPersonAudio : MonoBehaviour
     Vector2 CurrentCharacterPosition => new Vector2(character.transform.position.x, character.transform.position.z);
 
     [Header("Landing")]
+    [Tooltip("AudioSource phát âm thanh tiếp đất")]
     public AudioSource landingAudio;
+    [Tooltip("Danh sách clip âm thanh tiếp đất")]
     public AudioClip[] landingSFX;
 
     [Header("Jump")]
+    [Tooltip("Component Jump để lắng nghe sự kiện nhảy")]
     public Jump jump;
+    [Tooltip("AudioSource phát âm thanh nhảy")]
     public AudioSource jumpAudio;
+    [Tooltip("Danh sách clip âm thanh nhảy")]
     public AudioClip[] jumpSFX;
 
     [Header("Crouch")]
+    [Tooltip("Component Crouch để lắng nghe trạng thái cúi")]
     public Crouch crouch;
+    [Tooltip("AudioSource phát âm thanh bắt đầu cúi, khi đang cúi và khi đứng dậy")]
     public AudioSource crouchStartAudio, crouchedAudio, crouchEndAudio;
+    [Tooltip("Danh sách clip âm thanh bắt đầu cúi và kết thúc cúi")]
     public AudioClip[] crouchStartSFX, crouchEndSFX;
 
     AudioSource[] MovingAudios => new AudioSource[] { stepAudio, runningAudio, crouchedAudio };

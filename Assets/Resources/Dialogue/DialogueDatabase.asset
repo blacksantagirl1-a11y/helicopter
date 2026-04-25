@@ -1,0 +1,376 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29e6de23d09198f4597e6a3842479be7, type: 3}
+  m_Name: DialogueDatabase
+  m_EditorClassIdentifier: 
+  entries:
+  - day: 1
+    eventId: 10
+    playerCanMove: 0
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Mình lại tỉnh dậy ở căn nhà này... cửa vẫn bị chặn bởi rừng cháy."
+    - speakerName: "Bộ đàm"
+      text: "Hãy bảo vệ khu vực được giao. Có thứ không được phép vượt qua bìa rừng."
+    - speakerName: "Mambo"
+      text: "Những con chim bay tán loạn về phía Tây. Có gì đó đang ép chúng chạy."
+    - speakerName: "Bộ đàm"
+      text: "Theo dấu về phía Tây. Đừng để bất cứ thứ gì lọt vào trong."
+  - day: 1
+    eventId: 30
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Khói dày hơn hôm qua, nhưng gió đang đẩy nó về phía Tây."
+    - speakerName: "Bộ đàm"
+      text: "Đặt bẫy quanh rìa Tây. Đếm đủ dấu chân rồi quay về."
+    - speakerName: "Mambo"
+      text: "Bẫy cho động vật... hay cho thứ gì biết đi?"
+  - day: 1
+    eventId: 40
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Dấu cỏ bị kéo lê thành một đường thẳng. Không giống dấu thú rừng."
+    - speakerName: "Bộ đàm"
+      text: "Lấp các hố cạn. Đặt bẫy dậm ở những lối hẹp."
+    - speakerName: "Mambo"
+      text: "Nếu có ai đi qua đây, họ sẽ biết khu này có người canh."
+  - day: 1
+    eventId: 100
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Có vết lốp xe cũ bên ngoài hàng cây. Ai lái xe vào tận đây?"
+    - speakerName: "Bộ đàm"
+      text: "Ghi nhận, không truy đuổi. Nhiệm vụ hôm nay là khóa rìa Tây."
+    - speakerName: "Mambo"
+      text: "Bộ đàm luôn né câu hỏi khó."
+  - day: 1
+    eventId: 120
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Mình đã đặt đủ bẫy. Nhưng rừng im quá, đến cả côn trùng cũng nín."
+    - speakerName: "Bộ đàm"
+      text: "Tốt. Về nhà trước khi trời tối."
+    - speakerName: "Mambo"
+      text: "Tối ở đây đến nhanh hơn đồng hồ."
+  - day: 2
+    eventId: 10
+    playerCanMove: 0
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Sáng rồi. Khói đã đổi hướng."
+    - speakerName: "Bộ đàm"
+      text: "Hôm nay kiểm tra phía Đông."
+    - speakerName: "Mambo"
+      text: "Hôm qua là Tây. Có vẻ thứ đó đang đi vòng quanh nhà."
+    - speakerName: "Bộ đàm"
+      text: "Đừng gọi nó là thứ đó. Cứ làm theo chỉ dẫn."
+  - day: 2
+    eventId: 30
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Phía Đông có nhiều cành gãy mới. Mình nghe tiếng gì đó thở rất gần."
+    - speakerName: "Bộ đàm"
+      text: "Đặt bẫy quanh các lối vào. Ưu tiên chỗ có dấu chân sâu."
+    - speakerName: "Mambo"
+      text: "Dấu chân này sâu như có người vác thêm thứ gì nặng."
+  - day: 2
+    eventId: 90
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Heo rừng chạy qua, nhưng nó không chạy khỏi mình."
+    - speakerName: "Bộ đàm"
+      text: "Nó chạy khỏi đám cháy."
+    - speakerName: "Mambo"
+      text: "Không. Nó nhìn về phía căn nhà trước khi biến mất."
+  - day: 2
+    eventId: 110
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Có một đoạn dây thép mắc dưới lá khô. Không phải dây của mình."
+    - speakerName: "Bộ đàm"
+      text: "Gỡ nó ra và đánh dấu vị trí."
+    - speakerName: "Mambo"
+      text: "Ai đó đã đặt bẫy trước khi mình tới."
+  - day: 2
+    eventId: 120
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Bẫy phía Đông đã xong. Nhưng có một lối mòn dẫn ngược về nhà."
+    - speakerName: "Bộ đàm"
+      text: "Khóa cửa tối nay. Không mở cho bất cứ tiếng gọi nào."
+    - speakerName: "Mambo"
+      text: "Kể cả tiếng của anh?"
+    - speakerName: "Bộ đàm"
+      text: "Nhất là tiếng của tôi."
+  - day: 3
+    eventId: 10
+    playerCanMove: 0
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Cửa sổ vỡ. Gió không thể ném đá vào từ phía trong."
+    - speakerName: "Bộ đàm"
+      text: "Kiểm tra thùng chữa đồ ở phía Bắc."
+    - speakerName: "Mambo"
+      text: "Mật khẩu đâu?"
+    - speakerName: "Bộ đàm"
+      text: "Trong quần đỏ treo ở hiên. Đừng hỏi vì sao."
+  - day: 3
+    eventId: 30
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Mảnh kính nằm thành vòng, như ai đã đứng rất lâu ngoài cửa sổ."
+    - speakerName: "Bộ đàm"
+      text: "Lấy gỗ, búa, mảnh vá. Sửa cửa trước khi chiều xuống."
+    - speakerName: "Mambo"
+      text: "Mình ghét cách căn nhà này chờ mình quay lưng."
+  - day: 3
+    eventId: 60
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Thùng bị khóa số. Vải quần đỏ có vết bùn mới."
+    - speakerName: "Bộ đàm"
+      text: "Mã là thứ còn sạch duy nhất trên đó."
+    - speakerName: "Mambo"
+      text: "Nếu ai đó biết mình cần sửa cửa, họ cũng biết mình sẽ mở thùng."
+  - day: 3
+    eventId: 80
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Búa, gỗ, đinh. Đủ để vá cửa sổ, không đủ để vá cảm giác này."
+    - speakerName: "Bộ đàm"
+      text: "Làm nhanh. Đừng đứng cạnh kính vỡ quá lâu."
+    - speakerName: "Mambo"
+      text: "Anh nói như thể thứ đó vẫn đang nhìn."
+  - day: 3
+    eventId: 120
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Cửa sổ đã được vá. Bên ngoài có thêm một vệt tay trên bùn."
+    - speakerName: "Bộ đàm"
+      text: "Rửa tay, ăn gì đó, rồi ngủ sớm."
+    - speakerName: "Mambo"
+      text: "Ngủ là phần nguy hiểm nhất trong ngày."
+  - day: 4
+    eventId: 10
+    playerCanMove: 0
+    timeScale: 0.5
+    lines:
+    - speakerName: "Mambo"
+      text: "Tiếng động giữa đêm. Cửa vừa kêu."
+    - speakerName: ""
+      text: "Có ai đó thì thầm ngoài cửa sổ, nhưng âm thanh vỡ thành tiếng rè của bộ đàm."
+    - speakerName: "Bộ đàm"
+      text: "Mambo, nếu nghe thấy tôi, đừng mở cửa."
+    - speakerName: "Mambo"
+      text: "Muộn rồi. Khóa đã bật ra."
+  - day: 4
+    eventId: 30
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Mình tỉnh dậy ở hiên. Tay áo có tro, miệng toàn vị bia."
+    - speakerName: "Bộ đàm"
+      text: "Tìm lon bia. Nó sẽ nói cho anh biết đêm qua anh đã đi tới đâu."
+    - speakerName: "Mambo"
+      text: "Mình không uống. Mình chắc chắn mình không uống."
+  - day: 4
+    eventId: 100
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Có vết chân trần chạy vòng quanh nhà. Một vài dấu là của mình."
+    - speakerName: "Bộ đàm"
+      text: "Lần theo tới hàng rào cũ."
+    - speakerName: "Mambo"
+      text: "Nếu dấu chân là của mình, ai là người chạy trước?"
+  - day: 4
+    eventId: 80
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Lon bia rỗng. Miệng lon bị bóp méo như có người cắn."
+    - speakerName: "Bộ đàm"
+      text: "Giữ nó lại. Mùi trên lon không phải mùi rượu."
+    - speakerName: "Mambo"
+      text: "Là mùi thuốc tẩy... và tro."
+  - day: 4
+    eventId: 120
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Dấu vết dừng ở cửa sau. Chìa khóa vẫn nằm trong túi mình."
+    - speakerName: "Bộ đàm"
+      text: "Đêm nay chặn cửa bằng bàn. Không trả lời tiếng gõ."
+    - speakerName: "Mambo"
+      text: "Nếu tiếng gõ đến từ trong nhà thì sao?"
+  - day: 5
+    eventId: 10
+    playerCanMove: 0
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Mình nhớ nhiệm vụ hôm qua bị bỏ dở."
+    - speakerName: "Bộ đàm"
+      text: "Không ra rừng vội. Kiểm tra căn nhà."
+    - speakerName: "Mambo"
+      text: "Tại sao?"
+    - speakerName: "Bộ đàm"
+      text: "Vì có người đã biết anh sẽ ngủ ở đâu."
+  - day: 5
+    eventId: 30
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Có những chấm đen nhỏ trên kệ, trên khung cửa, cả gần giường."
+    - speakerName: "Bộ đàm"
+      text: "Tìm tất cả camera bị giấu. Đừng phá chúng trước khi nhìn hướng quay."
+    - speakerName: "Mambo"
+      text: "Ai đó đã xem mình ngủ."
+  - day: 5
+    eventId: 100
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Camera thứ nhất hướng ra cửa sổ vỡ."
+    - speakerName: "Bộ đàm"
+      text: "Nó không theo dõi căn nhà. Nó theo dõi thứ đứng ngoài nhà."
+    - speakerName: "Mambo"
+      text: "Vậy người đặt camera sợ cùng một thứ với mình."
+  - day: 5
+    eventId: 110
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Camera thứ hai giấu trong hộp lương khô. Dây nguồn đi xuống sàn."
+    - speakerName: "Bộ đàm"
+      text: "Có đường dây gom tín hiệu. Tìm điểm cuối."
+    - speakerName: "Mambo"
+      text: "Nó dẫn về phía Bắc, nơi mình chưa từng được phép đi."
+  - day: 5
+    eventId: 120
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Mình tìm được camera cuối. Mặt kính còn ấm."
+    - speakerName: "Bộ đàm"
+      text: "Ngày mai anh sẽ mở đường tới trạm cũ."
+    - speakerName: "Mambo"
+      text: "Ngày mai mình không làm theo lệnh nữa. Mình đi tìm người đang ra lệnh."
+  - day: 6
+    eventId: 10
+    playerCanMove: 0
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Đám cháy bốc lên trước bình minh. Nó không còn ở xa nữa."
+    - speakerName: "Bộ đàm"
+      text: "Rời nhà. Tìm cửa hàng bỏ hoang sau hàng cây đỏ."
+    - speakerName: "Mambo"
+      text: "Hôm nay anh nói thật đi. Có ai khác trong khu này không?"
+    - speakerName: "Bộ đàm"
+      text: "Có. Và họ đã ở gần anh hơn tôi muốn."
+  - day: 6
+    eventId: 30
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Không khí nóng đến mức kim loại trên cửa bỏng tay."
+    - speakerName: "Bộ đàm"
+      text: "Tìm mã mở hòm. Trong hòm có bản đồ và thiết bị phát lại."
+    - speakerName: "Mambo"
+      text: "Nếu thiết bị đó biết đường ra, anh đã có thể nói từ ngày đầu."
+  - day: 6
+    eventId: 60
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Trên cửa hàng có ba vạch sơn: Tây, Đông, Bắc. Thứ tự nhiệm vụ."
+    - speakerName: "Bộ đàm"
+      text: "Dùng thứ tự đó để mở hòm."
+    - speakerName: "Mambo"
+      text: "Tất cả những ngày qua là mật mã."
+  - day: 6
+    eventId: 100
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Một túi đồ bị bỏ lại cạnh cánh cửa. Trong đó có ảnh của căn nhà."
+    - speakerName: "Bộ đàm"
+      text: "Đừng nhìn lâu. Lấy máy tính trên bàn."
+    - speakerName: "Mambo"
+      text: "Không. Hôm nay mình nhìn cho rõ."
+  - day: 6
+    eventId: 110
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Máy tính"
+      text: "Bản ghi ngày 01: đối tượng Mambo thức dậy, phản ứng ổn định."
+    - speakerName: "Máy tính"
+      text: "Bản ghi ngày 04: đối tượng tự mở cửa sau khi nghe giọng giả lập."
+    - speakerName: "Mambo"
+      text: "Không phải bộ đàm. Là một cái máy nhại giọng."
+    - speakerName: "Bộ đàm"
+      text: "Mambo, nếu còn nghe thấy tôi thật, chạy ngay."
+  - day: 6
+    eventId: 130
+    playerCanMove: 0
+    timeScale: 1
+    lines:
+    - speakerName: "Mambo"
+      text: "Lửa đã liếm tới mái cửa hàng. Bản đồ chỉ còn một đường ra."
+    - speakerName: "Bộ đàm"
+      text: "Chạy theo lòng suối cạn. Đừng quay lại căn nhà."
+    - speakerName: "Mambo"
+      text: "Mình không còn bảo vệ nơi này nữa."
+    - speakerName: ""
+      text: "Mambo lao qua rìa rừng đang cháy. Phía sau, bộ đàm cũ lặp lại một câu không còn ai nghe."
+    - speakerName: "Bộ đàm"
+      text: "Hãy bảo vệ khu vực được giao."

@@ -2,9 +2,12 @@
 
 public class PlayerLook : MonoBehaviour
 {
+    [Tooltip("Transform thân nhân vật sẽ xoay theo trục ngang")]
     [SerializeField] private Transform character;
 
+    [Tooltip("Độ nhạy chuột cho camera look")]
     public float sensitivity = 2f;
+    [Tooltip("Độ mượt khi nội suy chuyển động nhìn (giá trị lớn hơn = mượt hơn)")]
     public float smoothing = 1.5f;
 
     private Vector2 velocity;

@@ -7,12 +7,17 @@ using UnityEngine;
 public class IntroSequenceController : MonoBehaviour
 {
     [Header("Intro")]
+    [Tooltip("Root object của cụm intro/cutscene mở đầu")]
     [SerializeField] GameObject introRoot;
+    [Tooltip("Animator phát animation intro")]
     [SerializeField] Animator introAnimator;
+    [Tooltip("Camera dùng trong đoạn intro")]
     [SerializeField] Camera introCamera;
 
     [Header("Player")]
+    [Tooltip("Root object của player gameplay")]
     [SerializeField] GameObject playerRoot;
+    [Tooltip("Camera gameplay của player")]
     [SerializeField] Camera playerCamera;
 
     readonly List<Behaviour> playerControls = new();

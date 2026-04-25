@@ -3,18 +3,24 @@ using UnityEngine;
 public class Interactable : MonoBehaviour
 {
     [Header("Prompt")]
+    [Tooltip("Nội dung prompt hiện giữa màn hình khi người chơi nhìn vào object")]
     // Text hien o tam man hinh khi raycast trung object nay.
     [SerializeField] private string pickUpMessage;
 
     [Header("Dialogue")]
+    [Tooltip("Tên nhân vật/người nói hiển thị trong hộp thoại")]
     [SerializeField] private string dialogueSpeaker;
     [TextArea(2, 6)]
+    [Tooltip("Nội dung hội thoại hiển thị khi tương tác")]
     [SerializeField] private string dialogueText;
 
     [Header("Interaction Content")]
+    [Tooltip("Hình minh họa hiển thị khi tương tác")]
     [SerializeField] private Sprite interactionImage;
+    [Tooltip("Bật để hiển thị nội dung hội thoại/hình khi người chơi tương tác")]
     [SerializeField] private bool showContentOnInteract = true;
     [Min(0.25f)]
+    [Tooltip("Thời gian giữ nội dung tương tác trên màn hình (giây)")]
     [SerializeField] private float contentDisplaySeconds = 3f;
 
     public virtual bool HasPromptText => !string.IsNullOrWhiteSpace(PromptText);

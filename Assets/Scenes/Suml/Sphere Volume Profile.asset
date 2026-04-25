@@ -21,7 +21,7 @@ MonoBehaviour:
     m_Value: 25
   colorFilter:
     m_OverrideState: 1
-    m_Value: {r: 0.7688679, g: 1, b: 0.9198696, a: 1}
+    m_Value: {r: 0.7971698, g: 1, b: 0.90374285, a: 1}
   hueShift:
     m_OverrideState: 1
     m_Value: 6
@@ -252,8 +252,8 @@ MonoBehaviour:
         serializedVersion: 2
         m_Curve:
         - serializedVersion: 3
-          time: 0.16386555
-          value: 0.5045872
+          time: 0
+          value: 0.49189192
           inSlope: 0
           outSlope: 0
           tangentMode: 0
@@ -261,19 +261,19 @@ MonoBehaviour:
           inWeight: 0
           outWeight: 0
         - serializedVersion: 3
-          time: 0.58158994
-          value: 0.57798165
-          inSlope: 1.1679112
-          outSlope: 1.1679112
+          time: 0.27109975
+          value: 0.60540545
+          inSlope: 1.112375
+          outSlope: 1.112375
           tangentMode: 0
           weightedMode: 0
           inWeight: 0
           outWeight: 0
         - serializedVersion: 3
-          time: 0.748954
-          value: 0.44954127
-          inSlope: 0
-          outSlope: 0
+          time: 0.56777495
+          value: 0.64324325
+          inSlope: -0.96869355
+          outSlope: -0.96869355
           tangentMode: 0
           weightedMode: 0
           inWeight: 0

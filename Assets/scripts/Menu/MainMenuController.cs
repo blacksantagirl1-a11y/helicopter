@@ -21,52 +21,87 @@ public class MainMenuController : MonoBehaviour
     const string DefaultGameplaySceneName = "Suml";
 
     [Header("Scene Flow")]
+    [Tooltip("Tên scene gameplay sẽ được load khi bấm Play")]
     [SerializeField] string gameplaySceneName = DefaultGameplaySceneName;
 
     [Header("Canvas")]
+    [Tooltip("CanvasGroup tổng để fade toàn bộ UI menu")]
     [SerializeField] CanvasGroup uiCanvasGroup;
 
     [Header("Primary Buttons")]
+    [Tooltip("Nút bắt đầu game")]
     [SerializeField] Button playButton;
+    [Tooltip("Text hiển thị trên nút Play")]
     [SerializeField] TMP_Text playButtonLabel;
+    [Tooltip("Nút mở bảng Credits")]
     [SerializeField] Button creditsButton;
+    [Tooltip("Text hiển thị trên nút Credits")]
     [SerializeField] TMP_Text creditsButtonLabel;
+    [Tooltip("Nút mở bảng Options")]
     [SerializeField] Button optionsButton;
+    [Tooltip("Text hiển thị trên nút Options")]
     [SerializeField] TMP_Text optionsButtonLabel;
+    [Tooltip("Nút thoát game")]
     [SerializeField] Button quitButton;
+    [Tooltip("Text hiển thị trên nút Quit")]
     [SerializeField] TMP_Text quitButtonLabel;
 
     [Header("Panels")]
+    [Tooltip("Panel options")]
     [SerializeField] RectTransform optionsPanel;
+    [Tooltip("CanvasGroup của panel options để animate alpha/interactable")]
     [SerializeField] CanvasGroup optionsPanelCanvasGroup;
+    [Tooltip("Nút quay lại trong panel options")]
     [SerializeField] Button optionsBackButton;
+    [Tooltip("Panel credits")]
     [SerializeField] RectTransform creditsPanel;
+    [Tooltip("CanvasGroup của panel credits để animate alpha/interactable")]
     [SerializeField] CanvasGroup creditsPanelCanvasGroup;
+    [Tooltip("Nút quay lại trong panel credits")]
     [SerializeField] Button creditsBackButton;
 
     [Header("Options")]
+    [Tooltip("Slider âm lượng tổng")]
     [SerializeField] Slider volumeSlider;
+    [Tooltip("Text hiển thị giá trị âm lượng")]
     [SerializeField] TMP_Text volumeValueText;
+    [Tooltip("Slider độ nhạy chuột")]
     [SerializeField] Slider sensitivitySlider;
+    [Tooltip("Text hiển thị giá trị độ nhạy")]
     [SerializeField] TMP_Text sensitivityValueText;
+    [Tooltip("Nút đổi chế độ hiển thị (fullscreen/windowed)")]
     [SerializeField] Button displayModeButton;
+    [Tooltip("Text hiển thị chế độ hiển thị hiện tại")]
     [SerializeField] TMP_Text displayModeValueText;
+    [Tooltip("Nút giảm chất lượng đồ họa")]
     [SerializeField] Button qualityDecreaseButton;
+    [Tooltip("Nút tăng chất lượng đồ họa")]
     [SerializeField] Button qualityIncreaseButton;
+    [Tooltip("Text hiển thị mức chất lượng đồ họa")]
     [SerializeField] TMP_Text qualityValueText;
 
     [Header("Animation")]
+    [Tooltip("Thời gian fade vào UI menu lúc mở màn")]
     [SerializeField, Min(0f)] float introFadeDuration = 0.45f;
+    [Tooltip("Thời gian tween mở/đóng panel")]
     [SerializeField, Min(0f)] float panelTweenDuration = 0.35f;
+    [Tooltip("Khoảng trượt panel khi ẩn")]
     [SerializeField, Min(0f)] float panelSlidePadding = 140f;
+    [Tooltip("Lề phải của panel khi hiển thị")]
     [SerializeField, Min(0f)] float panelRightInset = 72f;
+    [Tooltip("Tỷ lệ phóng nhẹ khi nút được highlight")]
     [SerializeField, Min(1f)] float highlightScale = 1.06f;
+    [Tooltip("Thời gian tween hiệu ứng nút")]
     [SerializeField, Min(0f)] float buttonTweenDuration = 0.16f;
 
     [Header("Palette")]
+    [Tooltip("Màu nút ở trạng thái bình thường")]
     [SerializeField] Color buttonNormalColor = new(0.92f, 0.96f, 1f, 0.78f);
+    [Tooltip("Màu nút khi hover")]
     [SerializeField] Color buttonHoverColor = Color.white;
+    [Tooltip("Màu nút khi bị khóa chọn")]
     [SerializeField] Color buttonLockedColor = new(1f, 0.96f, 0.82f, 1f);
+    [Tooltip("Màu nút khi disabled")]
     [SerializeField] Color buttonDisabledColor = new(1f, 1f, 1f, 0.35f);
 
     readonly Dictionary<Button, MainButtonVisual> mainButtons = new();

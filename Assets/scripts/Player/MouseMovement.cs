@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class MouseMovement : MonoBehaviour
 {
+    [Tooltip("Độ nhạy chuột khi xoay nhân vật")]
     public float mouseSensitivity = 100f;
 
     void Start()

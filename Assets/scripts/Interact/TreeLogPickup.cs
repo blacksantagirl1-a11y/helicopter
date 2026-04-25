@@ -5,6 +5,8 @@ using UnityEditor;
 #endif
 
 [DisallowMultipleComponent]
+// TreeLogPickup la pickup dac biet duoc sinh ra sau khi chat cay.
+// No ke thua InventoryPickup, chi bo sung viec tu gan item "WoodLog".
 public class TreeLogPickup : InventoryPickup
 {
     private const string DefaultItemAssetPath = "Assets/Resources/Inventory/WoodLog.asset";
@@ -25,6 +27,7 @@ public class TreeLogPickup : InventoryPickup
         TryAssignDefaultItem();
     }
 
+    // Trong Editor, co gang gan san asset WoodLog cho prefab / object.
     private void TryAssignDefaultItem()
     {
 #if UNITY_EDITOR
@@ -35,6 +38,7 @@ public class TreeLogPickup : InventoryPickup
 #endif
     }
 
+    // Luc runtime, neu chua co item thi tu load tu Resources.
     private void TryAssignRuntimeItem()
     {
         if (ItemDefinition == null)

@@ -3,9 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [DisallowMultipleComponent]
+// PlayerInventory la "bo nho tui do" cua nguoi choi.
+// No chi lo du lieu:
+// - co bao nhieu slot
+// - moi slot chua item gi
+// - them item vao tui
+// - dung item trong tui
+// - bao cho UI biet khi inventory thay doi
 public class PlayerInventory : MonoBehaviour
 {
     [Serializable]
+    // InventorySlot = 1 o trong tui do.
+    // Moi o chi chua 1 loai item va so luong cua loai do.
     public sealed class InventorySlot
     {
         [SerializeField] private InventoryItemDefinition item;
@@ -15,6 +24,7 @@ public class PlayerInventory : MonoBehaviour
         public int Amount => amount;
         public bool IsEmpty => item == null || amount <= 0;
 
+        // Dat lai item va so luong cho slot nay.
         public void Set(InventoryItemDefinition nextItem, int nextAmount)
         {
             item = nextItem;
@@ -26,6 +36,7 @@ public class PlayerInventory : MonoBehaviour
             }
         }
 
+        // Bien slot nay thanh slot rong.
         public void Clear()
         {
             item = null;
@@ -34,12 +45,16 @@ public class PlayerInventory : MonoBehaviour
     }
 
     [Header("Capacity")]
+    [Tooltip("Số lượng ô chứa trong túi đồ")]
     [SerializeField]
     [Min(1)]
     private int slotCount = 20;
+    [Tooltip("Danh sách slot inventory được serialize")]
     [SerializeField] private List<InventorySlot> slots = new List<InventorySlot>();
 
+    // UI dang nghe event nay de refresh lai slot.
     public event Action InventoryChanged;
+    // UI dang nghe event nay de hien thong bao ngan cho nguoi choi.
     public event Action<string> FeedbackRequested;
 
     public int SlotCount => slots.Count;
@@ -60,6 +75,11 @@ public class PlayerInventory : MonoBehaviour
         EnsureSlotCount();
     }
 
+    // Co gang them vat pham vao inventory.
+    // Thu tu uu tien:
+    // 1. Cong vao cac stack cung item chua day.
+    // 2. Neu van con du, tim slot trong de tao stack moi.
+    // remainingAmount cho biet con bao nhieu item khong dua vao tui duoc.
     public bool TryAddItem(InventoryItemDefinition itemDefinition, int amount, out int remainingAmount)
     {
         EnsureSlotCount();
@@ -117,6 +137,8 @@ public class PlayerInventory : MonoBehaviour
         return addedAmount > 0;
     }
 
+    // Dung vat pham trong mot slot cu the.
+    // Hanh vi "dung" that su duoc quyet dinh boi itemDefinition.TryUse(...).
     public bool TryUseSlot(int slotIndex)
     {
         EnsureSlotCount();
@@ -155,6 +177,7 @@ public class PlayerInventory : MonoBehaviour
         return true;
     }
 
+    // Dem so slot dang co vat pham.
     public int GetUsedSlotCount()
     {
         EnsureSlotCount();
@@ -171,6 +194,7 @@ public class PlayerInventory : MonoBehaviour
         return usedCount;
     }
 
+    // Giam so luong item trong slot sau khi da dung / tieu hao.
     private void RemoveFromSlot(int slotIndex, int amount)
     {
         if (slotIndex < 0 || slotIndex >= slots.Count || amount <= 0)
@@ -197,6 +221,7 @@ public class PlayerInventory : MonoBehaviour
         InventoryChanged?.Invoke();
     }
 
+    // Dam bao danh sach slots luon co dung kich thuoc nhu slotCount.
     private void EnsureSlotCount()
     {
         slotCount = Mathf.Max(1, slotCount);
