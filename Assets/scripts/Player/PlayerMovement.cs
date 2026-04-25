@@ -51,6 +51,10 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("Danh sách component điều khiển sẽ bị tắt trong cutscene")]
     [SerializeField] private Behaviour[] controlsToDisableDuringCutscene;
 
+    [Header("Intro Dialogue")]
+    [Tooltip("Neu scene khong co IntroSequenceController thi van tu goi hoi thoai IntroWakeUp luc bat dau game")]
+    [SerializeField] private bool requestIntroWakeUpWhenNoIntroSequence = true;
+
     [Tooltip("Danh sách hàm override tốc độ di chuyển theo ngữ cảnh")]
     public List<System.Func<float>> speedOverrides = new List<System.Func<float>>();
 
@@ -66,6 +70,7 @@ public class PlayerMovement : MonoBehaviour
     private int currentMoveState = MoveStateIdle;
     private int cutsceneLayerIndex;
     private bool isCutscenePlaying;
+    private bool hasRequestedIntroWakeUpDialogue;
 
     private void Reset()
     {
@@ -75,7 +80,6 @@ public class PlayerMovement : MonoBehaviour
 
     private void Awake()
     {
-        DialogueController.RequestDialogue(DialogueEventId.IntroWakeUp);
         animator = GetComponent<Animator>();
         rigidbodyComponent = GetComponent<Rigidbody>();
         actionScript = GetComponent<ActionScript>();
@@ -89,18 +93,22 @@ public class PlayerMovement : MonoBehaviour
 
     private void Start()
     {
-        if (animator == null)
+        if (animator != null)
         {
-            return;
+            animator.applyRootMotion = false;
+            animator.SetLayerWeight(0, 1f);
+            ApplyMoveState(MoveStateIdle, true);
         }
-
-        animator.applyRootMotion = false;
-        animator.SetLayerWeight(0, 1f);
-        ApplyMoveState(MoveStateIdle, true);
 
         if (actionScript != null)
         {
             actionScript.RefreshAnimatorState();
+        }
+
+        if (requestIntroWakeUpWhenNoIntroSequence &&
+            FindFirstObjectByType<IntroSequenceController>() == null)
+        {
+            RequestIntroWakeUpDialogue();
         }
     }
 
@@ -556,5 +564,16 @@ public class PlayerMovement : MonoBehaviour
         }
 
         return animator.GetLayerName(layerIndex);
+    }
+
+    public void RequestIntroWakeUpDialogue()
+    {
+        if (hasRequestedIntroWakeUpDialogue)
+        {
+            return;
+        }
+
+        hasRequestedIntroWakeUpDialogue = true;
+        DialogueController.RequestDialogue(DialogueEventId.IntroWakeUp);
     }
 }

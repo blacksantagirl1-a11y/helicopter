@@ -103,7 +103,13 @@ public class PickUpScript : MonoBehaviour
         }
 
         interactable = hit.transform.GetComponentInParent<Interactable>();
-        return interactable != null;
+        if (interactable == null || !interactable.CanInteract)
+        {
+            interactable = null;
+            return false;
+        }
+
+        return true;
     }
 
     private string GetInteractablePrompt(Interactable interactable)

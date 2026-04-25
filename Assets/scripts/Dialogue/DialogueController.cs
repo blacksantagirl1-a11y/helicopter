@@ -70,8 +70,12 @@ public class DialogueController : MonoBehaviour
     [Header("Dialogue UI")]
     [SerializeField] private GameObject dialogueRoot;
     [SerializeField] private Image dialogueBackground;
+    [SerializeField] private GameObject dayBadgeRoot;
+    [SerializeField] private Image dayBadgeBackground;
+    [SerializeField] private TextMeshProUGUI dayText;
     [SerializeField] private TextMeshProUGUI speakerText;
     [SerializeField] private TextMeshProUGUI bodyText;
+    [SerializeField] private TextMeshProUGUI advanceHintText;
 
     // Hang doi nay tranh truong hop nhieu noi trong game cung yeu cau hoi thoai mot luc.
     private readonly Queue<DialogueRequest> pendingRequests = new Queue<DialogueRequest>();
@@ -338,6 +342,7 @@ public class DialogueController : MonoBehaviour
         CacheTimeScale();
         ApplyTimeScale(request.Entry.TimeScale);
         PrepareGameplayForDialogue(request.Entry.PlayerCanMove);
+        RefreshDayBadge(request.Day);
         SetDialogueVisible(true);
         ShowLine(0);
     }
@@ -469,6 +474,11 @@ public class DialogueController : MonoBehaviour
         {
             bodyText.text = string.Empty;
             bodyText.maxVisibleCharacters = 0;
+        }
+
+        if (dayText != null)
+        {
+            dayText.text = string.Empty;
         }
     }
 
@@ -622,8 +632,8 @@ public class DialogueController : MonoBehaviour
 #endif
     }
 
-    // Co gang tu tim cac script / component can thiet trong scene
-    // de nguoi lam game khong can gan tay tat ca.
+    // Tu dong tim cac component can thiet trong scene de tranh viec phai gan tay.
+    // de tranh viec phai gan tay trong Inspector, giup giam loi sai va de test hon.
     private void ResolveReferences()
     {
         playerUI ??= FindFirstObjectByType<PlayerUI>();
@@ -664,7 +674,14 @@ public class DialogueController : MonoBehaviour
     // Neu scene chua co san, script se tu tao ra mot khung don gian trong Canvas.
     private void EnsureDialogueUI()
     {
-        if (dialogueRoot != null && dialogueBackground != null && speakerText != null && bodyText != null)
+        if (dialogueRoot != null &&
+            dialogueBackground != null &&
+            dayBadgeRoot != null &&
+            dayBadgeBackground != null &&
+            dayText != null &&
+            speakerText != null &&
+            bodyText != null &&
+            advanceHintText != null)
         {
             return;
         }
@@ -696,12 +713,42 @@ public class DialogueController : MonoBehaviour
             dialogueBackground = dialogueRoot.AddComponent<Image>();
         }
 
+        if (dayBadgeRoot == null)
+        {
+            Transform existingDayBadge = dialogueRoot.transform.Find("DayBadge");
+            if (existingDayBadge != null)
+            {
+                dayBadgeRoot = existingDayBadge.gameObject;
+            }
+        }
+
+        if (dayBadgeRoot == null)
+        {
+            dayBadgeRoot = new GameObject("DayBadge", typeof(RectTransform), typeof(Image));
+            dayBadgeRoot.transform.SetParent(dialogueRoot.transform, false);
+        }
+
+        dayBadgeBackground ??= dayBadgeRoot.GetComponent<Image>();
+        if (dayBadgeBackground == null)
+        {
+            dayBadgeBackground = dayBadgeRoot.AddComponent<Image>();
+        }
+
         if (speakerText == null)
         {
             Transform existingSpeaker = dialogueRoot.transform.Find("SpeakerText");
             if (existingSpeaker != null)
             {
                 speakerText = existingSpeaker.GetComponent<TextMeshProUGUI>();
+            }
+        }
+
+        if (dayText == null)
+        {
+            Transform existingDayText = dayBadgeRoot.transform.Find("DayText");
+            if (existingDayText != null)
+            {
+                dayText = existingDayText.GetComponent<TextMeshProUGUI>();
             }
         }
 
@@ -714,12 +761,26 @@ public class DialogueController : MonoBehaviour
             }
         }
 
+        if (advanceHintText == null)
+        {
+            Transform existingAdvanceHint = dialogueRoot.transform.Find("AdvanceHintText");
+            if (existingAdvanceHint != null)
+            {
+                advanceHintText = existingAdvanceHint.GetComponent<TextMeshProUGUI>();
+            }
+        }
+
+        dayText ??= CreateTextElement("DayText", dayBadgeRoot.transform);
         speakerText ??= CreateTextElement("SpeakerText", dialogueRoot.transform);
         bodyText ??= CreateTextElement("BodyText", dialogueRoot.transform);
+        advanceHintText ??= CreateTextElement("AdvanceHintText", dialogueRoot.transform);
 
         ConfigureDialogueRoot();
+        ConfigureDayBadge();
+        ConfigureDayText();
         ConfigureSpeakerText();
         ConfigureBodyText();
+        ConfigureAdvanceHintText();
     }
 
     // Co gang tim Canvas de dat UI hoi thoai vao do.
@@ -745,11 +806,52 @@ public class DialogueController : MonoBehaviour
         rootRect.anchorMin = new Vector2(0.5f, 0f);
         rootRect.anchorMax = new Vector2(0.5f, 0f);
         rootRect.pivot = new Vector2(0.5f, 0f);
-        rootRect.anchoredPosition = new Vector2(0f, 32f);
-        rootRect.sizeDelta = new Vector2(980f, 190f);
+        rootRect.anchoredPosition = new Vector2(0f, 42f);
+        rootRect.sizeDelta = new Vector2(1040f, 228f);
 
-        dialogueBackground.color = new Color(0f, 0f, 0f, 0.72f);
+        dialogueBackground.color = new Color(0.04f, 0.08f, 0.12f, 0.86f);
         dialogueBackground.raycastTarget = false;
+    }
+
+    private void ConfigureDayBadge()
+    {
+        if (dayBadgeRoot == null || dayBadgeBackground == null)
+        {
+            return;
+        }
+
+        RectTransform badgeRect = dayBadgeRoot.GetComponent<RectTransform>();
+        badgeRect.anchorMin = new Vector2(0f, 1f);
+        badgeRect.anchorMax = new Vector2(0f, 1f);
+        badgeRect.pivot = new Vector2(0f, 0f);
+        badgeRect.anchoredPosition = new Vector2(28f, 18f);
+        badgeRect.sizeDelta = new Vector2(178f, 48f);
+
+        dayBadgeBackground.color = new Color(0.89f, 0.57f, 0.18f, 0.96f);
+        dayBadgeBackground.raycastTarget = false;
+    }
+
+    private void ConfigureDayText()
+    {
+        if (dayText == null)
+        {
+            return;
+        }
+
+        RectTransform textRect = dayText.rectTransform;
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.pivot = new Vector2(0.5f, 0.5f);
+        textRect.offsetMin = new Vector2(14f, 6f);
+        textRect.offsetMax = new Vector2(-14f, -6f);
+
+        dayText.text = string.Empty;
+        dayText.color = new Color(0.12f, 0.12f, 0.12f, 1f);
+        dayText.alignment = TextAlignmentOptions.Center;
+        dayText.textWrappingMode = TextWrappingModes.NoWrap;
+        dayText.fontSize = 24f;
+        dayText.fontStyle = FontStyles.Bold;
+        dayText.raycastTarget = false;
     }
 
     // Cai dat o hien ten nguoi noi.
@@ -764,14 +866,15 @@ public class DialogueController : MonoBehaviour
         textRect.anchorMin = new Vector2(0f, 1f);
         textRect.anchorMax = new Vector2(1f, 1f);
         textRect.pivot = new Vector2(0.5f, 1f);
-        textRect.offsetMin = new Vector2(32f, -44f);
-        textRect.offsetMax = new Vector2(-32f, -10f);
+        textRect.offsetMin = new Vector2(32f, -74f);
+        textRect.offsetMax = new Vector2(-32f, -26f);
 
         speakerText.text = string.Empty;
-        speakerText.color = new Color(0.93f, 0.75f, 0.34f, 1f);
+        speakerText.color = new Color(0.98f, 0.82f, 0.48f, 1f);
         speakerText.alignment = TextAlignmentOptions.TopLeft;
-        speakerText.enableWordWrapping = false;
-        speakerText.fontSize = 30f;
+        speakerText.textWrappingMode = TextWrappingModes.NoWrap;
+        speakerText.fontSize = 27f;
+        speakerText.fontStyle = FontStyles.Bold;
         speakerText.raycastTarget = false;
     }
 
@@ -787,16 +890,38 @@ public class DialogueController : MonoBehaviour
         textRect.anchorMin = Vector2.zero;
         textRect.anchorMax = Vector2.one;
         textRect.pivot = new Vector2(0.5f, 0.5f);
-        textRect.offsetMin = new Vector2(32f, 20f);
-        textRect.offsetMax = new Vector2(-32f, -56f);
+        textRect.offsetMin = new Vector2(32f, 30f);
+        textRect.offsetMax = new Vector2(-32f, -84f);
 
         bodyText.text = string.Empty;
-        bodyText.color = Color.white;
+        bodyText.color = new Color(0.96f, 0.97f, 0.98f, 1f);
         bodyText.alignment = TextAlignmentOptions.TopLeft;
-        bodyText.enableWordWrapping = true;
-        bodyText.fontSize = 34f;
-        bodyText.lineSpacing = -4f;
+        bodyText.textWrappingMode = TextWrappingModes.Normal;
+        bodyText.fontSize = 33f;
+        bodyText.lineSpacing = -2f;
         bodyText.raycastTarget = false;
+    }
+
+    private void ConfigureAdvanceHintText()
+    {
+        if (advanceHintText == null)
+        {
+            return;
+        }
+
+        RectTransform textRect = advanceHintText.rectTransform;
+        textRect.anchorMin = new Vector2(1f, 0f);
+        textRect.anchorMax = new Vector2(1f, 0f);
+        textRect.pivot = new Vector2(1f, 0f);
+        textRect.anchoredPosition = new Vector2(-30f, 18f);
+        textRect.sizeDelta = new Vector2(220f, 28f);
+
+        advanceHintText.text = "Click để tiếp tục";
+        advanceHintText.color = new Color(0.73f, 0.79f, 0.85f, 0.88f);
+        advanceHintText.alignment = TextAlignmentOptions.BottomRight;
+        advanceHintText.textWrappingMode = TextWrappingModes.NoWrap;
+        advanceHintText.fontSize = 20f;
+        advanceHintText.raycastTarget = false;
     }
 
     // Hien hoac an toan bo khung hoi thoai.
@@ -811,6 +936,22 @@ public class DialogueController : MonoBehaviour
         {
             dialogueRoot.SetActive(visible);
         }
+    }
+
+    private void RefreshDayBadge(DialogueDay day)
+    {
+        EnsureDialogueUI();
+
+        if (dayText != null)
+        {
+            dayText.text = FormatDayLabel(day);
+        }
+    }
+
+    private static string FormatDayLabel(DialogueDay day)
+    {
+        int dayNumber = Mathf.Max(1, (int)day);
+        return $"DAY {dayNumber}";
     }
 
     // Ham ho tro de tao nhanh mot o TextMeshPro moi neu scene chua co san.

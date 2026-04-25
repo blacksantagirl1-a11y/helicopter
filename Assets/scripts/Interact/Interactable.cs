@@ -23,6 +23,7 @@ public class Interactable : MonoBehaviour
     [Tooltip("Thời gian giữ nội dung tương tác trên màn hình (giây)")]
     [SerializeField] private float contentDisplaySeconds = 3f;
 
+    public virtual bool CanInteract => true;
     public virtual bool HasPromptText => !string.IsNullOrWhiteSpace(PromptText);
     public virtual string PromptText => pickUpMessage;
     public virtual string DialogueSpeaker => dialogueSpeaker;
@@ -35,6 +36,16 @@ public class Interactable : MonoBehaviour
 
     public void BaseInteract(PlayerUI playerUI)
     {
+        if (!CanInteract)
+        {
+            if (playerUI != null)
+            {
+                playerUI.HideInteractionContent();
+            }
+
+            return;
+        }
+
         Interact();
         PresentInteraction(playerUI);
     }

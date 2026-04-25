@@ -72,7 +72,7 @@ public class DialogueDatabase : ScriptableObject
                 Debug.LogWarning($"DialogueDatabase '{name}' has an entry using DialogueEventId.None.", this);
             }
 
-            if (entry.LineCount < 1 || entry.LineCount > 5)
+            if (entry.LineCount < 1 || entry.LineCount > 10)
             {
                 Debug.LogWarning(
                     $"DialogueDatabase '{name}' entry {entry.Day} / {entry.EventId} must contain between 1 and 5 lines.",
