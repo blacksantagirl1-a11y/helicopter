@@ -183,6 +183,12 @@ public class IntroSequenceController : MonoBehaviour
         SetOnlyActiveAudioListener(playerCamera.GetComponent<AudioListener>());
         SetPlayerControls(true);
 
+        PlayerMovement playerMovement = playerRoot.GetComponent<PlayerMovement>();
+        if (playerMovement != null)
+        {
+            playerMovement.RequestIntroWakeUpDialogue();
+        }
+
         // Tắt hẳn object intro để nó biến mất khỏi scene.
         introRoot.SetActive(false);
     }

@@ -6,9 +6,9 @@ public enum DialogueEventId
     None = 0,
 
     IntroWakeUp = 10,
-    IntroPhoneCall = 20,
+    Pig = 20,
     DayStart = 30,
-    TreeApproach = 40,
+    Water = 40,
     TreeChopped = 50,
     DoorHint = 60,
     InventoryFull = 70,

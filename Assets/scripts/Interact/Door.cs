@@ -21,6 +21,7 @@ public class Door : Interactable
 
     // Theo doi trang thai cua canh cua va coroutine xoay hien tai.
     private bool isOpen;
+    private bool hasTriggeredDayStartDialogue;
     private Coroutine rotateRoutine;
 
     private void Awake()
@@ -47,6 +48,14 @@ public class Door : Interactable
     public void Toggle()
     {
         isOpen = !isOpen;
+
+        if (isOpen
+            && !hasTriggeredDayStartDialogue
+            && DialogueController.GetCurrentDay() == DialogueDay.Day1)
+        {
+            hasTriggeredDayStartDialogue = true;
+            DialogueController.RequestDialogue(DialogueEventId.DayStart);
+        }
 
         // Neu cua dang xoay do dang thi dung luong cu de tranh hai coroutine cung ghi rotation.
         if (rotateRoutine != null)
