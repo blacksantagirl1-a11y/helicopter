@@ -18,7 +18,6 @@ public class InventoryUIController : MonoBehaviour
         public Image Background;
         public Image Icon;
         public TextMeshProUGUI AmountLabel;
-        public TextMeshProUGUI PlaceholderLabel;
     }
 
     [Header("Input")]
@@ -58,9 +57,6 @@ public class InventoryUIController : MonoBehaviour
     [SerializeField] private Color slotOutlineColor = new Color(0.21f, 0.68f, 0.77f, 0.56f);
     [Tooltip("Màu chữ số lượng vật phẩm")]
     [SerializeField] private Color amountColor = new Color(1f, 0.42f, 0.34f, 1f);
-    [Tooltip("Màu chữ placeholder của slot trống")]
-    [SerializeField] private Color placeholderColor = new Color(0.82f, 0.95f, 0.96f, 0.95f);
-
     [Header("Blur")]
     [Tooltip("Giá trị GaussianStart khi bật blur")]
     [SerializeField] private float blurGaussianStart = 0.1f;
@@ -508,17 +504,6 @@ public class InventoryUIController : MonoBehaviour
         icon.preserveAspect = true;
         icon.raycastTarget = false;
 
-        TextMeshProUGUI placeholder = CreateText(
-            "Placeholder",
-            slotObject.transform,
-            string.Empty,
-            24f,
-            FontStyles.Bold,
-            TextAlignmentOptions.Center);
-        StretchToParent(placeholder.rectTransform);
-        placeholder.color = placeholderColor;
-        placeholder.raycastTarget = false;
-
         TextMeshProUGUI amountText = CreateText(
             "Amount",
             slotObject.transform,
@@ -537,8 +522,7 @@ public class InventoryUIController : MonoBehaviour
             Button = button,
             Background = slotImage,
             Icon = icon,
-            AmountLabel = amountText,
-            PlaceholderLabel = placeholder
+            AmountLabel = amountText
         };
     }
 
@@ -581,7 +565,6 @@ public class InventoryUIController : MonoBehaviour
             slotView.Background.color = slotEmptyColor;
             slotView.Icon.enabled = false;
             slotView.Icon.sprite = null;
-            slotView.PlaceholderLabel.text = string.Empty;
             slotView.AmountLabel.text = string.Empty;
             return;
         }
@@ -589,9 +572,6 @@ public class InventoryUIController : MonoBehaviour
         slotView.Background.color = slotFilledColor;
         slotView.Icon.sprite = slot.Item.Icon;
         slotView.Icon.enabled = slot.Item.Icon != null;
-        slotView.PlaceholderLabel.text = slot.Item.Icon == null
-            ? GetFallbackLabel(slot.Item.DisplayName)
-            : string.Empty;
         slotView.AmountLabel.text = slot.Amount > 1 ? slot.Amount.ToString() : string.Empty;
     }
 
@@ -763,16 +743,6 @@ public class InventoryUIController : MonoBehaviour
         }
 
         return FindFirstObjectByType<Volume>();
-    }
-
-    private static string GetFallbackLabel(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return "?";
-        }
-
-        return value.Substring(0, 1).ToUpperInvariant();
     }
 
     private static Image CreateImage(string objectName, Transform parent, Color color, bool stretchToParent)
