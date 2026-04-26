@@ -446,9 +446,25 @@ public class DialogueController : MonoBehaviour
     // Dong hoi thoai hien tai, an UI va tra gameplay ve trang thai cu.
     private void EndCurrentDialogue()
     {
+        DialogueRequest completedRequest = currentRequest;
         SetDialogueVisible(false);
         RestoreDialogueState();
+        HandlePostDialogueEffects(completedRequest);
         TryStartNextDialogue();
+    }
+
+    private void HandlePostDialogueEffects(DialogueRequest completedRequest)
+    {
+        if (completedRequest == null)
+        {
+            return;
+        }
+
+        if (completedRequest.Day == DialogueDay.Day1 &&
+            completedRequest.EventId == DialogueEventId.DoneRequest)
+        {
+            SetCurrentDay(DialogueDay.Day2);
+        }
     }
 
     // Gom tat ca buoc "don dep" de dua game tro lai trang thai truoc hoi thoai.
