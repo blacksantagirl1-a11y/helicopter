@@ -8,7 +8,7 @@ public class EchoVision : MonoBehaviour
 {
     [Header("Cài đặt phím & thời gian")]
     [Tooltip("Phím bật/tắt Clue Vision")]
-    public KeyCode activateKey = KeyCode.F;
+    public KeyCode activateKey = KeyCode.Q;
     [Tooltip("Tự tắt sau bao nhiêu giây (0 = không giới hạn)")]
     public float visionDuration = 5f;
 

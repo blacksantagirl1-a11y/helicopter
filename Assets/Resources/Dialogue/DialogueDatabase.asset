@@ -108,7 +108,7 @@ MonoBehaviour:
     - speakerName: Nhi
       text: "\u0110\u01B0\u1EE3c, t\xF4i hi\u1EC3u r\u1ED3i"
   - day: 1
-    eventId: 120
+    eventId: 50
     playerCanMove: 1
     timeScale: 1
     lines:

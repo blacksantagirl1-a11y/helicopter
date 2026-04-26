@@ -9,7 +9,7 @@ public enum DialogueEventId
     Pig = 20,
     DayStart = 30,
     Water = 40,
-    TreeChopped = 50,
+    DoneRequest = 50,
     DoorHint = 60,
     InventoryFull = 70,
     ItemPickup = 80,

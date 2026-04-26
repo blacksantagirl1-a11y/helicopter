@@ -82,11 +82,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _alpha_tex:
-        m_Texture: {fileID: 2800000, guid: d1fabc31e03664e4f920d6f01ab8e484, type: 3}
+        m_Texture: {fileID: 2800000, guid: 84572c40155990d4ab306bfa69152b53, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _color_tex:
-        m_Texture: {fileID: 2800000, guid: 328df4c27584f7e4d9dbfc671c623fd6, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -133,19 +133,19 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
-    - _WindIntensity: 0.84
-    - _WindSpeed: 1.82
+    - _WindIntensity: 0
+    - _WindSpeed: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
-    - _scale: 43.83
+    - _scale: 0
     - _smothness: 0.1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Emission: {r: 0.3322481, g: 0, b: 0.34901962, a: 0}
+    - _Emission: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _WindDirection: {r: 1, g: 0, b: 0, a: 0}
+    - _WindDirection: {r: 0, g: 0, b: 0, a: 0}
     - _mixColor: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
