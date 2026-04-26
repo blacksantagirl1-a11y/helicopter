@@ -1,57 +1,105 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Điều khiển chế độ "Clue Vision": nhấn phím để bật/tắt hiệu ứng tìm manh mối.
-/// Tìm mọi object có tag "Clue" và bật/tắt trạng thái highlight cho chúng.
+/// Dieu khien che do "Clue Vision": nhan phim de bat/tat hieu ung tim manh moi.
+/// Tim moi object co tag "Clue" va bat/tat trang thai highlight cho chung.
 /// </summary>
 public class EchoVision : MonoBehaviour
 {
-    [Header("Cài đặt phím & thời gian")]
-    [Tooltip("Phím bật/tắt Clue Vision")]
+    [Header("Cai dat phim & thoi gian")]
+    [Tooltip("Phim bat/tat Clue Vision")]
     public KeyCode activateKey = KeyCode.Q;
-    [Tooltip("Tự tắt sau bao nhiêu giây (0 = không giới hạn)")]
+    [Tooltip("Tu tat sau bao nhieu giay (0 = khong gioi han)")]
     public float visionDuration = 5f;
 
-    private bool visionActive = false;
-    private float timer = 0f;
+    private readonly List<EchoObject> clues = new List<EchoObject>();
+    private CameraEffect cameraEffect;
+    private bool visionActive;
+    private float timer;
+
+    void Awake()
+    {
+        CacheCameraEffect();
+        RefreshClues();
+        ApplyVisionState(false, true);
+    }
 
     void Update()
     {
-        // --- Bật/tắt khi nhấn phím ---
         if (Input.GetKeyDown(activateKey))
         {
-            visionActive = !visionActive;
-            timer = 0f;
-            // Báo cho camera áp dụng hiệu ứng tối màn hình
-            Camera.main.GetComponent<CameraEffect>()?.SetEchoMode(visionActive);
+            if (!visionActive)
+            {
+                RefreshClues();
+            }
+
+            ApplyVisionState(!visionActive);
         }
 
-        if (visionActive)
+        if (!visionActive)
         {
-            timer += Time.deltaTime;
-            // Tự tắt sau visionDuration giây
-            if (timer >= visionDuration)
-            {
-                visionActive = false;
-                Camera.main.GetComponent<CameraEffect>()?.SetEchoMode(false);
-            }
-            HighlightClues(true);
+            return;
         }
-        else
+
+        timer += Time.deltaTime;
+        if (visionDuration > 0f && timer >= visionDuration)
         {
-            HighlightClues(false);
+            ApplyVisionState(false);
         }
     }
 
-    /// <summary>
-    /// Bật hoặc tắt trạng thái "đang được highlight" cho tất cả Clue.
-    /// Dựa vào tag "Clue" để tìm object, sau đó set isActive trên component EchoObject.
-    /// </summary>
-    void HighlightClues(bool state)
+    void CacheCameraEffect()
     {
-        foreach (var obj in GameObject.FindGameObjectsWithTag("Clue"))
+        if (cameraEffect == null && Camera.main != null)
         {
-            obj.GetComponent<EchoObject>().isActive = state;
+            cameraEffect = Camera.main.GetComponent<CameraEffect>();
+        }
+    }
+
+    void RefreshClues()
+    {
+        clues.Clear();
+
+        GameObject[] clueObjects = GameObject.FindGameObjectsWithTag("Clue");
+        foreach (GameObject clueObject in clueObjects)
+        {
+            if (clueObject == null)
+            {
+                continue;
+            }
+
+            EchoObject echoObject = clueObject.GetComponent<EchoObject>();
+            if (echoObject != null)
+            {
+                clues.Add(echoObject);
+            }
+        }
+    }
+
+    void ApplyVisionState(bool state, bool force = false)
+    {
+        if (!force && visionActive == state)
+        {
+            return;
+        }
+
+        visionActive = state;
+        timer = 0f;
+
+        CacheCameraEffect();
+        cameraEffect?.SetEchoMode(state);
+
+        for (int i = clues.Count - 1; i >= 0; i--)
+        {
+            EchoObject clue = clues[i];
+            if (clue == null)
+            {
+                clues.RemoveAt(i);
+                continue;
+            }
+
+            clue.isActive = state;
         }
     }
 }
