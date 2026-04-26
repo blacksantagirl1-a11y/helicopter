@@ -40,6 +40,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Camera cameraForCutscene;
     [Tooltip("Tên state cutscene trong Animator")]
     [SerializeField] private string cutsceneStateName = "Fishing";
+    [Tooltip("Bật nếu cutscene Fishing cần ép ActionScript sang state câu cá thay vì phát state trên Animator")]
+    [SerializeField] private bool useActionScriptFishingStateForCutscene = false;
     [Tooltip("Tên layer Animator chứa animation cutscene")]
     [SerializeField] private string cutsceneLayerName = "HandAnim";
     [Tooltip("Thời gian chuyển state animation cutscene")]
@@ -61,6 +63,7 @@ public class PlayerMovement : MonoBehaviour
     private Animator animator;
     private Rigidbody rigidbodyComponent;
     private ActionScript actionScript;
+    private FishingRob fishingRob;
     private RigidbodyConstraints originalConstraints;
     private bool originalRigidbodyIsKinematic;
     private bool originalAnimatorApplyRootMotion;
@@ -159,7 +162,14 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.E) && currentCutsceneTrigger != null && cutsceneRoutine == null)
+        bool shouldDeferInteractToFishing =
+            fishingRob != null &&
+            fishingRob.ShouldOverrideDefaultInteraction;
+
+        if (!shouldDeferInteractToFishing &&
+            Input.GetKeyDown(KeyCode.E) &&
+            currentCutsceneTrigger != null &&
+            cutsceneRoutine == null)
         {
             TryPlayConfiguredCutscene(disableCutsceneTriggerAfterUse, currentCutsceneTrigger);
             return;
@@ -203,10 +213,28 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        if (useAnyTriggerWhenCutsceneTriggerIsEmpty)
+        if (useAnyTriggerWhenCutsceneTriggerIsEmpty && IsFallbackCutsceneTrigger(other))
         {
             currentCutsceneTrigger = other;
         }
+    }
+
+    private bool IsFallbackCutsceneTrigger(Collider other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
+
+        if (other.GetComponent<CutsceneTrigger>() != null ||
+            other.GetComponentInParent<CutsceneTrigger>() != null)
+        {
+            return true;
+        }
+
+        string triggerName = other.gameObject.name;
+        return !string.IsNullOrWhiteSpace(triggerName) &&
+               triggerName.IndexOf("CutsceneTrigger", System.StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     private void UpdateMovementAnimation()
@@ -327,7 +355,18 @@ public class PlayerMovement : MonoBehaviour
 
         SetControlsState(false);
 
-        if (cameraForCutscene != null)
+        bool shouldSwitchToCutsceneCamera =
+            cameraForCutscene != null &&
+            cameraForCutscene.gameObject.activeInHierarchy;
+
+        if (cameraForCutscene != null && !shouldSwitchToCutsceneCamera)
+        {
+            Debug.LogWarning(
+                "PlayerMovement skipped cutscene camera switch because CameraForCutscene is inactive in hierarchy.",
+                this);
+        }
+
+        if (shouldSwitchToCutsceneCamera)
         {
             SetCameraState(cameraMain, false);
             SetCameraState(cameraForCutscene, true);
@@ -372,7 +411,7 @@ public class PlayerMovement : MonoBehaviour
             triggerToDisable.enabled = false;
         }
 
-        if (cameraForCutscene != null)
+        if (shouldSwitchToCutsceneCamera)
         {
             SetCameraState(cameraForCutscene, false);
             SetCameraState(cameraMain, true);
@@ -477,6 +516,11 @@ public class PlayerMovement : MonoBehaviour
             actionScript = GetComponent<ActionScript>();
         }
 
+        if (fishingRob == null)
+        {
+            fishingRob = GetComponent<FishingRob>();
+        }
+
         if (cameraMain == null)
         {
             Camera taggedMainCamera = Camera.main;
@@ -525,7 +569,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void PlayCutsceneAnimation()
     {
-        if (actionScript != null &&
+        if (useActionScriptFishingStateForCutscene &&
+            actionScript != null &&
             string.Equals(cutsceneStateName, "Fishing", System.StringComparison.Ordinal))
         {
             actionScript.PlayFishingState();

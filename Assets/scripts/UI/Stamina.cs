@@ -47,6 +47,10 @@ public class Stamina : MonoBehaviour
     [Tooltip("Lượng stamina tiêu hao khi hạ một con heo")]
     public float boarKillStaminaCost = 12f;
 
+    [Header("Fishing Catch Stamina")]
+    [Tooltip("Luong stamina tieu hao khi cau ca thanh cong")]
+    public float fishingCatchStaminaCost = 12f;
+
     private static readonly FieldInfo BoarHitsToKillField =
         typeof(Boar).GetField("hitsToKill", BindingFlags.Instance | BindingFlags.NonPublic);
     private static readonly FieldInfo BoarCurrentHealthField =
@@ -200,6 +204,19 @@ public class Stamina : MonoBehaviour
         }
 
         pendingBoarHealthSnapshots.Remove(snapshot);
+    }
+
+    public void ConsumeFishingCatchStamina()
+    {
+        if (staminaSlider == null || fishingCatchStaminaCost <= 0f)
+        {
+            return;
+        }
+
+        staminaSlider.value = Mathf.Clamp(
+            staminaSlider.value - fishingCatchStaminaCost,
+            0f,
+            maxStamina);
     }
 
     private Dictionary<int, int> CaptureCurrentBoarHealthSnapshot()
@@ -396,6 +413,7 @@ public class Stamina : MonoBehaviour
         chopTargetHeight = Mathf.Max(0.5f, chopTargetHeight);
         chopMaxTargetAngle = Mathf.Clamp(chopMaxTargetAngle, 1f, 45f);
         boarKillStaminaCost = Mathf.Max(0f, boarKillStaminaCost);
+        fishingCatchStaminaCost = Mathf.Max(0f, fishingCatchStaminaCost);
     }
 
     private bool IsPlayerMoving()

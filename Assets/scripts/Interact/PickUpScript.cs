@@ -30,6 +30,11 @@ public class PickUpScript : MonoBehaviour
             fishingRob = FindFirstObjectByType<FishingRob>();
         }
 
+        if (fishingRob != null)
+        {
+            fishingRob.RefreshInteractionAvailability();
+        }
+
         if (fishingRob != null && fishingRob.ShouldOverrideDefaultInteraction)
         {
             ShowPromptUI(fishingRob.CurrentPrompt);

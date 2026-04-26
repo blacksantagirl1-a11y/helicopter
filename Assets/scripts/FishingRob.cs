@@ -73,6 +73,7 @@ public class FishingRob : MonoBehaviour
     private ActionScript actionScript;
     private PlayerUI playerUI;
     private PlayerInventory playerInventory;
+    private Stamina stamina;
     private InventoryUIController inventoryUI;
     private Jump jump;
     private Camera mainCamera;
@@ -138,6 +139,14 @@ public class FishingRob : MonoBehaviour
         currentState == FishingState.Inactive && hasFishingCandidate
             ? "Nhan E de cau ca"
             : string.Empty;
+
+    public void RefreshInteractionAvailability()
+    {
+        if (currentState == FishingState.Inactive)
+        {
+            RefreshFishingCandidate();
+        }
+    }
 
     private void Awake()
     {
@@ -226,6 +235,7 @@ public class FishingRob : MonoBehaviour
         switch (currentState)
         {
             case FishingState.Inactive:
+                RefreshInteractionAvailability();
                 if (!hasFishingCandidate || IsInventoryOpen())
                 {
                     return false;
@@ -408,12 +418,17 @@ public class FishingRob : MonoBehaviour
 
     private void TryStoreFish()
     {
-        if (playerInventory == null || fishItemDefinition == null)
+        if (fishItemDefinition == null)
         {
             return;
         }
 
-        playerInventory.TryAddItem(fishItemDefinition, 1, out _);
+        if (playerInventory != null)
+        {
+            playerInventory.TryAddItem(fishItemDefinition, 1, out _);
+        }
+
+        stamina?.ConsumeFishingCatchStamina();
     }
 
     private void ExitFishingMode()
@@ -795,12 +810,16 @@ public class FishingRob : MonoBehaviour
         if (currentState != FishingState.Inactive)
         {
             hasFishingCandidate = false;
+            candidateFishingSpot = Vector3.zero;
+            candidateCastPoint = Vector3.zero;
             return;
         }
 
         if (!IsPlayerInsideFishingTrigger())
         {
             hasFishingCandidate = false;
+            candidateFishingSpot = Vector3.zero;
+            candidateCastPoint = Vector3.zero;
             return;
         }
 
@@ -1418,6 +1437,7 @@ public class FishingRob : MonoBehaviour
         actionScript ??= GetComponent<ActionScript>();
         playerUI ??= GetComponent<PlayerUI>();
         playerInventory ??= GetComponent<PlayerInventory>();
+        stamina ??= FindFirstObjectByType<Stamina>();
         inventoryUI ??= GetComponent<InventoryUIController>();
         jump ??= GetComponent<Jump>();
         playerRigidbody ??= GetComponent<Rigidbody>();
@@ -1583,11 +1603,6 @@ public class FishingRob : MonoBehaviour
 
     private bool IsPlayerInsideFishingTrigger()
     {
-        if (isInsideFishingTrigger)
-        {
-            return true;
-        }
-
         RefreshFishingTriggerState();
         return isInsideFishingTrigger;
     }
