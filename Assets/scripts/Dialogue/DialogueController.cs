@@ -460,10 +460,29 @@ public class DialogueController : MonoBehaviour
             return;
         }
 
-        if (completedRequest.Day == DialogueDay.Day1 &&
-            completedRequest.EventId == DialogueEventId.DoneRequest)
+        DailyQuestManager.NotifyDialogueFinished(completedRequest.Day, completedRequest.EventId);
+        TryActivateQuestFromDialogue(completedRequest.Day, completedRequest.Entry);
+    }
+
+    private static void TryActivateQuestFromDialogue(DialogueDay day, DialogueEntry entry)
+    {
+        if (entry == null || entry.LineCount < 1)
         {
-            SetCurrentDay(DialogueDay.Day2);
+            return;
+        }
+
+        for (int lineIndex = 0; lineIndex < entry.LineCount; lineIndex++)
+        {
+            if (!entry.TryGetLine(lineIndex, out DialogueLineData line) ||
+                line == null ||
+                line.QuestAction != DialogueQuestAction.AssignDailyQuest ||
+                line.QuestId == DailyQuestId.None)
+            {
+                continue;
+            }
+
+            DailyQuestManager.TryActivateQuest(day, line.QuestId);
+            return;
         }
     }
 

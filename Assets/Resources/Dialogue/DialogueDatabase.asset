@@ -18,105 +18,175 @@ MonoBehaviour:
     playerCanMove: 0
     timeScale: 1
     lines:
-    - speakerName: "Ti\u1EBFng b\u1ED9 \u0111\xE0m"
-      text: "Alo, anh Hi\u1EC3n c\xF3 \u0111\xF3 kh\xF4ng, n\u1EBFu anh nghe th\u1EA5y
-        h\xE3y tr\u1EA3 l\u1EDDi l\u1EA1i t\xF4i ngay, H\u1EBFt!"
-    - speakerName: "Hi\u1EC3n"
-      text: "T\xF4i, T\xF4i Hi\u1EC3n, xin ch\xE0o,.. H\u1EBFt."
-    - speakerName: "B\u1ED9 \u0111\xE0m"
-      text: "Ng\u01B0\u1EDDi m\u1EDBi, Anh c\xF3 bi\u1EBFt gi\u1EDD \u0111\xE3 l\xE0
-        gi\u1EEFa tr\u01B0a r\u1ED3i ch\u1EE9, H\u1EBFt."
-    - speakerName: "Hi\u1EC3n"
-      text: "Xin l\u1ED7i, h\xF4m qua di chuy\u1EC3n \u0111\u1EBFn \u0111\xE2y kh\xE1
-        xa n\xEAn t\xF4i c\xF3 ch\xFAt m\u1EC7t, H\u1EBFt."
-    - speakerName: "B\u1ED9 \u0111\xE0m"
-      text: "N\u1EBFu anh y\u1EBFu \u0111u\u1ED1i v\u1EADy th\xEC t\xF4i kh\xF4ng
-        ngh\u0129 anh c\xF3 th\u1EC3 l\xE0m vi\u1EC7c trong r\u1EEBng \u0111\xE2u,
-        H\u1EBFt."
-    - speakerName: "Hi\u1EC3n"
-      text: "T\xF4i \u1ED5n, kh\xF4ng sao \u0111\xE2u, c\xF3 th\u1EC3 l\xE0 ch\u01B0a
-        quen th\xF4i, H\u1EBFt."
+    - speakerName: Tieng bo dam
+      text: Alo, anh Hien co nghe ro khong. Neu nghe thay hay tra loi lai.
+    - speakerName: Hien
+      text: Toi nghe ro. Toi da co mat tai tram.
+    - speakerName: Tieng bo dam
+      text: Day la ngay dau tien cua anh, dung de tre them nua.
+    - speakerName: Hien
+      text: Toi hieu roi, toi se vao viec ngay.
   - day: 1
     eventId: 30
     playerCanMove: 1
     timeScale: 1
     lines:
     - speakerName: Nhi
-      text: "\u0110\u01B0\u1EE3c r\u1ED3i, t\xF4i l\xE0 Nhi, ng\u01B0\u1EDDi s\u1EBD
-        l\xE0m vi\u1EC7c c\xF9ng anh \u1EDF \u0111\xE2y, c\xF2n c\xF4ng vi\u1EC7c
-        c\u1EE7a anh l\xE0 nghe nh\u1EEFng g\xEC t\xF4i b\u1EA3o"
-    - speakerName: "Hi\u1EC3n"
-      text: "t\xF4i hi\u1EC3u, v\u1EADy gi\u1EDD t\xF4i c\u1EA7n l\xE0m g\xEC, H\u1EBFt."
+      text: Hom nay co bay dam o phia Tay khu rung.
+    - speakerName: Hien
+      text: Toi can xu ly bao nhieu cai.
     - speakerName: Nhi
-      text: "khu r\u1EEBng n\xE0y c\xF3 nhi\u1EC1u lo\xE0i \u0111\u1ED9ng th\u1EF1c
-        v\u1EADt c\u1EA7n \u0111\u01B0\u1EE3c b\u1EA3o v\u1EC7, c\xF4ng vi\u1EC7c
-        c\u1EE7a anh l\xE0 x\u1EED l\xED nh\u1EEFng c\xE1i b\u1EABy m\xE0 b\u1ECDn
-        s\u0103n tr\u1ED9m ho\u1EB7c ng\u01B0\u1EDDi d\xE2n v\xF4 t\xECnh \u0111\u1EB7t
-        trong khu v\u1EF1c n\xE0y, H\u1EBFt."
-    - speakerName: "Hi\u1EC3n"
-      text: "\u0111\u01B0\u1EE3c r\u1ED3i, t\xF4i c\xF3 th\u1EC3 th\u1EA5y ch\xFAng
-        \u1EDF \u0111\xE2u, H\u1EBFt."
-    - speakerName: Nhi
-      text: "Quan s\xE1t t\u1EEB v\u1EC7 tinh th\xEC c\xF3 5 c\xE1i b\u1EABy d\u1EADm
-        \u0111\xE3 \u0111\u01B0\u1EE3c \u0111\u1EB7t \u1EDF ph\xEDa T\xE2y, a h\xE3y
-        \u0111i theo la b\xE0n \u0111\u1EBFn \u0111\u1EA5y t\xECm v\xE0 thu th\u1EADp
-        ch\xFAng, H\u1EBFt."
-    - speakerName: "Hi\u1EC3n"
-      text: "t\xF4i hi\u1EC3u r\u1ED3i, H\u1EBFt."
-    - speakerName: Nhi
-      text: "N\u1EBFu c\xF3 g\xEC th\u1EAFc m\u1EAFc h\xE3y g\u1ECDi l\u1EA1i cho
-        t\xF4i, H\u1EBFt."
-    - speakerName: "Hi\u1EC3n"
-      text: "\u0110\xE3 r\xF5, H\u1EBFt"
+      text: Chi con 3 cai bay dang can duoc pha huy.
+    - speakerName: Hien
+      text: Da ro. Toi di ngay.
+      questAction: 1
+      questId: 10
   - day: 1
     eventId: 40
     playerCanMove: 1
     timeScale: 1
     lines:
-    - speakerName: "Hi\u1EC3n"
-      text: "d\xF2ng su\u1ED1i nh\u1ECF n\xE0y c\xF3 c\xE1 kh\xF4ng, H\u1EBFt."
+    - speakerName: Hien
+      text: O gan day co cho nao cau ca duoc khong.
     - speakerName: Nhi
-      text: "N\u1EBFu a \u0111i d\u1ECDc theo n\xF3 s\u1EBD th\u1EA5y m\u1ED9t c\xE1i
-        h\u1ED3, \u1EDF \u0111\xF3 th\xEC r\u1EA5t nhi\u1EC1u, anh c\xF3 th\u1EC3
-        c\xE2u ch\xFAng, H\u1EBFt."
+      text: Men theo dong suoi se thay mot cai ho nho. O do co the cau duoc ca.
   - day: 1
     eventId: 20
     playerCanMove: 0
     timeScale: 1
     lines:
-    - speakerName: "Hi\u1EC3n"
-      text: "C\xF3 m\u1ED9t v\xE0i con l\u1EE3n r\u1EEBng \u1EDF \u0111\xE2y"
+    - speakerName: Hien
+      text: Toi vua thay lon rung o day.
     - speakerName: Nhi
-      text: "\u1ED2 ch\xFAng c\xF3 r\u1EA5t nhi\u1EC1u trong r\u1EEBng v\xE0 hay
-        ph\xE1 ho\u1EA1i c\xE2y c\u1ED1i, khi \u0111\xF3i anh c\xF3 th\u1EC3 s\u0103n
-        ch\xFAng \u0111\u1EC3 l\u1EA5y th\u1ECBt."
-    - speakerName: "Hi\u1EC3n"
-      text: "T hi\u1EC3u r\u1ED3i"
+      text: Dung de y thoi luc. Neu can thi co the san de lay thit.
     - speakerName: Nhi
-      text: "Quan tr\u1ECDng, h\xE3y \u0111\u1EC3 \xFD th\u1EC3 l\u1EF1c c\u1EE7a
-        m\xECnh \u0111\u1EEBng \u0111\u1EC3 b\u1ECB ki\u1EC7t s\u1EE9c trong r\u1EEBng
-        r\u1EA5t nguy hi\u1EC3m. S\u0103n l\u1EE3n hay c\xE2u c\xE1 \u0111\u1EC1u
-        s\u1EBD t\u1ED1n th\u1EC3 l\u1EF1c, h\xE3y anh c\xF3 th\u1EC3 ch\u1EB7t \xEDt
-        c\xE2y, \u0111\u1ED1t l\u1EEDa \u0111\u1EC3 n\u1EA5u \u0103n. "
-    - speakerName: Nhi
-      text: "\u0110\u01B0\u01A1ng nhi\xEAn ch\u1EB7t c\xE2y c\u0169ng s\u1EBD r\u1EA5t
-        m\u1EC7t, h\xE3y \u0103n u\u1ED1ng \u0111\u1EC3 b\u1ED5 sung th\u1EC3 l\u1EF1c."
-    - speakerName: Nhi
-      text: "\u0110\u1EEBng s\u0103n b\u1EAFt nhi\u1EC1u qu\xE1, m\xF4i tr\u01B0\u1EDDng
-        \u1EDF \u0111\xE2y kh\xF4ng th\xEDch h\u1EE3p \u0111\u1EC3 b\u1EA3o qu\u1EA3n
-        ch\xFAng \u0111\xE2u, n\xF3 s\u1EBD h\u1ECFng v\xE0o h\xF4m sau \u0111\u1EA5y."
-    - speakerName: Nhi
-      text: "\u0110\u01B0\u1EE3c, t\xF4i hi\u1EC3u r\u1ED3i"
+      text: Chat cay, san va cau ca deu lam mat suc. Nho bo sung thuc an.
   - day: 1
     eventId: 50
     playerCanMove: 1
     timeScale: 1
     lines:
-    - speakerName: Mambo
-      text: "M\xECnh \u0111\xE3 \u0111\u1EB7t \u0111\u1EE7 b\u1EABy. Nh\u01B0ng r\u1EEBng
-        im qu\xE1, \u0111\u1EBFn c\u1EA3 c\xF4n tr\xF9ng c\u0169ng n\xEDn."
-    - speakerName: "B\u1ED9 \u0111\xE0m"
-      text: "T\u1ED1t. V\u1EC1 nh\xE0 tr\u01B0\u1EDBc khi tr\u1EDDi t\u1ED1i."
-    - speakerName: Mambo
-      text: "T\u1ED1i \u1EDF \u0111\xE2y \u0111\u1EBFn nhanh h\u01A1n \u0111\u1ED3ng
-        h\u1ED3."
+    - speakerName: Hien
+      text: Toi da pha huy xong toan bo bay dam.
+    - speakerName: Nhi
+      text: Tot. Ve nghi mot dem, sang mai chung ta doi viec.
+  - day: 2
+    eventId: 30
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: Nhi
+      text: Dem qua rat lanh, hom nay hay gom them go kho de dot lua.
+    - speakerName: Hien
+      text: So luong can la bao nhieu.
+    - speakerName: Nhi
+      text: Mang ve cho toi 3 khuc go truoc khi het ngay.
+    - speakerName: Hien
+      text: Da ro. Toi bat dau ngay.
+      questAction: 1
+      questId: 20
+  - day: 2
+    eventId: 50
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: Hien
+      text: Toi da gom du 3 khuc go.
+    - speakerName: Nhi
+      text: Tot. Lua toi nay se on hon. Nghi ngoi di.
+  - day: 3
+    eventId: 30
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: Nhi
+      text: Nguon do an du tru dang it dan.
+    - speakerName: Hien
+      text: Toi can bo sung loai nao.
+    - speakerName: Nhi
+      text: Hay lay cho toi 2 mieng thit truoc luc troi toi.
+    - speakerName: Hien
+      text: Da hieu. Toi se san nhanh roi quay lai.
+      questAction: 1
+      questId: 30
+  - day: 3
+    eventId: 50
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: Hien
+      text: Toi da mang ve du so thit can dung.
+    - speakerName: Nhi
+      text: Lam tot lam. Hom nay ket thuc o day.
+  - day: 4
+    eventId: 30
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: Nhi
+      text: Suoi len muc, day la luc tot de cau them ca.
+    - speakerName: Hien
+      text: Muc tieu hom nay la gi.
+    - speakerName: Nhi
+      text: Bat cho toi 3 con ca truoc khi het ngay.
+    - speakerName: Hien
+      text: Da ro. Toi di ra ho ngay.
+      questAction: 1
+      questId: 40
+  - day: 4
+    eventId: 50
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: Hien
+      text: Ca da du roi.
+    - speakerName: Nhi
+      text: Tot. Chung ta co them thuc an cho ngay mai.
+  - day: 5
+    eventId: 30
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: Nhi
+      text: Khu tru an can them nhien lieu du phong.
+    - speakerName: Hien
+      text: Can nhieu go hon hom truoc dung khong.
+    - speakerName: Nhi
+      text: Dung vay. Gom cho toi 5 khuc go truoc luc het ngay.
+    - speakerName: Hien
+      text: Da ro. Toi di ngay.
+      questAction: 1
+      questId: 50
+  - day: 5
+    eventId: 50
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: Hien
+      text: Toi da chat du so go can thiet.
+    - speakerName: Nhi
+      text: Tot. Chung ta da san sang hon rat nhieu.
+  - day: 6
+    eventId: 30
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: Nhi
+      text: Hom nay la ngay cuoi trong dot truc nay.
+    - speakerName: Hien
+      text: Toi can lam gi truoc khi roi khu rung.
+    - speakerName: Nhi
+      text: Cau them 4 con ca, roi chung ta se ket thuc dot cong tac.
+    - speakerName: Hien
+      text: Da ro. Toi se hoan tat truoc khi troi toi.
+      questAction: 1
+      questId: 60
+  - day: 6
+    eventId: 50
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: Hien
+      text: Toi da xong chuyen cau cuoi cung.
+    - speakerName: Nhi
+      text: Tot. Chung ta ket thuc dot lam viec tai day.

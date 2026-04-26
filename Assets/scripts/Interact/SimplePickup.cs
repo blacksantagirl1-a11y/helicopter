@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class SimplePickup : Interactable
 {
+    [SerializeField] private string questInteractionKey = "trap";
     [SerializeField] private string pickupPromptOverride = "Phá Hủy";
 
     [Header("Completion Dialogue")]
@@ -13,7 +14,8 @@ public class SimplePickup : Interactable
 
     protected override void Interact()
     {
-        bool shouldRequestCompletionDialogue = ShouldRequestCompletionDialogue();
+        DailyQuestManager.ReportInteraction(questInteractionKey);
+        bool shouldRequestCompletionDialogue = !DailyQuestManager.IsQuestSystemActive && ShouldRequestCompletionDialogue();
         Destroy(gameObject);
 
         if (shouldRequestCompletionDialogue)

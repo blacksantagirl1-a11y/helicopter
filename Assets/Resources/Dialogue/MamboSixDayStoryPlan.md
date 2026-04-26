@@ -1,4 +1,4 @@
-# Ke hoach cot truyen Mambo - 6 ngay va ending
+Ke hoach cot truyen Mambo - 6 ngay va ending
 
 Moi ngay duoc thiet ke khoang 3-5 phut: 1 doan thuc day, 2-3 nhiem vu ngan, 1 doan ket ngay. Thoai da duoc nhap vao `DialogueDatabase.asset` theo cap `DialogueDay` + `DialogueEventId`.
 

@@ -56,6 +56,7 @@ public class PlayerInventory : MonoBehaviour
     public event Action InventoryChanged;
     // UI dang nghe event nay de hien thong bao ngan cho nguoi choi.
     public event Action<string> FeedbackRequested;
+    public event Action<InventoryItemDefinition, int> ItemAdded;
 
     public int SlotCount => slots.Count;
     public IReadOnlyList<InventorySlot> Slots => slots;
@@ -125,6 +126,7 @@ public class PlayerInventory : MonoBehaviour
         int addedAmount = amount - remainingAmount;
         if (addedAmount > 0)
         {
+            ItemAdded?.Invoke(itemDefinition, addedAmount);
             InventoryChanged?.Invoke();
             FeedbackRequested?.Invoke($"Da nhat {addedAmount}x {itemDefinition.DisplayName}.");
         }
