@@ -1275,7 +1275,7 @@ public class FishingRob : MonoBehaviour
 
         fishingHintLabel = CreateText("FishingHintLabel", fishingUiRoot);
         fishingHintLabel.alignment = TextAlignmentOptions.TopRight;
-        fishingHintLabel.fontSize = 18f;
+        fishingHintLabel.fontSize = 36f;
         fishingHintLabel.color = Color.white;
         fishingHintLabel.gameObject.SetActive(false);
         RectTransform hintRect = fishingHintLabel.rectTransform;
@@ -1283,7 +1283,7 @@ public class FishingRob : MonoBehaviour
         hintRect.anchorMax = new Vector2(1f, 1f);
         hintRect.pivot = new Vector2(1f, 1f);
         hintRect.anchoredPosition = new Vector2(-28f, -22f);
-        hintRect.sizeDelta = new Vector2(320f, 42f);
+        hintRect.sizeDelta = new Vector2(320f, 80f);
 
         minigamePanel = CreateRect("MiniGamePanel", fishingUiRoot);
         Image panelBackground = minigamePanel.gameObject.AddComponent<Image>();
@@ -1293,19 +1293,19 @@ public class FishingRob : MonoBehaviour
         minigamePanel.anchorMax = new Vector2(0.5f, 0f);
         minigamePanel.pivot = new Vector2(0.5f, 0f);
         minigamePanel.anchoredPosition = new Vector2(0f, 88f);
-        minigamePanel.sizeDelta = new Vector2(420f, 118f);
+        minigamePanel.sizeDelta = new Vector2(840f, 236f);
         minigamePanel.gameObject.SetActive(false);
 
         statusLabel = CreateText("StatusLabel", minigamePanel);
         statusLabel.alignment = TextAlignmentOptions.Center;
-        statusLabel.fontSize = 18f;
+        statusLabel.fontSize = 36f;
         statusLabel.color = Color.white;
         RectTransform statusRect = statusLabel.rectTransform;
         statusRect.anchorMin = new Vector2(0f, 1f);
         statusRect.anchorMax = new Vector2(1f, 1f);
         statusRect.pivot = new Vector2(0.5f, 1f);
         statusRect.anchoredPosition = new Vector2(0f, -4f);
-        statusRect.sizeDelta = new Vector2(-20f, 24f);
+        statusRect.sizeDelta = new Vector2(-20f, 48f);
 
         trackRect = CreateRect("Track", minigamePanel);
         Image trackImage = trackRect.gameObject.AddComponent<Image>();
@@ -1318,7 +1318,7 @@ public class FishingRob : MonoBehaviour
         trackRect.anchorMax = new Vector2(0.5f, 0f);
         trackRect.pivot = new Vector2(0.5f, 0.5f);
         trackRect.anchoredPosition = new Vector2(0f, 30f);
-        trackRect.sizeDelta = new Vector2(330f, 54f);
+        trackRect.sizeDelta = new Vector2(660f, 108f);
         trackRect.gameObject.AddComponent<RectMask2D>();
 
         targetRect = CreateRect("TargetZone", trackRect);
@@ -1331,7 +1331,7 @@ public class FishingRob : MonoBehaviour
         targetRect.anchorMin = new Vector2(0.5f, 0.5f);
         targetRect.anchorMax = new Vector2(0.5f, 0.5f);
         targetRect.pivot = new Vector2(0.5f, 0.5f);
-        targetRect.sizeDelta = new Vector2(74f, 54f);
+        targetRect.sizeDelta = new Vector2(148f, 108f);
 
         fishRect = CreateRect("FishIcon", trackRect);
         fishPreviewImage = fishRect.gameObject.AddComponent<RawImage>();
@@ -1340,7 +1340,7 @@ public class FishingRob : MonoBehaviour
         fishRect.anchorMin = new Vector2(0.5f, 0.5f);
         fishRect.anchorMax = new Vector2(0.5f, 0.5f);
         fishRect.pivot = new Vector2(0.5f, 0.5f);
-        fishRect.sizeDelta = new Vector2(52f, 52f);
+        fishRect.sizeDelta = new Vector2(104f, 104f);
 
         EnsureFishPreviewResources();
     }
