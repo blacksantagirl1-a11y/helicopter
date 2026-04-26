@@ -50,8 +50,7 @@ public class Door : Interactable
         isOpen = !isOpen;
 
         if (isOpen
-            && !hasTriggeredDayStartDialogue
-            && DialogueController.GetCurrentDay() == DialogueDay.Day1)
+            && !hasTriggeredDayStartDialogue)
         {
             hasTriggeredDayStartDialogue = true;
             DialogueController.RequestDialogue(DialogueEventId.DayStart);

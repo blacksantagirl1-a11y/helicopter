@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3c663f052c4744922435f2f1028db0, type: 3}
+  m_Name: DailyQuestDatabase
+  m_EditorClassIdentifier: 
+  quests:
+  - day: 1
+    questId: 10
+    displayName: Pha huy bay dam
+    objectiveType: 10
+    interactionKey: trap
+    targetItem: {fileID: 0}
+    requiredCount: 3
+    dayDurationSeconds: 420
+    completionDialogueEvent: 50
+  - day: 2
+    questId: 20
+    displayName: Gom go dot lua
+    objectiveType: 20
+    interactionKey: 
+    targetItem: {fileID: 11400000, guid: b0910e5d01391994eadc6b6056e44785, type: 2}
+    requiredCount: 3
+    dayDurationSeconds: 360
+    completionDialogueEvent: 50
+  - day: 3
+    questId: 30
+    displayName: San thit rung
+    objectiveType: 20
+    interactionKey: 
+    targetItem: {fileID: 11400000, guid: a97f2816a4a24c44a5dbfb4204bc8a9c, type: 2}
+    requiredCount: 2
+    dayDurationSeconds: 360
+    completionDialogueEvent: 50
+  - day: 4
+    questId: 40
+    displayName: Cau them ca
+    objectiveType: 20
+    interactionKey: 
+    targetItem: {fileID: 11400000, guid: d6703daa303c4804f8a696c663c8e51f, type: 2}
+    requiredCount: 3
+    dayDurationSeconds: 420
+    completionDialogueEvent: 50
+  - day: 5
+    questId: 50
+    displayName: Tich tru go
+    objectiveType: 20
+    interactionKey: 
+    targetItem: {fileID: 11400000, guid: b0910e5d01391994eadc6b6056e44785, type: 2}
+    requiredCount: 5
+    dayDurationSeconds: 360
+    completionDialogueEvent: 50
+  - day: 6
+    questId: 60
+    displayName: Chuyen cau cuoi ngay
+    objectiveType: 20
+    interactionKey: 
+    targetItem: {fileID: 11400000, guid: d6703daa303c4804f8a696c663c8e51f, type: 2}
+    requiredCount: 4
+    dayDurationSeconds: 420
+    completionDialogueEvent: 50

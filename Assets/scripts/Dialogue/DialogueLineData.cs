@@ -11,7 +11,11 @@ public sealed class DialogueLineData
     [TextArea(2, 5)]
     // Noi dung cau noi se hien len man hinh.
     [SerializeField] private string text;
+    [SerializeField] private DialogueQuestAction questAction;
+    [SerializeField] private DailyQuestId questId;
 
     public string SpeakerName => speakerName;
     public string Text => text;
+    public DialogueQuestAction QuestAction => questAction;
+    public DailyQuestId QuestId => questId;
 }

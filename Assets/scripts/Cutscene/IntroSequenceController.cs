@@ -183,6 +183,9 @@ public class IntroSequenceController : MonoBehaviour
         SetOnlyActiveAudioListener(playerCamera.GetComponent<AudioListener>());
         SetPlayerControls(true);
 
+        // Tat han object intro truoc khi mo hoi thoai de UI khong de len cutscene WakeUp.
+        introRoot.SetActive(false);
+
         PlayerMovement playerMovement = playerRoot.GetComponent<PlayerMovement>();
         if (playerMovement != null)
         {
@@ -190,7 +193,6 @@ public class IntroSequenceController : MonoBehaviour
         }
 
         // Tắt hẳn object intro để nó biến mất khỏi scene.
-        introRoot.SetActive(false);
     }
 
     void SetPlayerVisible(bool isVisible)

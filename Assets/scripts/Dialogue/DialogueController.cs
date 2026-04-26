@@ -446,9 +446,44 @@ public class DialogueController : MonoBehaviour
     // Dong hoi thoai hien tai, an UI va tra gameplay ve trang thai cu.
     private void EndCurrentDialogue()
     {
+        DialogueRequest completedRequest = currentRequest;
         SetDialogueVisible(false);
         RestoreDialogueState();
+        HandlePostDialogueEffects(completedRequest);
         TryStartNextDialogue();
+    }
+
+    private void HandlePostDialogueEffects(DialogueRequest completedRequest)
+    {
+        if (completedRequest == null)
+        {
+            return;
+        }
+
+        DailyQuestManager.NotifyDialogueFinished(completedRequest.Day, completedRequest.EventId);
+        TryActivateQuestFromDialogue(completedRequest.Day, completedRequest.Entry);
+    }
+
+    private static void TryActivateQuestFromDialogue(DialogueDay day, DialogueEntry entry)
+    {
+        if (entry == null || entry.LineCount < 1)
+        {
+            return;
+        }
+
+        for (int lineIndex = 0; lineIndex < entry.LineCount; lineIndex++)
+        {
+            if (!entry.TryGetLine(lineIndex, out DialogueLineData line) ||
+                line == null ||
+                line.QuestAction != DialogueQuestAction.AssignDailyQuest ||
+                line.QuestId == DailyQuestId.None)
+            {
+                continue;
+            }
+
+            DailyQuestManager.TryActivateQuest(day, line.QuestId);
+            return;
+        }
     }
 
     // Gom tat ca buoc "don dep" de dua game tro lai trang thai truoc hoi thoai.
