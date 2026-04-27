@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Meat
   m_EditorClassIdentifier:
   itemId: boar_meat
-  displayName: Thit lon
-  description: Thit tuoi roi tu lon rung, co the giu trong tui do.
+  displayName: Thịt lợn
+  description: Thịt tươi rói từ lợn rừng, có thể giữ trong túi đồ.
   icon: {fileID: 21300000, guid: 792d396928de3df4fa92895c7b5688ab, type: 3}
   maxStack: 10
   canUse: 0
   consumeOnUse: 0
-  useMessage: Da su dung thit lon.
-  cannotUseMessage: Thit lon la vat pham nguyen lieu, chua the su dung truc tiep.
+  useMessage: Đã sử dụng thịt lợn.
+  cannotUseMessage: Thịt lợn là vật phẩm nguyên liệu, chưa thể sử dụng trực tiếp.

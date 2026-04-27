@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Fish
   m_EditorClassIdentifier: 
   itemId: river_fish
-  displayName: Ca
-  description: Mot con ca vua cau duoc tu ho nuoc.
+  displayName: Cá
+  description: Một con cá vừa câu được từ hồ nước.
   icon: {fileID: 0}
   maxStack: 10
   canUse: 0
   consumeOnUse: 0
-  useMessage: Da su dung ca.
-  cannotUseMessage: Ca la vat pham nguyen lieu, chua the su dung truc tiep.
+  useMessage: Đã sử dụng cá.
+  cannotUseMessage: Cá là vật phẩm nguyên liệu, chưa thể sử dụng trực tiếp.

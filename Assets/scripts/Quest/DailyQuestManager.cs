@@ -389,8 +389,8 @@ public class DailyQuestManager : MonoBehaviour
         SetHudVisible(true);
 
         string timerLabel = isWaitingForCompletionDialogue
-            ? "Dang bao cao nhiem vu..."
-            : $"Het ngay: {FormatTime(remainingTime)}";
+            ? "Đang báo cáo nhiệm vụ..."
+            : $"Hết ngày: {FormatTime(remainingTime)}";
 
         if (questProgressText == null || questTimerText == null)
         {
@@ -413,8 +413,8 @@ public class DailyQuestManager : MonoBehaviour
         string label = activeQuest.ObjectiveType switch
         {
             QuestObjectiveType.InventoryItemCount when activeQuest.TargetItem != null => activeQuest.TargetItem.DisplayName,
-            QuestObjectiveType.InteractionKeyCount => "Tien do",
-            _ => "Tien do"
+            QuestObjectiveType.InteractionKeyCount => "Tiến độ",
+            _ => "Tiến độ"
         };
 
         return $"{label}: {currentProgress}/{activeQuest.RequiredCount}";

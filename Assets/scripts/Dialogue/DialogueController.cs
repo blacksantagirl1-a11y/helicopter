@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -34,6 +35,14 @@ public class DialogueController : MonoBehaviour
         public DialogueEntry Entry { get; }
     }
 
+    private enum DialogueHandAnimationState
+    {
+        Inactive,
+        Entering,
+        Holding,
+        Releasing
+    }
+
     // Neu khong keo tay trong Inspector thi controller se tu load database o duong dan nay.
     private const string DefaultDatabaseResourcePath = "Dialogue/DialogueDatabase";
     // Toc do mac dinh cua hieu ung "go chu" (typewriter).
@@ -67,6 +76,16 @@ public class DialogueController : MonoBehaviour
     [SerializeField] private Zoom zoom;
     [SerializeField] private PickUpScript pickUpScript;
 
+    [Header("Dialogue Hand Animation")]
+    [SerializeField] private Animator dialogueAnimator;
+    [SerializeField] private string dialogueHandLayerName = "leftHand";
+    [SerializeField] private string dialogueIdleStateName = "Idle";
+    [SerializeField] private string dialogueEnterStateName = "IdleToHold";
+    [SerializeField] private string dialogueHoldStateName = "Holding";
+    [SerializeField] private string dialogueExitStateName = "HoldToIdle";
+    [SerializeField] private float dialogueLayerWeight = 1f;
+    [SerializeField] private float dialogueCrossFadeDuration = 0.08f;
+
     [Header("Dialogue UI")]
     [SerializeField] private GameObject dialogueRoot;
     [SerializeField] private Image dialogueBackground;
@@ -95,6 +114,15 @@ public class DialogueController : MonoBehaviour
     // TimeScale co the bi doi trong hoi thoai, nen can nho lai gia tri cu.
     private float cachedTimeScale = 1f;
     private bool hasCachedTimeScale;
+    private int dialogueHandLayerIndex = -1;
+    private string dialogueIdleStatePath = string.Empty;
+    private string dialogueEnterStatePath = string.Empty;
+    private string dialogueHoldStatePath = string.Empty;
+    private string dialogueExitStatePath = string.Empty;
+    private Coroutine dialogueHandAnimationRoutine;
+    private bool isDialogueHandHoldActive;
+    private bool hasLoggedDialogueHandSetupWarning;
+    private DialogueHandAnimationState dialogueHandAnimationState = DialogueHandAnimationState.Inactive;
 
     public static bool IsDialogueActive => instance != null && instance.isDialogueActive;
 
@@ -160,6 +188,8 @@ public class DialogueController : MonoBehaviour
 
         instance = this;
         charactersPerSecond = Mathf.Max(1f, charactersPerSecond);
+        dialogueLayerWeight = Mathf.Max(0f, dialogueLayerWeight);
+        dialogueCrossFadeDuration = Mathf.Max(0f, dialogueCrossFadeDuration);
         ResolveDatabase();
         ResolveReferences();
         EnsureDialogueUI();
@@ -170,11 +200,13 @@ public class DialogueController : MonoBehaviour
     private void OnDisable()
     {
         RestoreDialogueState();
+        ResetDialogueHandAnimationImmediately();
     }
 
     private void OnDestroy()
     {
         RestoreDialogueState();
+        ResetDialogueHandAnimationImmediately();
 
         if (instance == this)
         {
@@ -186,8 +218,11 @@ public class DialogueController : MonoBehaviour
     private void OnValidate()
     {
         charactersPerSecond = Mathf.Max(1f, charactersPerSecond);
+        dialogueLayerWeight = Mathf.Max(0f, dialogueLayerWeight);
+        dialogueCrossFadeDuration = Mathf.Max(0f, dialogueCrossFadeDuration);
         ResolveDatabase();
         ResolveReferences();
+        CacheDialogueHandAnimationData();
     }
 
     // Update la "vong lap" chay moi frame.
@@ -342,6 +377,7 @@ public class DialogueController : MonoBehaviour
         CacheTimeScale();
         ApplyTimeScale(request.Entry.TimeScale);
         PrepareGameplayForDialogue(request.Entry.PlayerCanMove);
+        BeginDialogueHandHold();
         RefreshDayBadge(request.Day);
         SetDialogueVisible(true);
         ShowLine(0);
@@ -451,6 +487,11 @@ public class DialogueController : MonoBehaviour
         RestoreDialogueState();
         HandlePostDialogueEffects(completedRequest);
         TryStartNextDialogue();
+
+        if (!isDialogueActive)
+        {
+            ReleaseDialogueHandHold();
+        }
     }
 
     private void HandlePostDialogueEffects(DialogueRequest completedRequest)
@@ -703,6 +744,20 @@ public class DialogueController : MonoBehaviour
         playerLook ??= FindFirstObjectByType<PlayerLook>();
         zoom ??= FindFirstObjectByType<Zoom>();
         pickUpScript ??= FindFirstObjectByType<PickUpScript>();
+
+        if (dialogueAnimator == null)
+        {
+            if (playerMovement != null)
+            {
+                dialogueAnimator = playerMovement.GetComponent<Animator>();
+            }
+            else if (actionScript != null)
+            {
+                dialogueAnimator = actionScript.GetComponent<Animator>();
+            }
+        }
+
+        CacheDialogueHandAnimationData();
     }
 
     // Dam bao UI hoi thoai ton tai.
@@ -908,6 +963,7 @@ public class DialogueController : MonoBehaviour
         speakerText.color = new Color(0.98f, 0.82f, 0.48f, 1f);
         speakerText.alignment = TextAlignmentOptions.TopLeft;
         speakerText.textWrappingMode = TextWrappingModes.NoWrap;
+        speakerText.richText = false;
         speakerText.fontSize = 27f;
         speakerText.fontStyle = FontStyles.Bold;
         speakerText.raycastTarget = false;
@@ -932,6 +988,7 @@ public class DialogueController : MonoBehaviour
         bodyText.color = new Color(0.96f, 0.97f, 0.98f, 1f);
         bodyText.alignment = TextAlignmentOptions.TopLeft;
         bodyText.textWrappingMode = TextWrappingModes.Normal;
+        bodyText.richText = false;
         bodyText.fontSize = 33f;
         bodyText.lineSpacing = -2f;
         bodyText.raycastTarget = false;
@@ -986,7 +1043,7 @@ public class DialogueController : MonoBehaviour
     private static string FormatDayLabel(DialogueDay day)
     {
         int dayNumber = Mathf.Max(1, (int)day);
-        return $"DAY {dayNumber}";
+        return $"NGÀY {dayNumber}";
     }
 
     // Ham ho tro de tao nhanh mot o TextMeshPro moi neu scene chua co san.
@@ -1003,5 +1060,292 @@ public class DialogueController : MonoBehaviour
         text.text = string.Empty;
         text.color = Color.white;
         return text;
+    }
+
+    private void BeginDialogueHandHold()
+    {
+        if (!TryPrepareDialogueHandAnimation())
+        {
+            return;
+        }
+
+        StopDialogueHandAnimationRoutine();
+        SetDialogueHandLayerWeight(dialogueLayerWeight);
+
+        if (dialogueHandAnimationState == DialogueHandAnimationState.Releasing)
+        {
+            isDialogueHandHoldActive = true;
+            dialogueHandAnimationState = DialogueHandAnimationState.Holding;
+            dialogueHandAnimationRoutine = StartCoroutine(PlayDialogueHandHoldSequence(true));
+            return;
+        }
+
+        if (isDialogueHandHoldActive || dialogueHandAnimationState == DialogueHandAnimationState.Holding)
+        {
+            bool shouldRefreshHoldingState = dialogueHandAnimationState != DialogueHandAnimationState.Holding;
+            dialogueHandAnimationState = DialogueHandAnimationState.Holding;
+
+            if (shouldRefreshHoldingState && !string.IsNullOrWhiteSpace(dialogueHoldStatePath))
+            {
+                dialogueAnimator.CrossFadeInFixedTime(
+                    dialogueHoldStatePath,
+                    dialogueCrossFadeDuration,
+                    dialogueHandLayerIndex);
+            }
+
+            return;
+        }
+
+        isDialogueHandHoldActive = true;
+        dialogueHandAnimationState = DialogueHandAnimationState.Entering;
+        dialogueHandAnimationRoutine = StartCoroutine(PlayDialogueHandHoldSequence(false));
+    }
+
+    private void ReleaseDialogueHandHold()
+    {
+        if (!TryPrepareDialogueHandAnimation())
+        {
+            ResetDialogueHandAnimationState();
+            return;
+        }
+
+        if (!isDialogueHandHoldActive &&
+            dialogueHandAnimationState != DialogueHandAnimationState.Entering &&
+            dialogueHandAnimationState != DialogueHandAnimationState.Holding &&
+            dialogueHandAnimationState != DialogueHandAnimationState.Releasing)
+        {
+            return;
+        }
+
+        StopDialogueHandAnimationRoutine();
+        dialogueHandAnimationState = DialogueHandAnimationState.Releasing;
+        isDialogueHandHoldActive = false;
+        dialogueHandAnimationRoutine = StartCoroutine(PlayDialogueHandReleaseSequence());
+    }
+
+    private IEnumerator PlayDialogueHandHoldSequence(bool skipEnter)
+    {
+        SetDialogueHandLayerWeight(dialogueLayerWeight);
+
+        if (!skipEnter && !string.IsNullOrWhiteSpace(dialogueEnterStatePath))
+        {
+            dialogueAnimator.CrossFadeInFixedTime(
+                dialogueEnterStatePath,
+                dialogueCrossFadeDuration,
+                dialogueHandLayerIndex);
+
+            yield return WaitForDialogueHandAnimation(dialogueEnterStatePath, dialogueEnterStateName);
+        }
+
+        if (!isDialogueHandHoldActive || dialogueHandAnimationState == DialogueHandAnimationState.Releasing)
+        {
+            dialogueHandAnimationRoutine = null;
+            yield break;
+        }
+
+        dialogueHandAnimationState = DialogueHandAnimationState.Holding;
+
+        if (!string.IsNullOrWhiteSpace(dialogueHoldStatePath))
+        {
+            dialogueAnimator.CrossFadeInFixedTime(
+                dialogueHoldStatePath,
+                dialogueCrossFadeDuration,
+                dialogueHandLayerIndex);
+        }
+
+        dialogueHandAnimationRoutine = null;
+    }
+
+    private IEnumerator PlayDialogueHandReleaseSequence()
+    {
+        SetDialogueHandLayerWeight(dialogueLayerWeight);
+
+        if (!string.IsNullOrWhiteSpace(dialogueExitStatePath))
+        {
+            dialogueAnimator.CrossFadeInFixedTime(
+                dialogueExitStatePath,
+                dialogueCrossFadeDuration,
+                dialogueHandLayerIndex);
+
+            yield return WaitForDialogueHandAnimation(dialogueExitStatePath, dialogueExitStateName);
+        }
+
+        if (dialogueHandAnimationState != DialogueHandAnimationState.Releasing)
+        {
+            dialogueHandAnimationRoutine = null;
+            yield break;
+        }
+
+        if (!string.IsNullOrWhiteSpace(dialogueIdleStatePath))
+        {
+            dialogueAnimator.Play(dialogueIdleStatePath, dialogueHandLayerIndex, 0f);
+        }
+
+        SetDialogueHandLayerWeight(0f);
+        ResetDialogueHandAnimationState();
+    }
+
+    private IEnumerator WaitForDialogueHandAnimation(string statePath, string clipName)
+    {
+        if (dialogueAnimator == null ||
+            dialogueHandLayerIndex < 0 ||
+            string.IsNullOrWhiteSpace(statePath))
+        {
+            yield break;
+        }
+
+        yield return null;
+
+        float waitTimeout = GetDialogueAnimationClipLength(clipName) + 0.25f;
+        if (waitTimeout <= 0.25f)
+        {
+            waitTimeout = 1f;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < waitTimeout)
+        {
+            AnimatorStateInfo stateInfo = dialogueAnimator.GetCurrentAnimatorStateInfo(dialogueHandLayerIndex);
+            if (!dialogueAnimator.IsInTransition(dialogueHandLayerIndex) &&
+                stateInfo.IsName(statePath) &&
+                stateInfo.normalizedTime >= 1f)
+            {
+                yield break;
+            }
+
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+    }
+
+    private void ResetDialogueHandAnimationImmediately()
+    {
+        StopDialogueHandAnimationRoutine();
+
+        if (dialogueAnimator != null && dialogueHandLayerIndex >= 0)
+        {
+            if (!string.IsNullOrWhiteSpace(dialogueIdleStatePath))
+            {
+                dialogueAnimator.Play(dialogueIdleStatePath, dialogueHandLayerIndex, 0f);
+            }
+
+            SetDialogueHandLayerWeight(0f);
+        }
+
+        ResetDialogueHandAnimationState();
+    }
+
+    private void ResetDialogueHandAnimationState()
+    {
+        dialogueHandAnimationRoutine = null;
+        isDialogueHandHoldActive = false;
+        dialogueHandAnimationState = DialogueHandAnimationState.Inactive;
+    }
+
+    private void StopDialogueHandAnimationRoutine()
+    {
+        if (dialogueHandAnimationRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(dialogueHandAnimationRoutine);
+        dialogueHandAnimationRoutine = null;
+    }
+
+    private bool TryPrepareDialogueHandAnimation()
+    {
+        ResolveReferences();
+        CacheDialogueHandAnimationData();
+
+        bool isValid =
+            dialogueAnimator != null &&
+            dialogueAnimator.runtimeAnimatorController != null &&
+            dialogueHandLayerIndex >= 0 &&
+            !string.IsNullOrWhiteSpace(dialogueIdleStatePath) &&
+            !string.IsNullOrWhiteSpace(dialogueEnterStatePath) &&
+            !string.IsNullOrWhiteSpace(dialogueHoldStatePath) &&
+            !string.IsNullOrWhiteSpace(dialogueExitStatePath);
+
+        if (!isValid && !hasLoggedDialogueHandSetupWarning)
+        {
+            Debug.LogWarning(
+                $"DialogueController could not play leftHand dialogue animation because animator setup is incomplete on '{name}'.",
+                this);
+            hasLoggedDialogueHandSetupWarning = true;
+        }
+
+        return isValid;
+    }
+
+    private void CacheDialogueHandAnimationData()
+    {
+        if (dialogueAnimator == null || string.IsNullOrWhiteSpace(dialogueHandLayerName))
+        {
+            dialogueHandLayerIndex = -1;
+            dialogueIdleStatePath = string.Empty;
+            dialogueEnterStatePath = string.Empty;
+            dialogueHoldStatePath = string.Empty;
+            dialogueExitStatePath = string.Empty;
+            return;
+        }
+
+        dialogueHandLayerIndex = dialogueAnimator.GetLayerIndex(dialogueHandLayerName);
+        if (dialogueHandLayerIndex < 0)
+        {
+            dialogueIdleStatePath = string.Empty;
+            dialogueEnterStatePath = string.Empty;
+            dialogueHoldStatePath = string.Empty;
+            dialogueExitStatePath = string.Empty;
+            return;
+        }
+
+        string layerName = dialogueAnimator.GetLayerName(dialogueHandLayerIndex);
+        dialogueIdleStatePath = GetDialogueHandStatePath(layerName, dialogueIdleStateName);
+        dialogueEnterStatePath = GetDialogueHandStatePath(layerName, dialogueEnterStateName);
+        dialogueHoldStatePath = GetDialogueHandStatePath(layerName, dialogueHoldStateName);
+        dialogueExitStatePath = GetDialogueHandStatePath(layerName, dialogueExitStateName);
+    }
+
+    private static string GetDialogueHandStatePath(string layerName, string stateName)
+    {
+        if (string.IsNullOrWhiteSpace(layerName) || string.IsNullOrWhiteSpace(stateName))
+        {
+            return string.Empty;
+        }
+
+        return layerName + "." + stateName;
+    }
+
+    private void SetDialogueHandLayerWeight(float weight)
+    {
+        if (dialogueAnimator == null || dialogueHandLayerIndex < 0)
+        {
+            return;
+        }
+
+        dialogueAnimator.SetLayerWeight(dialogueHandLayerIndex, Mathf.Max(0f, weight));
+    }
+
+    private float GetDialogueAnimationClipLength(string clipName)
+    {
+        if (dialogueAnimator == null ||
+            dialogueAnimator.runtimeAnimatorController == null ||
+            string.IsNullOrWhiteSpace(clipName))
+        {
+            return 0f;
+        }
+
+        AnimationClip[] clips = dialogueAnimator.runtimeAnimatorController.animationClips;
+        for (int i = 0; i < clips.Length; i++)
+        {
+            AnimationClip clip = clips[i];
+            if (clip != null && clip.name == clipName)
+            {
+                return clip.length;
+            }
+        }
+
+        return 0f;
     }
 }

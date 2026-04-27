@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: WoodLog
   m_EditorClassIdentifier: 
   itemId: wood_log
-  displayName: Khuc go
-  description: Vat lieu co the dung cho che tao va xay dung sau nay.
+  displayName: Khúc gỗ
+  description: Vật liệu có thể dùng cho chế tạo và xây dựng sau này.
   icon: {fileID: 21300000, guid: 8d656acd899272b449cf4ed6a67a34ae, type: 3}
   maxStack: 20
   canUse: 0
   consumeOnUse: 0
-  useMessage: Da su dung khuc go.
-  cannotUseMessage: Khuc go la vat lieu, chua the su dung truc tiep.
+  useMessage: Đã sử dụng khúc gỗ.
+  cannotUseMessage: Khúc gỗ là vật liệu, chưa thể sử dụng trực tiếp.

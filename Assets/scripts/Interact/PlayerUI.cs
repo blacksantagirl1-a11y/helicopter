@@ -68,7 +68,6 @@ public class PlayerUI : MonoBehaviour
             return;
         }
 
-        string speakerName = interactable.DialogueSpeaker;
         string bodyText = interactable.DialogueText;
         Sprite sprite = interactable.InteractionImage;
         bool hasText = !string.IsNullOrWhiteSpace(bodyText);
@@ -89,7 +88,7 @@ public class PlayerUI : MonoBehaviour
 
         if (interactionText != null)
         {
-            interactionText.text = BuildDialogueMarkup(speakerName, bodyText);
+            interactionText.text = bodyText ?? string.Empty;
             interactionText.gameObject.SetActive(hasText);
         }
 
@@ -280,7 +279,7 @@ public class PlayerUI : MonoBehaviour
         interactionText.enableWordWrapping = true;
         interactionText.fontSize = 34f;
         interactionText.lineSpacing = -6f;
-        interactionText.richText = true;
+        interactionText.richText = false;
         interactionText.raycastTarget = false;
     }
 
@@ -324,16 +323,6 @@ public class PlayerUI : MonoBehaviour
         interactionImage.color = Color.white;
         interactionImage.preserveAspect = true;
         interactionImage.raycastTarget = false;
-    }
-
-    private string BuildDialogueMarkup(string speakerName, string bodyText)
-    {
-        if (string.IsNullOrWhiteSpace(speakerName))
-        {
-            return bodyText;
-        }
-
-        return $"<color=#D79E37>{speakerName}:</color> {bodyText}";
     }
 
     private void StopAutoHideTimer()

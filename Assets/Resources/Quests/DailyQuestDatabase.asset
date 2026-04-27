@@ -15,7 +15,7 @@ MonoBehaviour:
   quests:
   - day: 1
     questId: 10
-    displayName: Pha huy bay dam
+    displayName: Phá hủy bẫy dậm
     objectiveType: 10
     interactionKey: trap
     targetItem: {fileID: 0}
@@ -24,7 +24,7 @@ MonoBehaviour:
     completionDialogueEvent: 50
   - day: 2
     questId: 20
-    displayName: Gom go dot lua
+    displayName: Gom gỗ đốt lửa
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: b0910e5d01391994eadc6b6056e44785, type: 2}
@@ -33,7 +33,7 @@ MonoBehaviour:
     completionDialogueEvent: 50
   - day: 3
     questId: 30
-    displayName: San thit rung
+    displayName: Săn thịt rừng
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: a97f2816a4a24c44a5dbfb4204bc8a9c, type: 2}
@@ -42,7 +42,7 @@ MonoBehaviour:
     completionDialogueEvent: 50
   - day: 4
     questId: 40
-    displayName: Cau them ca
+    displayName: Câu thêm cá
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: d6703daa303c4804f8a696c663c8e51f, type: 2}
@@ -51,7 +51,7 @@ MonoBehaviour:
     completionDialogueEvent: 50
   - day: 5
     questId: 50
-    displayName: Tich tru go
+    displayName: Tích trữ gỗ
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: b0910e5d01391994eadc6b6056e44785, type: 2}
@@ -60,7 +60,7 @@ MonoBehaviour:
     completionDialogueEvent: 50
   - day: 6
     questId: 60
-    displayName: Chuyen cau cuoi ngay
+    displayName: Chuyến câu cuối ngày
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: d6703daa303c4804f8a696c663c8e51f, type: 2}
