@@ -83,6 +83,44 @@ public class PlayerInventory : MonoBehaviour
     // remainingAmount cho biet con bao nhieu item khong dua vao tui duoc.
     public bool TryAddItem(InventoryItemDefinition itemDefinition, int amount, out int remainingAmount)
     {
+        return TryAddItemInternal(itemDefinition, amount, out remainingAmount, true, true);
+    }
+
+    public bool TryAddItemSilently(InventoryItemDefinition itemDefinition, int amount, out int remainingAmount)
+    {
+        return TryAddItemInternal(itemDefinition, amount, out remainingAmount, false, false);
+    }
+
+    public bool TryConsumeSlot(int slotIndex, int amount, InventoryItemDefinition expectedItem = null)
+    {
+        EnsureSlotCount();
+        if (slotIndex < 0 || slotIndex >= slots.Count || amount <= 0)
+        {
+            return false;
+        }
+
+        InventorySlot slot = slots[slotIndex];
+        if (slot.IsEmpty || slot.Item == null || slot.Amount < amount)
+        {
+            return false;
+        }
+
+        if (expectedItem != null && slot.Item != expectedItem)
+        {
+            return false;
+        }
+
+        RemoveFromSlot(slotIndex, amount);
+        return true;
+    }
+
+    private bool TryAddItemInternal(
+        InventoryItemDefinition itemDefinition,
+        int amount,
+        out int remainingAmount,
+        bool notifyFeedback,
+        bool raiseItemAddedEvent)
+    {
         EnsureSlotCount();
         remainingAmount = Mathf.Max(0, amount);
 
@@ -126,12 +164,19 @@ public class PlayerInventory : MonoBehaviour
         int addedAmount = amount - remainingAmount;
         if (addedAmount > 0)
         {
-            ItemAdded?.Invoke(itemDefinition, addedAmount);
+            if (raiseItemAddedEvent)
+            {
+                ItemAdded?.Invoke(itemDefinition, addedAmount);
+            }
+
             InventoryChanged?.Invoke();
-            FeedbackRequested?.Invoke($"Da nhat {addedAmount}x {itemDefinition.DisplayName}.");
+            if (notifyFeedback)
+            {
+                FeedbackRequested?.Invoke($"Da nhat {addedAmount}x {itemDefinition.DisplayName}.");
+            }
         }
 
-        if (remainingAmount > 0)
+        if (notifyFeedback && remainingAmount > 0)
         {
             FeedbackRequested?.Invoke("Tui do da day.");
         }

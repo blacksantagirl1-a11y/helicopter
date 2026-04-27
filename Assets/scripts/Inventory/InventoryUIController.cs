@@ -1,17 +1,22 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 [DisallowMultipleComponent]
-// InventoryUIController lo phan "nhin thay va thao tac" cua tui do.
-// No doc du lieu tu PlayerInventory, sau do tao UI, cap nhat slot,
-// mo / dong inventory, va tam khoa gameplay khi inventory dang mo.
 public class InventoryUIController : MonoBehaviour
 {
-    // SlotView la bo tham chieu UI cho 1 slot tren man hinh.
+    private const string DefaultFooterMessage = "Chuot trai de dung | Chuot phai de xem info";
+    private const string DefaultCampingPrefabAssetPath = "Assets/model/campfire/source/camping.prefab";
+
     private sealed class SlotView
     {
         public Button Button;
@@ -20,59 +25,54 @@ public class InventoryUIController : MonoBehaviour
         public TextMeshProUGUI AmountLabel;
     }
 
+    private enum CampingPlacementState
+    {
+        Inactive,
+        Preview
+    }
+
     [Header("Input")]
-    [Tooltip("Phím bật/tắt túi đồ")]
     [SerializeField] private KeyCode toggleInventoryKey = KeyCode.B;
 
     [Header("References")]
-    [Tooltip("Dữ liệu inventory của player")]
     [SerializeField] private PlayerInventory playerInventory;
-    [Tooltip("UI tương tác người chơi để đồng bộ prompt")]
     [SerializeField] private PlayerUI playerUI;
-    [Tooltip("Canvas chứa UI inventory")]
     [SerializeField] private Canvas targetCanvas;
-    [Tooltip("Volume hậu kỳ chứa hiệu ứng blur")]
     [SerializeField] private Volume blurVolume;
 
     [Header("Layout")]
-    [Tooltip("Số cột slot trong lưới inventory")]
-    [SerializeField]
-    [Min(1)]
-    private int columns = 5;
-    [Tooltip("Kích thước mỗi slot (width, height)")]
+    [SerializeField] [Min(1)] private int columns = 5;
     [SerializeField] private Vector2 slotSize = new Vector2(60f, 60f);
-    [Tooltip("Khoảng cách giữa các slot")]
     [SerializeField] private Vector2 slotSpacing = new Vector2(8f, 8f);
 
     [Header("Look")]
-    [Tooltip("Màu nền backdrop toàn màn hình")]
     [SerializeField] private Color backdropColor = new Color(0.02f, 0.17f, 0.20f, 0.58f);
-    [Tooltip("Màu panel chính của inventory")]
     [SerializeField] private Color panelColor = new Color(0.03f, 0.14f, 0.18f, 0.80f);
-    [Tooltip("Màu slot khi trống")]
     [SerializeField] private Color slotEmptyColor = new Color(0.06f, 0.20f, 0.24f, 0.78f);
-    [Tooltip("Màu slot khi có vật phẩm")]
     [SerializeField] private Color slotFilledColor = new Color(0.13f, 0.28f, 0.32f, 0.96f);
-    [Tooltip("Màu viền slot")]
     [SerializeField] private Color slotOutlineColor = new Color(0.21f, 0.68f, 0.77f, 0.56f);
-    [Tooltip("Màu chữ số lượng vật phẩm")]
     [SerializeField] private Color amountColor = new Color(1f, 0.42f, 0.34f, 1f);
+
     [Header("Blur")]
-    [Tooltip("Giá trị GaussianStart khi bật blur")]
     [SerializeField] private float blurGaussianStart = 0.1f;
-    [Tooltip("Giá trị GaussianEnd khi bật blur")]
     [SerializeField] private float blurGaussianEnd = 4f;
-    [Tooltip("Bán kính blur")]
     [SerializeField] private float blurRadius = 1f;
+
+    [Header("Camping Placement")]
+    [SerializeField] private string campingItemId = "wood_log";
+    [SerializeField] private GameObject campingPrefab;
+    [SerializeField] private LayerMask campingPlacementLayers = Physics.DefaultRaycastLayers;
+    [SerializeField] private float campingPlacementDistance = 12f;
+    [SerializeField] [Range(0.1f, 1f)] private float campingSurfaceMinUpDot = 0.55f;
 
     private readonly List<SlotView> slotViews = new List<SlotView>();
     private readonly Dictionary<Behaviour, bool> cachedControlStates = new Dictionary<Behaviour, bool>();
-
     private GameObject inventoryRoot;
     private CanvasGroup inventoryCanvasGroup;
     private TextMeshProUGUI statusLabel;
     private RectTransform slotGridRoot;
 
+    private Camera mainCamera;
     private PlayerMovement playerMovement;
     private Jump jump;
     private PlayerLook playerLook;
@@ -91,12 +91,19 @@ public class InventoryUIController : MonoBehaviour
     private float blurOriginalRadius;
 
     private bool isInventoryOpen;
+    private CampingPlacementState campingPlacementState;
+    private GameObject activeCampingInstance;
+    private InventoryItemDefinition activeCampingItemDefinition;
+    private int activeCampingSlotIndex = -1;
+    private float activeCampingBottomOffset;
+    private bool canPlaceCamping;
 
     public bool IsInventoryOpen => isInventoryOpen;
 
     private void Reset()
     {
         TryAutoAssignReferences();
+        TryAssignDefaultCampingPrefab();
         EnsureInventoryUI();
         RefreshSlots();
         SetInventoryVisible(false);
@@ -105,12 +112,12 @@ public class InventoryUIController : MonoBehaviour
     private void Awake()
     {
         TryAutoAssignReferences();
+        TryAssignDefaultCampingPrefab();
         EnsureInventoryUI();
         RefreshSlots();
         SetInventoryVisible(false);
     }
 
-    // Lang nghe event tu inventory de UI tu dong cap nhat.
     private void OnEnable()
     {
         TryAutoAssignReferences();
@@ -130,6 +137,7 @@ public class InventoryUIController : MonoBehaviour
             playerInventory.FeedbackRequested -= HandleInventoryFeedback;
         }
 
+        CleanupCampingPlacement(true);
         RestoreControls();
         SetBlurActive(false);
     }
@@ -137,6 +145,7 @@ public class InventoryUIController : MonoBehaviour
     private void OnValidate()
     {
         TryAutoAssignReferences();
+        TryAssignDefaultCampingPrefab();
         columns = Mathf.Max(1, columns);
         slotSize.x = Mathf.Max(48f, slotSize.x);
         slotSize.y = Mathf.Max(48f, slotSize.y);
@@ -144,12 +153,17 @@ public class InventoryUIController : MonoBehaviour
         slotSpacing.y = Mathf.Max(0f, slotSpacing.y);
         blurRadius = Mathf.Clamp(blurRadius, 0.1f, 1f);
         blurGaussianEnd = Mathf.Max(blurGaussianStart + 0.1f, blurGaussianEnd);
+        campingPlacementDistance = Mathf.Max(1f, campingPlacementDistance);
     }
 
-    // Bam phim toggle se mo / dong inventory.
-    // Neu dialogue dang mo thi inventory se tu dong dong lai.
     private void Update()
     {
+        if (campingPlacementState != CampingPlacementState.Inactive)
+        {
+            UpdateCampingPlacementState();
+            return;
+        }
+
         if (DialogueController.IsDialogueActive)
         {
             if (isInventoryOpen)
@@ -173,6 +187,13 @@ public class InventoryUIController : MonoBehaviour
             return;
         }
 
+        if (campingPlacementState == CampingPlacementState.Preview)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            return;
+        }
+
         if (isInventoryOpen)
         {
             Cursor.lockState = CursorLockMode.None;
@@ -189,12 +210,14 @@ public class InventoryUIController : MonoBehaviour
         SetInventoryOpen(!isInventoryOpen);
     }
 
-    // Ham trung tam dieu khien trang thai mo / dong inventory.
-    // Khi mo: hien UI, bat blur, khoa control, mo chuot.
-    // Khi dong: tra lai control, tat blur, khoa chuot ve game.
     public void SetInventoryOpen(bool shouldOpen)
     {
         if (shouldOpen && DialogueController.IsDialogueActive)
+        {
+            return;
+        }
+
+        if (shouldOpen && campingPlacementState != CampingPlacementState.Inactive)
         {
             return;
         }
@@ -213,6 +236,7 @@ public class InventoryUIController : MonoBehaviour
             CacheAndDisableControls();
             SetBlurActive(true);
             RefreshSlots();
+            SetStatusMessage(DefaultFooterMessage);
 
             if (playerUI != null)
             {
@@ -231,7 +255,6 @@ public class InventoryUIController : MonoBehaviour
         Cursor.visible = false;
     }
 
-    // Co gang tu tim reference can thiet trong scene.
     private void TryAutoAssignReferences()
     {
         playerInventory ??= GetComponent<PlayerInventory>();
@@ -247,6 +270,7 @@ public class InventoryUIController : MonoBehaviour
 
         targetCanvas ??= FindFirstObjectByType<Canvas>();
         blurVolume ??= FindBestBlurVolume();
+        mainCamera ??= Camera.main;
 
         playerMovement ??= GetComponent<PlayerMovement>();
         jump ??= GetComponent<Jump>();
@@ -255,7 +279,6 @@ public class InventoryUIController : MonoBehaviour
 
         if (playerLook == null || zoom == null || pickUpScript == null || cuttingTreeSystem == null)
         {
-            Camera mainCamera = Camera.main;
             if (mainCamera != null)
             {
                 playerLook ??= mainCamera.GetComponent<PlayerLook>();
@@ -266,8 +289,6 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
-    // Dam bao UI inventory da ton tai.
-    // Neu scene chua co san, script se tu tao UI runtime.
     private void EnsureInventoryUI()
     {
         if (targetCanvas == null)
@@ -312,7 +333,6 @@ public class InventoryUIController : MonoBehaviour
         CreateInventoryUI();
     }
 
-    // Tao cau truc UI chinh cua inventory.
     private void CreateInventoryUI()
     {
         slotViews.Clear();
@@ -321,7 +341,7 @@ public class InventoryUIController : MonoBehaviour
             "InventoryBackdrop",
             inventoryRoot.transform,
             backdropColor,
-            stretchToParent: true);
+            true);
         backdrop.raycastTarget = true;
 
         RectTransform panelRect = CreatePanel();
@@ -334,7 +354,7 @@ public class InventoryUIController : MonoBehaviour
 
     private RectTransform CreatePanel()
     {
-        Image panelImage = CreateImage("InventoryPanel", inventoryRoot.transform, panelColor, stretchToParent: false);
+        Image panelImage = CreateImage("InventoryPanel", inventoryRoot.transform, panelColor, false);
         panelImage.raycastTarget = true;
 
         RectTransform panelRect = panelImage.rectTransform;
@@ -356,7 +376,7 @@ public class InventoryUIController : MonoBehaviour
         TextMeshProUGUI title = CreateText(
             "Title",
             panelRect,
-            "Túi đồ",
+            "Tui do",
             28f,
             FontStyles.Bold,
             TextAlignmentOptions.Left);
@@ -371,7 +391,7 @@ public class InventoryUIController : MonoBehaviour
         TextMeshProUGUI closeHint = CreateText(
             "CloseHint",
             panelRect,
-            "B để đóng",
+            "B de dong",
             16f,
             FontStyles.Normal,
             TextAlignmentOptions.Right);
@@ -416,7 +436,7 @@ public class InventoryUIController : MonoBehaviour
         TextMeshProUGUI footer = CreateText(
             "FooterLabel",
             panelRect,
-            "Click item để sử dụng",
+            DefaultFooterMessage,
             15f,
             FontStyles.Normal,
             TextAlignmentOptions.Left);
@@ -428,12 +448,11 @@ public class InventoryUIController : MonoBehaviour
         footerRect.offsetMin = new Vector2(18f, 16f);
         footerRect.offsetMax = new Vector2(-18f, 46f);
         footer.color = new Color(0.75f, 0.90f, 0.94f, 0.92f);
-        footer.enableWordWrapping = true;
+        footer.textWrappingMode = TextWrappingModes.Normal;
 
         return footer;
     }
 
-    // Tao lai danh sach slot UI sao cho khop voi so slot that trong inventory.
     private void RebuildSlotGrid()
     {
         if (slotGridRoot == null)
@@ -459,14 +478,11 @@ public class InventoryUIController : MonoBehaviour
         int slotCount = playerInventory != null ? playerInventory.SlotCount : 20;
         for (int i = 0; i < slotCount; i++)
         {
-            int slotIndex = i;
-            SlotView slotView = CreateSlotView(slotGridRoot, slotIndex);
-            slotView.Button.onClick.AddListener(() => HandleSlotClicked(slotIndex));
+            SlotView slotView = CreateSlotView(slotGridRoot, i);
             slotViews.Add(slotView);
         }
     }
 
-    // Tao UI cho 1 slot don le.
     private SlotView CreateSlotView(Transform parent, int slotIndex)
     {
         GameObject slotObject = new GameObject(
@@ -494,7 +510,10 @@ public class InventoryUIController : MonoBehaviour
         colors.disabledColor = new Color(1f, 1f, 1f, 0.5f);
         button.colors = colors;
 
-        Image icon = CreateImage("Icon", slotObject.transform, Color.white, stretchToParent: false);
+        InventorySlotClickHandler clickHandler = slotObject.AddComponent<InventorySlotClickHandler>();
+        clickHandler.Initialize(slotIndex, HandleSlotClicked);
+
+        Image icon = CreateImage("Icon", slotObject.transform, Color.white, false);
         RectTransform iconRect = icon.rectTransform;
         iconRect.anchorMin = new Vector2(0.5f, 0.5f);
         iconRect.anchorMax = new Vector2(0.5f, 0.5f);
@@ -526,7 +545,6 @@ public class InventoryUIController : MonoBehaviour
         };
     }
 
-    // Dong bo du lieu inventory sang UI.
     private void RefreshSlots()
     {
         if (playerInventory == null)
@@ -548,11 +566,10 @@ public class InventoryUIController : MonoBehaviour
 
         if (statusLabel != null && !isInventoryOpen)
         {
-            statusLabel.text = "Click item để sử dụng";
+            SetStatusMessage(DefaultFooterMessage);
         }
     }
 
-    // Ve lai 1 slot dua tren du lieu that.
     private void UpdateSlot(SlotView slotView, PlayerInventory.InventorySlot slot)
     {
         if (slotView == null || slot == null)
@@ -575,41 +592,75 @@ public class InventoryUIController : MonoBehaviour
         slotView.AmountLabel.text = slot.Amount > 1 ? slot.Amount.ToString() : string.Empty;
     }
 
-    // Click vao slot = yeu cau inventory thu dung item o slot do.
-    private void HandleSlotClicked(int slotIndex)
+    private void HandleSlotClicked(int slotIndex, PointerEventData.InputButton button)
     {
         if (!isInventoryOpen || playerInventory == null)
         {
             return;
         }
 
-        playerInventory.TryUseSlot(slotIndex);
-    }
+        if (button == PointerEventData.InputButton.Right)
+        {
+            HandleSlotRightClick(slotIndex);
+            return;
+        }
 
-    // Hien thong bao ngan do inventory gui len.
-    private void HandleInventoryFeedback(string message)
-    {
-        if (statusLabel == null || string.IsNullOrWhiteSpace(message))
+        if (button != PointerEventData.InputButton.Left)
         {
             return;
         }
 
-        statusLabel.text = message;
+        HandleSlotLeftClick(slotIndex);
     }
 
-    // Trong luc inventory mo, khoa cac control gameplay de tranh thao tac chong len nhau.
-    // Co khoa ca CuttingTreeSystem de khong chat cay trong khi dang mo tui.
+    private void HandleSlotLeftClick(int slotIndex)
+    {
+        PlayerInventory.InventorySlot slot = GetInventorySlot(slotIndex);
+        if (slot == null || slot.IsEmpty || slot.Item == null)
+        {
+            SetStatusMessage(DefaultFooterMessage);
+            return;
+        }
+
+        if (IsCampingItem(slot.Item))
+        {
+            TryBeginCampingPlacement(slotIndex, slot.Item);
+            return;
+        }
+
+        playerInventory.TryUseSlot(slotIndex);
+    }
+
+    private void HandleSlotRightClick(int slotIndex)
+    {
+        PlayerInventory.InventorySlot slot = GetInventorySlot(slotIndex);
+        if (slot == null || slot.IsEmpty || slot.Item == null)
+        {
+            SetStatusMessage(DefaultFooterMessage);
+            return;
+        }
+
+        string description = string.IsNullOrWhiteSpace(slot.Item.Description)
+            ? "Khong co mo ta."
+            : slot.Item.Description;
+        string actionHint = IsCampingItem(slot.Item)
+            ? "Chuot trai de dat camping."
+            : slot.Item.CanUse
+                ? "Chuot trai de dung."
+                : slot.Item.CannotUseMessage;
+
+        SetStatusMessage($"{slot.Item.DisplayName} x{slot.Amount}\n{description}\n{actionHint}");
+    }
+
+    private void HandleInventoryFeedback(string message)
+    {
+        SetStatusMessage(message);
+    }
+
     private void CacheAndDisableControls()
     {
         cachedControlStates.Clear();
-
-        CacheBehaviour(playerMovement);
-        CacheBehaviour(jump);
-        CacheBehaviour(playerLook);
-        CacheBehaviour(zoom);
-        CacheBehaviour(pickUpScript);
-        CacheBehaviour(actionScript);
-        CacheBehaviour(cuttingTreeSystem);
+        CacheGameplayBehaviours(cachedControlStates);
 
         if (playerRigidbody != null)
         {
@@ -618,10 +669,36 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
-    // Tra lai control theo dung trang thai da nho truoc do.
     private void RestoreControls()
     {
-        foreach (KeyValuePair<Behaviour, bool> state in cachedControlStates)
+        RestoreCachedControls(cachedControlStates);
+    }
+
+    private void CacheGameplayBehaviours(Dictionary<Behaviour, bool> cache)
+    {
+        CacheBehaviour(cache, playerMovement);
+        CacheBehaviour(cache, jump);
+        CacheBehaviour(cache, playerLook);
+        CacheBehaviour(cache, zoom);
+        CacheBehaviour(cache, pickUpScript);
+        CacheBehaviour(cache, actionScript);
+        CacheBehaviour(cache, cuttingTreeSystem);
+    }
+
+    private void CacheBehaviour(Dictionary<Behaviour, bool> cache, Behaviour behaviour)
+    {
+        if (behaviour == null || cache.ContainsKey(behaviour))
+        {
+            return;
+        }
+
+        cache.Add(behaviour, behaviour.enabled);
+        behaviour.enabled = false;
+    }
+
+    private static void RestoreCachedControls(Dictionary<Behaviour, bool> cache)
+    {
+        foreach (KeyValuePair<Behaviour, bool> state in cache)
         {
             if (state.Key != null)
             {
@@ -629,22 +706,9 @@ public class InventoryUIController : MonoBehaviour
             }
         }
 
-        cachedControlStates.Clear();
+        cache.Clear();
     }
 
-    // Luu trang thai enabled roi tat component di tam thoi.
-    private void CacheBehaviour(Behaviour behaviour)
-    {
-        if (behaviour == null || cachedControlStates.ContainsKey(behaviour))
-        {
-            return;
-        }
-
-        cachedControlStates.Add(behaviour, behaviour.enabled);
-        behaviour.enabled = false;
-    }
-
-    // Hien / an root UI inventory.
     private void SetInventoryVisible(bool isVisible)
     {
         if (inventoryRoot == null || inventoryCanvasGroup == null)
@@ -658,7 +722,6 @@ public class InventoryUIController : MonoBehaviour
         inventoryCanvasGroup.blocksRaycasts = isVisible;
     }
 
-    // Bat / tat blur hau canh khi inventory duoc mo.
     private void SetBlurActive(bool shouldEnable)
     {
         if (!EnsureBlurEffect())
@@ -743,6 +806,313 @@ public class InventoryUIController : MonoBehaviour
         }
 
         return FindFirstObjectByType<Volume>();
+    }
+
+    private PlayerInventory.InventorySlot GetInventorySlot(int slotIndex)
+    {
+        if (playerInventory == null || slotIndex < 0 || slotIndex >= playerInventory.Slots.Count)
+        {
+            return null;
+        }
+
+        return playerInventory.Slots[slotIndex];
+    }
+
+    private void SetStatusMessage(string message)
+    {
+        if (statusLabel == null)
+        {
+            return;
+        }
+
+        statusLabel.text = string.IsNullOrWhiteSpace(message)
+            ? DefaultFooterMessage
+            : message;
+    }
+
+    private bool IsCampingItem(InventoryItemDefinition itemDefinition)
+    {
+        return itemDefinition != null &&
+               !string.IsNullOrWhiteSpace(campingItemId) &&
+               string.Equals(itemDefinition.ItemId, campingItemId, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void TryBeginCampingPlacement(int slotIndex, InventoryItemDefinition itemDefinition)
+    {
+        if (itemDefinition == null)
+        {
+            return;
+        }
+
+        if (!EnsureCampingPlacementReady())
+        {
+            SetStatusMessage("Camping prefab hoac camera chua san sang.");
+            return;
+        }
+
+        SetInventoryOpen(false);
+        BeginCampingPlacement(slotIndex, itemDefinition);
+    }
+
+    private bool EnsureCampingPlacementReady()
+    {
+        TryAutoAssignReferences();
+        TryAssignDefaultCampingPrefab();
+        return mainCamera != null && campingPrefab != null;
+    }
+
+    private void BeginCampingPlacement(int slotIndex, InventoryItemDefinition itemDefinition)
+    {
+        CleanupCampingPlacement(false);
+
+        activeCampingSlotIndex = slotIndex;
+        activeCampingItemDefinition = itemDefinition;
+
+        activeCampingInstance = Instantiate(campingPrefab);
+        activeCampingInstance.name = campingPrefab.name;
+        activeCampingBottomOffset = CalculateCampingBottomOffset(activeCampingInstance);
+        SetCampingCollidersEnabled(activeCampingInstance, false);
+        campingPlacementState = CampingPlacementState.Preview;
+        canPlaceCamping = false;
+
+        if (playerUI != null)
+        {
+            playerUI.HideInteractionContent();
+        }
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        UpdateCampingPreview();
+    }
+
+    private void UpdateCampingPlacementState()
+    {
+        if (campingPlacementState == CampingPlacementState.Preview)
+        {
+            UpdateCampingPreview();
+
+            if (canPlaceCamping && Input.GetMouseButtonDown(0))
+            {
+                PlaceCamping();
+            }
+        }
+    }
+
+    private void UpdateCampingPreview()
+    {
+        if (activeCampingInstance == null)
+        {
+            CleanupCampingPlacement(true);
+            return;
+        }
+
+        if (TryGetCampingPlacementPose(out Vector3 position, out Quaternion rotation, out bool isValid))
+        {
+            activeCampingInstance.transform.SetPositionAndRotation(position, rotation);
+            canPlaceCamping = isValid;
+        }
+        else
+        {
+            canPlaceCamping = false;
+        }
+
+        if (playerUI != null)
+        {
+            playerUI.UpdatePrompt(canPlaceCamping
+                ? "Chuot trai de dat camping"
+                : "Can dua camping len mat dat hop le");
+        }
+    }
+
+    private bool TryGetCampingPlacementPose(out Vector3 position, out Quaternion rotation, out bool isValid)
+    {
+        position = Vector3.zero;
+        rotation = Quaternion.identity;
+        isValid = false;
+
+        if (mainCamera == null)
+        {
+            return false;
+        }
+
+        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        if (!Physics.Raycast(
+                ray,
+                out RaycastHit hit,
+                campingPlacementDistance,
+                campingPlacementLayers,
+                QueryTriggerInteraction.Ignore))
+        {
+            return false;
+        }
+
+        Vector3 forward = playerMovement != null ? playerMovement.transform.forward : mainCamera.transform.forward;
+        forward = Vector3.ProjectOnPlane(forward, Vector3.up);
+        if (forward.sqrMagnitude <= 0.0001f)
+        {
+            forward = Vector3.forward;
+        }
+
+        position = hit.point + Vector3.up * activeCampingBottomOffset;
+        rotation = Quaternion.LookRotation(forward.normalized, Vector3.up);
+        isValid = Vector3.Dot(hit.normal, Vector3.up) >= campingSurfaceMinUpDot;
+        return true;
+    }
+
+    private void PlaceCamping()
+    {
+        if (campingPlacementState != CampingPlacementState.Preview ||
+            activeCampingInstance == null ||
+            activeCampingItemDefinition == null)
+        {
+            return;
+        }
+
+        if (!canPlaceCamping)
+        {
+            return;
+        }
+
+        if (playerInventory == null ||
+            !playerInventory.TryConsumeSlot(activeCampingSlotIndex, 1, activeCampingItemDefinition))
+        {
+            CleanupCampingPlacement(true);
+            SetStatusMessage("Khuc go khong con trong tui do.");
+            return;
+        }
+
+        activeCampingSlotIndex = -1;
+        SetCampingCollidersEnabled(activeCampingInstance, true);
+        EnsureCampingInteraction(activeCampingInstance);
+        activeCampingInstance = null;
+        activeCampingItemDefinition = null;
+        activeCampingBottomOffset = 0f;
+        canPlaceCamping = false;
+        campingPlacementState = CampingPlacementState.Inactive;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        if (playerUI != null)
+        {
+            playerUI.UpdatePrompt(string.Empty);
+        }
+    }
+
+    private void CleanupCampingPlacement(bool restoreCursorState)
+    {
+        if (activeCampingInstance != null)
+        {
+            Destroy(activeCampingInstance);
+        }
+
+        activeCampingInstance = null;
+        activeCampingItemDefinition = null;
+        activeCampingSlotIndex = -1;
+        activeCampingBottomOffset = 0f;
+        canPlaceCamping = false;
+        campingPlacementState = CampingPlacementState.Inactive;
+
+        if (restoreCursorState)
+        {
+            Cursor.lockState = isInventoryOpen ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible = isInventoryOpen;
+        }
+
+        if (playerUI != null)
+        {
+            playerUI.UpdatePrompt(string.Empty);
+        }
+    }
+
+    private void TryAssignDefaultCampingPrefab()
+    {
+#if UNITY_EDITOR
+        if (campingPrefab == null)
+        {
+            campingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DefaultCampingPrefabAssetPath);
+        }
+#endif
+    }
+
+    private static void SetCampingCollidersEnabled(GameObject campingObject, bool isEnabled)
+    {
+        if (campingObject == null)
+        {
+            return;
+        }
+
+        Collider[] colliders = campingObject.GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            if (colliders[i] != null)
+            {
+                colliders[i].enabled = isEnabled;
+            }
+        }
+    }
+
+    private static void EnsureCampingInteraction(GameObject campingObject)
+    {
+        if (campingObject == null)
+        {
+            return;
+        }
+
+        if (campingObject.GetComponent<CampingCookingInteractable>() == null)
+        {
+            campingObject.AddComponent<CampingCookingInteractable>();
+        }
+    }
+
+    private static float CalculateCampingBottomOffset(GameObject campingObject)
+    {
+        if (!TryGetCampingBounds(campingObject, out Bounds bounds))
+        {
+            return 0f;
+        }
+
+        return campingObject.transform.position.y - bounds.min.y;
+    }
+
+    private static bool TryGetCampingBounds(GameObject campingObject, out Bounds bounds)
+    {
+        bounds = default;
+        if (campingObject == null)
+        {
+            return false;
+        }
+
+        Renderer[] renderers = campingObject.GetComponentsInChildren<Renderer>(true);
+        if (renderers.Length > 0)
+        {
+            bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                if (renderers[i] != null)
+                {
+                    bounds.Encapsulate(renderers[i].bounds);
+                }
+            }
+
+            return true;
+        }
+
+        Collider[] colliders = campingObject.GetComponentsInChildren<Collider>(true);
+        if (colliders.Length == 0)
+        {
+            return false;
+        }
+
+        bounds = colliders[0].bounds;
+        for (int i = 1; i < colliders.Length; i++)
+        {
+            if (colliders[i] != null)
+            {
+                bounds.Encapsulate(colliders[i].bounds);
+            }
+        }
+
+        return true;
     }
 
     private static Image CreateImage(string objectName, Transform parent, Color color, bool stretchToParent)
