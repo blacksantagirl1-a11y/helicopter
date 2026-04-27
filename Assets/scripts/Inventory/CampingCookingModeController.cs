@@ -25,6 +25,7 @@ public sealed class CampingCookingModeController : MonoBehaviour
     private Transform activeCamp;
 
     public bool IsCookingModeActive => activeCamp != null;
+    public Transform ActiveCamp => activeCamp;
 
     private void Awake()
     {
@@ -54,7 +55,8 @@ public sealed class CampingCookingModeController : MonoBehaviour
             return;
         }
 
-        if (inventoryUIController != null && inventoryUIController.IsInventoryOpen)
+        if (inventoryUIController != null &&
+            (inventoryUIController.IsInventoryOpen || inventoryUIController.IsPlacementPreviewActive))
         {
             return;
         }
@@ -104,8 +106,16 @@ public sealed class CampingCookingModeController : MonoBehaviour
             playerUI.UpdatePrompt(cookingModePrompt);
         }
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        if (inventoryUIController != null)
+        {
+            inventoryUIController.SetInventoryOpen(true);
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+
         return true;
     }
 

@@ -16,6 +16,8 @@ public class InventoryUIController : MonoBehaviour
 {
     private const string DefaultFooterMessage = "Chuot trai de dung | Chuot phai de xem info";
     private const string DefaultCampingPrefabAssetPath = "Assets/model/campfire/source/camping.prefab";
+    private const string DefaultFishPrefabAssetPath = "Assets/model/Fish/Prefabs/fish01.prefab";
+    private const string DefaultMeatPrefabAssetPath = "Assets/model/Meat/source/meat.prefab";
 
     private sealed class SlotView
     {
@@ -25,10 +27,11 @@ public class InventoryUIController : MonoBehaviour
         public TextMeshProUGUI AmountLabel;
     }
 
-    private enum CampingPlacementState
+    private enum PlacementState
     {
         Inactive,
-        Preview
+        CampingPreview,
+        IngredientPreview
     }
 
     [Header("Input")]
@@ -65,6 +68,13 @@ public class InventoryUIController : MonoBehaviour
     [SerializeField] private float campingPlacementDistance = 12f;
     [SerializeField] [Range(0.1f, 1f)] private float campingSurfaceMinUpDot = 0.55f;
 
+    [Header("Cooking Ingredient Placement")]
+    [SerializeField] private string fishItemId = "river_fish";
+    [SerializeField] private GameObject fishPlacementPrefab;
+    [SerializeField] private string meatItemId = "boar_meat";
+    [SerializeField] private GameObject meatPlacementPrefab;
+    [SerializeField] private float ingredientPlacementDistance = 12f;
+
     private readonly List<SlotView> slotViews = new List<SlotView>();
     private readonly Dictionary<Behaviour, bool> cachedControlStates = new Dictionary<Behaviour, bool>();
     private GameObject inventoryRoot;
@@ -91,19 +101,27 @@ public class InventoryUIController : MonoBehaviour
     private float blurOriginalRadius;
 
     private bool isInventoryOpen;
-    private CampingPlacementState campingPlacementState;
+    private PlacementState placementState;
     private GameObject activeCampingInstance;
     private InventoryItemDefinition activeCampingItemDefinition;
     private int activeCampingSlotIndex = -1;
     private float activeCampingBottomOffset;
     private bool canPlaceCamping;
+    private GameObject activeIngredientInstance;
+    private InventoryItemDefinition activeIngredientItemDefinition;
+    private int activeIngredientSlotIndex = -1;
+    private float activeIngredientBottomOffset;
+    private Quaternion activeIngredientRotation = Quaternion.identity;
+    private bool canSubmitIngredientToCamping;
 
     public bool IsInventoryOpen => isInventoryOpen;
+    public bool IsPlacementPreviewActive => placementState != PlacementState.Inactive;
 
     private void Reset()
     {
         TryAutoAssignReferences();
         TryAssignDefaultCampingPrefab();
+        TryAssignDefaultIngredientPrefabs();
         EnsureInventoryUI();
         RefreshSlots();
         SetInventoryVisible(false);
@@ -113,6 +131,7 @@ public class InventoryUIController : MonoBehaviour
     {
         TryAutoAssignReferences();
         TryAssignDefaultCampingPrefab();
+        TryAssignDefaultIngredientPrefabs();
         EnsureInventoryUI();
         RefreshSlots();
         SetInventoryVisible(false);
@@ -137,7 +156,7 @@ public class InventoryUIController : MonoBehaviour
             playerInventory.FeedbackRequested -= HandleInventoryFeedback;
         }
 
-        CleanupCampingPlacement(true);
+        CleanupActivePlacement(true);
         RestoreControls();
         SetBlurActive(false);
     }
@@ -146,6 +165,7 @@ public class InventoryUIController : MonoBehaviour
     {
         TryAutoAssignReferences();
         TryAssignDefaultCampingPrefab();
+        TryAssignDefaultIngredientPrefabs();
         columns = Mathf.Max(1, columns);
         slotSize.x = Mathf.Max(48f, slotSize.x);
         slotSize.y = Mathf.Max(48f, slotSize.y);
@@ -154,13 +174,14 @@ public class InventoryUIController : MonoBehaviour
         blurRadius = Mathf.Clamp(blurRadius, 0.1f, 1f);
         blurGaussianEnd = Mathf.Max(blurGaussianStart + 0.1f, blurGaussianEnd);
         campingPlacementDistance = Mathf.Max(1f, campingPlacementDistance);
+        ingredientPlacementDistance = Mathf.Max(1f, ingredientPlacementDistance);
     }
 
     private void Update()
     {
-        if (campingPlacementState != CampingPlacementState.Inactive)
+        if (placementState != PlacementState.Inactive)
         {
-            UpdateCampingPlacementState();
+            UpdatePlacementState();
             return;
         }
 
@@ -187,7 +208,7 @@ public class InventoryUIController : MonoBehaviour
             return;
         }
 
-        if (campingPlacementState == CampingPlacementState.Preview)
+        if (placementState != PlacementState.Inactive)
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -217,7 +238,7 @@ public class InventoryUIController : MonoBehaviour
             return;
         }
 
-        if (shouldOpen && campingPlacementState != CampingPlacementState.Inactive)
+        if (shouldOpen && placementState != PlacementState.Inactive)
         {
             return;
         }
@@ -628,6 +649,12 @@ public class InventoryUIController : MonoBehaviour
             return;
         }
 
+        if (IsCookingIngredientItem(slot.Item))
+        {
+            TryBeginIngredientPlacement(slotIndex, slot.Item);
+            return;
+        }
+
         playerInventory.TryUseSlot(slotIndex);
     }
 
@@ -645,7 +672,9 @@ public class InventoryUIController : MonoBehaviour
             : slot.Item.Description;
         string actionHint = IsCampingItem(slot.Item)
             ? "Chuot trai de dat camping."
-            : slot.Item.CanUse
+            : IsCookingIngredientItem(slot.Item)
+                ? "Vao che do nau an roi chuot trai de dua ra camping."
+                : slot.Item.CanUse
                 ? "Chuot trai de dung."
                 : slot.Item.CannotUseMessage;
 
@@ -837,6 +866,19 @@ public class InventoryUIController : MonoBehaviour
                string.Equals(itemDefinition.ItemId, campingItemId, StringComparison.OrdinalIgnoreCase);
     }
 
+    private bool IsCookingIngredientItem(InventoryItemDefinition itemDefinition)
+    {
+        return itemDefinition != null &&
+               (MatchesItemId(itemDefinition, fishItemId) || MatchesItemId(itemDefinition, meatItemId));
+    }
+
+    private bool MatchesItemId(InventoryItemDefinition itemDefinition, string itemId)
+    {
+        return itemDefinition != null &&
+               !string.IsNullOrWhiteSpace(itemId) &&
+               string.Equals(itemDefinition.ItemId, itemId, StringComparison.OrdinalIgnoreCase);
+    }
+
     private void TryBeginCampingPlacement(int slotIndex, InventoryItemDefinition itemDefinition)
     {
         if (itemDefinition == null)
@@ -854,6 +896,43 @@ public class InventoryUIController : MonoBehaviour
         BeginCampingPlacement(slotIndex, itemDefinition);
     }
 
+    private void TryBeginIngredientPlacement(int slotIndex, InventoryItemDefinition itemDefinition)
+    {
+        if (itemDefinition == null)
+        {
+            return;
+        }
+
+        CampingCookingModeController cookingModeController = FindFirstObjectByType<CampingCookingModeController>();
+        if (cookingModeController == null ||
+            !cookingModeController.IsCookingModeActive ||
+            cookingModeController.ActiveCamp == null)
+        {
+            SetStatusMessage("Can vao che do nau an truoc khi lay do nau an ra.");
+            return;
+        }
+
+        if (!TryGetIngredientPlacementPrefab(itemDefinition, out GameObject ingredientPrefab))
+        {
+            SetStatusMessage("Prefab do nau an chua san sang.");
+            return;
+        }
+
+        if (mainCamera == null)
+        {
+            TryAutoAssignReferences();
+        }
+
+        if (mainCamera == null)
+        {
+            SetStatusMessage("Camera chua san sang.");
+            return;
+        }
+
+        SetInventoryOpen(false);
+        BeginIngredientPlacement(slotIndex, itemDefinition, ingredientPrefab);
+    }
+
     private bool EnsureCampingPlacementReady()
     {
         TryAutoAssignReferences();
@@ -861,9 +940,36 @@ public class InventoryUIController : MonoBehaviour
         return mainCamera != null && campingPrefab != null;
     }
 
+    private bool TryGetIngredientPlacementPrefab(
+        InventoryItemDefinition itemDefinition,
+        out GameObject ingredientPrefab)
+    {
+        ingredientPrefab = null;
+        if (itemDefinition == null)
+        {
+            return false;
+        }
+
+        TryAssignDefaultIngredientPrefabs();
+
+        if (MatchesItemId(itemDefinition, fishItemId))
+        {
+            ingredientPrefab = fishPlacementPrefab;
+            return ingredientPrefab != null;
+        }
+
+        if (MatchesItemId(itemDefinition, meatItemId))
+        {
+            ingredientPrefab = meatPlacementPrefab;
+            return ingredientPrefab != null;
+        }
+
+        return false;
+    }
+
     private void BeginCampingPlacement(int slotIndex, InventoryItemDefinition itemDefinition)
     {
-        CleanupCampingPlacement(false);
+        CleanupActivePlacement(false);
 
         activeCampingSlotIndex = slotIndex;
         activeCampingItemDefinition = itemDefinition;
@@ -872,7 +978,7 @@ public class InventoryUIController : MonoBehaviour
         activeCampingInstance.name = campingPrefab.name;
         activeCampingBottomOffset = CalculateCampingBottomOffset(activeCampingInstance);
         SetCampingCollidersEnabled(activeCampingInstance, false);
-        campingPlacementState = CampingPlacementState.Preview;
+        placementState = PlacementState.CampingPreview;
         canPlaceCamping = false;
 
         if (playerUI != null)
@@ -885,9 +991,50 @@ public class InventoryUIController : MonoBehaviour
         UpdateCampingPreview();
     }
 
+    private void BeginIngredientPlacement(
+        int slotIndex,
+        InventoryItemDefinition itemDefinition,
+        GameObject ingredientPrefab)
+    {
+        CleanupActivePlacement(false);
+
+        activeIngredientSlotIndex = slotIndex;
+        activeIngredientItemDefinition = itemDefinition;
+        activeIngredientInstance = Instantiate(ingredientPrefab);
+        activeIngredientInstance.name = ingredientPrefab.name;
+        activeIngredientBottomOffset = CalculateCampingBottomOffset(activeIngredientInstance);
+        activeIngredientRotation = activeIngredientInstance.transform.rotation;
+        SetCampingCollidersEnabled(activeIngredientInstance, false);
+        canSubmitIngredientToCamping = false;
+        placementState = PlacementState.IngredientPreview;
+
+        if (playerUI != null)
+        {
+            playerUI.HideInteractionContent();
+        }
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        UpdateIngredientPreview();
+    }
+
+    private void UpdatePlacementState()
+    {
+        switch (placementState)
+        {
+            case PlacementState.CampingPreview:
+                UpdateCampingPlacementState();
+                break;
+
+            case PlacementState.IngredientPreview:
+                UpdateIngredientPlacementState();
+                break;
+        }
+    }
+
     private void UpdateCampingPlacementState()
     {
-        if (campingPlacementState == CampingPlacementState.Preview)
+        if (placementState == PlacementState.CampingPreview)
         {
             UpdateCampingPreview();
 
@@ -895,6 +1042,28 @@ public class InventoryUIController : MonoBehaviour
             {
                 PlaceCamping();
             }
+        }
+    }
+
+    private void UpdateIngredientPlacementState()
+    {
+        if (placementState != PlacementState.IngredientPreview)
+        {
+            return;
+        }
+
+        if (Input.GetKeyDown(toggleInventoryKey))
+        {
+            CleanupIngredientPlacement(false);
+            SetInventoryOpen(true);
+            return;
+        }
+
+        UpdateIngredientPreview();
+
+        if (canSubmitIngredientToCamping && Input.GetMouseButtonDown(0))
+        {
+            SubmitIngredientToCamping();
         }
     }
 
@@ -921,6 +1090,36 @@ public class InventoryUIController : MonoBehaviour
             playerUI.UpdatePrompt(canPlaceCamping
                 ? "Chuot trai de dat camping"
                 : "Can dua camping len mat dat hop le");
+        }
+    }
+
+    private void UpdateIngredientPreview()
+    {
+        if (activeIngredientInstance == null)
+        {
+            CleanupIngredientPlacement(true);
+            return;
+        }
+
+        if (TryGetIngredientPlacementPose(out Vector3 position, out Quaternion rotation, out bool isValid))
+        {
+            activeIngredientInstance.transform.SetPositionAndRotation(position, rotation);
+            canSubmitIngredientToCamping = isValid;
+        }
+        else
+        {
+            canSubmitIngredientToCamping = false;
+        }
+
+        if (playerUI != null)
+        {
+            string itemName = activeIngredientItemDefinition != null
+                ? activeIngredientItemDefinition.DisplayName
+                : "Do nau an";
+
+            playerUI.UpdatePrompt(canSubmitIngredientToCamping
+                ? $"Chuot trai de bo {itemName} vao camping"
+                : $"Dua {itemName} cham vao camping | B mo tui do");
         }
     }
 
@@ -959,9 +1158,38 @@ public class InventoryUIController : MonoBehaviour
         return true;
     }
 
+    private bool TryGetIngredientPlacementPose(out Vector3 position, out Quaternion rotation, out bool isValid)
+    {
+        position = Vector3.zero;
+        rotation = activeIngredientRotation;
+        isValid = false;
+
+        if (mainCamera == null)
+        {
+            return false;
+        }
+
+        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        if (!Physics.Raycast(
+                ray,
+                out RaycastHit hit,
+                ingredientPlacementDistance,
+                campingPlacementLayers,
+                QueryTriggerInteraction.Ignore))
+        {
+            return false;
+        }
+
+        position = hit.point + Vector3.up * activeIngredientBottomOffset;
+        rotation = activeIngredientRotation;
+        activeIngredientInstance.transform.SetPositionAndRotation(position, rotation);
+        isValid = FindIntersectingCamping(activeIngredientInstance) != null;
+        return true;
+    }
+
     private void PlaceCamping()
     {
-        if (campingPlacementState != CampingPlacementState.Preview ||
+        if (placementState != PlacementState.CampingPreview ||
             activeCampingInstance == null ||
             activeCampingItemDefinition == null)
         {
@@ -988,7 +1216,7 @@ public class InventoryUIController : MonoBehaviour
         activeCampingItemDefinition = null;
         activeCampingBottomOffset = 0f;
         canPlaceCamping = false;
-        campingPlacementState = CampingPlacementState.Inactive;
+        placementState = PlacementState.Inactive;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -996,6 +1224,31 @@ public class InventoryUIController : MonoBehaviour
         {
             playerUI.UpdatePrompt(string.Empty);
         }
+    }
+
+    private void SubmitIngredientToCamping()
+    {
+        if (placementState != PlacementState.IngredientPreview ||
+            activeIngredientInstance == null ||
+            activeIngredientItemDefinition == null)
+        {
+            return;
+        }
+
+        if (!canSubmitIngredientToCamping)
+        {
+            return;
+        }
+
+        if (playerInventory == null ||
+            !playerInventory.TryConsumeSlot(activeIngredientSlotIndex, 1, activeIngredientItemDefinition))
+        {
+            CleanupIngredientPlacement(true);
+            SetStatusMessage("Vat pham nau an khong con trong tui do.");
+            return;
+        }
+
+        CleanupIngredientPlacement(true);
     }
 
     private void CleanupCampingPlacement(bool restoreCursorState)
@@ -1010,7 +1263,7 @@ public class InventoryUIController : MonoBehaviour
         activeCampingSlotIndex = -1;
         activeCampingBottomOffset = 0f;
         canPlaceCamping = false;
-        campingPlacementState = CampingPlacementState.Inactive;
+        placementState = PlacementState.Inactive;
 
         if (restoreCursorState)
         {
@@ -1024,12 +1277,68 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
+    private void CleanupIngredientPlacement(bool restoreCursorState)
+    {
+        if (activeIngredientInstance != null)
+        {
+            Destroy(activeIngredientInstance);
+        }
+
+        activeIngredientInstance = null;
+        activeIngredientItemDefinition = null;
+        activeIngredientSlotIndex = -1;
+        activeIngredientBottomOffset = 0f;
+        activeIngredientRotation = Quaternion.identity;
+        canSubmitIngredientToCamping = false;
+        placementState = PlacementState.Inactive;
+
+        if (restoreCursorState)
+        {
+            Cursor.lockState = isInventoryOpen ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible = isInventoryOpen;
+        }
+
+        if (playerUI != null)
+        {
+            playerUI.UpdatePrompt(string.Empty);
+        }
+    }
+
+    private void CleanupActivePlacement(bool restoreCursorState)
+    {
+        if (placementState == PlacementState.CampingPreview)
+        {
+            CleanupCampingPlacement(restoreCursorState);
+            return;
+        }
+
+        if (placementState == PlacementState.IngredientPreview)
+        {
+            CleanupIngredientPlacement(restoreCursorState);
+        }
+    }
+
     private void TryAssignDefaultCampingPrefab()
     {
 #if UNITY_EDITOR
         if (campingPrefab == null)
         {
             campingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DefaultCampingPrefabAssetPath);
+        }
+#endif
+    }
+
+    private void TryAssignDefaultIngredientPrefabs()
+    {
+#if UNITY_EDITOR
+        if (fishPlacementPrefab == null)
+        {
+            fishPlacementPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DefaultFishPrefabAssetPath);
+        }
+
+        if (meatPlacementPrefab == null)
+        {
+            meatPlacementPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DefaultMeatPrefabAssetPath);
         }
 #endif
     }
@@ -1072,6 +1381,34 @@ public class InventoryUIController : MonoBehaviour
         }
 
         return campingObject.transform.position.y - bounds.min.y;
+    }
+
+    private CampingCookingInteractable FindIntersectingCamping(GameObject ingredientObject)
+    {
+        if (!TryGetCampingBounds(ingredientObject, out Bounds ingredientBounds))
+        {
+            return null;
+        }
+
+        CampingCookingModeController cookingModeController = FindFirstObjectByType<CampingCookingModeController>();
+        if (cookingModeController == null ||
+            !cookingModeController.IsCookingModeActive ||
+            cookingModeController.ActiveCamp == null)
+        {
+            return null;
+        }
+
+        CampingCookingInteractable campingTarget =
+            cookingModeController.ActiveCamp.GetComponent<CampingCookingInteractable>();
+
+        if (campingTarget == null ||
+            !campingTarget.isActiveAndEnabled ||
+            !TryGetCampingBounds(campingTarget.gameObject, out Bounds campingBounds))
+        {
+            return null;
+        }
+
+        return ingredientBounds.Intersects(campingBounds) ? campingTarget : null;
     }
 
     private static bool TryGetCampingBounds(GameObject campingObject, out Bounds bounds)
