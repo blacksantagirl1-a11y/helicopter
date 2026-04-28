@@ -12,6 +12,8 @@ public class Boar : MonoBehaviour
     private const string DefaultMeatPickupAssetPath = "Assets/Resources/Inventory/MeatPickup.prefab";
     private const string DefaultMeatPickupResourcePath = "Inventory/MeatPickup";
 
+    public static event System.Action<Boar> BoarKilled;
+
     [Header("References")]
     [Tooltip("Script hành động của player để nhận sự kiện tấn công")]
     [SerializeField] private ActionScript actionScript;
@@ -237,8 +239,19 @@ public class Boar : MonoBehaviour
             navMeshAgent.ResetPath();
         }
 
+        ConsumeKillStamina();
+        BoarKilled?.Invoke(this);
         SpawnMeatPickup();
         Destroy(gameObject);
+    }
+
+    private void ConsumeKillStamina()
+    {
+        Stamina stamina = FindFirstObjectByType<Stamina>();
+        if (stamina != null)
+        {
+            stamina.ConsumeBoarKillStamina();
+        }
     }
 
     private void UpdateNavMeshMovement()

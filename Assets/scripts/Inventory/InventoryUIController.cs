@@ -18,6 +18,7 @@ public class InventoryUIController : MonoBehaviour
     private const string DefaultCampingPrefabAssetPath = "Assets/model/campfire/source/camping.prefab";
     private const string DefaultFishPrefabAssetPath = "Assets/model/Fish/Prefabs/fish01.prefab";
     private const string DefaultMeatPrefabAssetPath = "Assets/model/Meat/source/meat.prefab";
+    private const string DefaultCookingMiniGamePrefabAssetPath = "Assets/Prefabs/MiniGameCooking.prefab";
 
     private sealed class SlotView
     {
@@ -73,6 +74,7 @@ public class InventoryUIController : MonoBehaviour
     [SerializeField] private GameObject fishPlacementPrefab;
     [SerializeField] private string meatItemId = "boar_meat";
     [SerializeField] private GameObject meatPlacementPrefab;
+    [SerializeField] private GameObject miniGameCookingPrefab;
     [SerializeField] private float ingredientPlacementDistance = 12f;
 
     private readonly List<SlotView> slotViews = new List<SlotView>();
@@ -122,6 +124,7 @@ public class InventoryUIController : MonoBehaviour
         TryAutoAssignReferences();
         TryAssignDefaultCampingPrefab();
         TryAssignDefaultIngredientPrefabs();
+        TryAssignDefaultCookingMiniGamePrefab();
         EnsureInventoryUI();
         RefreshSlots();
         SetInventoryVisible(false);
@@ -132,6 +135,7 @@ public class InventoryUIController : MonoBehaviour
         TryAutoAssignReferences();
         TryAssignDefaultCampingPrefab();
         TryAssignDefaultIngredientPrefabs();
+        TryAssignDefaultCookingMiniGamePrefab();
         EnsureInventoryUI();
         RefreshSlots();
         SetInventoryVisible(false);
@@ -166,6 +170,7 @@ public class InventoryUIController : MonoBehaviour
         TryAutoAssignReferences();
         TryAssignDefaultCampingPrefab();
         TryAssignDefaultIngredientPrefabs();
+        TryAssignDefaultCookingMiniGamePrefab();
         columns = Mathf.Max(1, columns);
         slotSize.x = Mathf.Max(48f, slotSize.x);
         slotSize.y = Mathf.Max(48f, slotSize.y);
@@ -1240,6 +1245,12 @@ public class InventoryUIController : MonoBehaviour
             return;
         }
 
+        CampingCookingInteractable cookingTarget = FindIntersectingCamping(activeIngredientInstance);
+        if (cookingTarget == null)
+        {
+            return;
+        }
+
         if (playerInventory == null ||
             !playerInventory.TryConsumeSlot(activeIngredientSlotIndex, 1, activeIngredientItemDefinition))
         {
@@ -1249,6 +1260,7 @@ public class InventoryUIController : MonoBehaviour
         }
 
         CleanupIngredientPlacement(true);
+        OpenCookingMiniGame(cookingTarget);
     }
 
     private void CleanupCampingPlacement(bool restoreCursorState)
@@ -1341,6 +1353,32 @@ public class InventoryUIController : MonoBehaviour
             meatPlacementPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DefaultMeatPrefabAssetPath);
         }
 #endif
+    }
+
+    private void TryAssignDefaultCookingMiniGamePrefab()
+    {
+#if UNITY_EDITOR
+        if (miniGameCookingPrefab == null)
+        {
+            miniGameCookingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DefaultCookingMiniGamePrefabAssetPath);
+        }
+#endif
+    }
+
+    private void OpenCookingMiniGame(CampingCookingInteractable cookingTarget)
+    {
+        TryAssignDefaultCookingMiniGamePrefab();
+
+        Transform parent = targetCanvas != null ? targetCanvas.transform : null;
+        CampingCookingModeController modeController = FindFirstObjectByType<CampingCookingModeController>();
+        if (!MiniGameCookingController.TryOpen(
+                miniGameCookingPrefab,
+                parent,
+                cookingTarget,
+                modeController))
+        {
+            SetStatusMessage("MiniGameCooking chua san sang.");
+        }
     }
 
     private static void SetCampingCollidersEnabled(GameObject campingObject, bool isEnabled)

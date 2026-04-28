@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -51,13 +49,6 @@ public class Stamina : MonoBehaviour
     [Tooltip("Luong stamina tieu hao khi cau ca thanh cong")]
     public float fishingCatchStaminaCost = 12f;
 
-    private static readonly FieldInfo BoarHitsToKillField =
-        typeof(Boar).GetField("hitsToKill", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly FieldInfo BoarCurrentHealthField =
-        typeof(Boar).GetField("currentHealth", BindingFlags.Instance | BindingFlags.NonPublic);
-
-    private readonly List<Dictionary<int, int>> pendingBoarHealthSnapshots = new List<Dictionary<int, int>>();
-
     private ActionScript subscribedActionScript;
 
     private void Awake()
@@ -85,6 +76,7 @@ public class Stamina : MonoBehaviour
             subscribedActionScript.AttackPerformed -= HandleAttackPerformed;
             subscribedActionScript = null;
         }
+
     }
 
     private void OnValidate()
@@ -130,7 +122,7 @@ public class Stamina : MonoBehaviour
         staminaSlider.value = Mathf.Clamp(staminaSlider.value, 0, maxStamina);
     }
 
-    // Moi cu danh co the tru stamina cho viec chat cay hoac giet heo.
+    // Moi cu danh co the tru stamina cho viec chat cay; giet heo tru truc tiep tu Boar.Die().
     private void HandleAttackPerformed()
     {
         if (staminaSlider == null)
@@ -142,68 +134,22 @@ public class Stamina : MonoBehaviour
         {
             staminaSlider.value = Mathf.Clamp(staminaSlider.value - chopStaminaCost, 0f, maxStamina);
         }
-
-        TryScheduleBoarKillStaminaCheck();
     }
 
-    private void TryScheduleBoarKillStaminaCheck()
+    public void ConsumeBoarKillStamina()
     {
         if (boarKillStaminaCost <= 0f)
         {
             return;
         }
 
-        Dictionary<int, int> snapshot = CaptureCurrentBoarHealthSnapshot();
-        if (snapshot.Count == 0)
+        TryAssignReferences();
+        if (staminaSlider == null)
         {
             return;
         }
 
-        pendingBoarHealthSnapshots.Add(snapshot);
-        StartCoroutine(ApplyBoarKillStaminaCostOnNextFrame(snapshot));
-    }
-
-    private System.Collections.IEnumerator ApplyBoarKillStaminaCostOnNextFrame(Dictionary<int, int> snapshot)
-    {
-        yield return null;
-
-        if (staminaSlider == null)
-        {
-            pendingBoarHealthSnapshots.Remove(snapshot);
-            yield break;
-        }
-
-        Dictionary<int, int> currentBoarHealth = CaptureCurrentBoarHealthSnapshot();
-        int killedBoars = 0;
-
-        foreach (KeyValuePair<int, int> pair in snapshot)
-        {
-            int boarId = pair.Key;
-            int previousHealth = pair.Value;
-            if (previousHealth <= 0)
-            {
-                continue;
-            }
-
-            if (!currentBoarHealth.TryGetValue(boarId, out int healthAfterAttack))
-            {
-                killedBoars++;
-                continue;
-            }
-
-            if (healthAfterAttack <= 0)
-            {
-                killedBoars++;
-            }
-        }
-
-        if (killedBoars > 0)
-        {
-            float totalStaminaCost = boarKillStaminaCost * killedBoars;
-            staminaSlider.value = Mathf.Clamp(staminaSlider.value - totalStaminaCost, 0f, maxStamina);
-        }
-
-        pendingBoarHealthSnapshots.Remove(snapshot);
+        staminaSlider.value = Mathf.Clamp(staminaSlider.value - boarKillStaminaCost, 0f, maxStamina);
     }
 
     public void ConsumeFishingCatchStamina()
@@ -219,53 +165,21 @@ public class Stamina : MonoBehaviour
             maxStamina);
     }
 
-    private Dictionary<int, int> CaptureCurrentBoarHealthSnapshot()
+    public void RestoreStamina(float amount)
     {
-        Boar[] boars = Object.FindObjectsByType<Boar>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-        Dictionary<int, int> snapshot = new Dictionary<int, int>(boars.Length);
-
-        for (int i = 0; i < boars.Length; i++)
+        if (amount <= 0f)
         {
-            Boar boar = boars[i];
-            if (boar == null)
-            {
-                continue;
-            }
-
-            int boarId = boar.GetInstanceID();
-            snapshot[boarId] = GetBoarCurrentHealth(boar);
+            return;
         }
 
-        return snapshot;
-    }
-
-    private static int GetBoarCurrentHealth(Boar boar)
-    {
-        if (boar == null)
+        TryAssignReferences();
+        if (staminaSlider == null)
         {
-            return 0;
+            return;
         }
 
-        if (BoarCurrentHealthField != null)
-        {
-            object rawHealth = BoarCurrentHealthField.GetValue(boar);
-            if (rawHealth is int currentHealth)
-            {
-                return Mathf.Max(0, currentHealth);
-            }
-        }
-
-        int fallbackHitsToKill = 1;
-        if (BoarHitsToKillField != null)
-        {
-            object rawHitsToKill = BoarHitsToKillField.GetValue(boar);
-            if (rawHitsToKill is int hitsToKill)
-            {
-                fallbackHitsToKill = Mathf.Max(1, hitsToKill);
-            }
-        }
-
-        return fallbackHitsToKill;
+        staminaSlider.maxValue = maxStamina;
+        staminaSlider.value = Mathf.Clamp(staminaSlider.value + amount, 0f, maxStamina);
     }
 
     // Kiem tra camera co dang nham vao mot cay hop le de chat hay khong.

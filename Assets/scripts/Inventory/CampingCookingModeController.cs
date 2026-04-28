@@ -61,6 +61,11 @@ public sealed class CampingCookingModeController : MonoBehaviour
             return;
         }
 
+        if (MiniGameCookingController.IsAnyMiniGameActive())
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(exitCookingModeKey))
         {
             ExitCookingMode();
@@ -121,6 +126,8 @@ public sealed class CampingCookingModeController : MonoBehaviour
 
     public void ExitCookingMode()
     {
+        MiniGameCookingController.CloseAny();
+
         if (inventoryUIController != null && inventoryUIController.IsInventoryOpen)
         {
             inventoryUIController.SetInventoryOpen(false);

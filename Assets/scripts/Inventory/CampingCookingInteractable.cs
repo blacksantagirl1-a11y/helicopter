@@ -5,12 +5,27 @@ public sealed class CampingCookingInteractable : Interactable
 {
     [Header("Cooking Interaction")]
     [SerializeField] private string cookingPrompt = "Nhan E de nau an";
+    [SerializeField] private string eatPrompt = "Nhan E de an";
+    [SerializeField] private float staminaRestoreAmount = 35f;
+
+    private int cookedFoodCount;
 
     public override bool HasPromptText => true;
-    public override string PromptText => cookingPrompt;
+    public override string PromptText => cookedFoodCount > 0 ? eatPrompt : cookingPrompt;
+
+    public void AddCookedFood(int amount = 1)
+    {
+        cookedFoodCount += Mathf.Max(1, amount);
+    }
 
     protected override void Interact()
     {
+        if (cookedFoodCount > 0)
+        {
+            EatCookedFood();
+            return;
+        }
+
         CampingCookingModeController controller = FindFirstObjectByType<CampingCookingModeController>();
         if (controller == null)
         {
@@ -29,5 +44,17 @@ public sealed class CampingCookingInteractable : Interactable
         {
             controller.EnterCookingMode(transform);
         }
+    }
+
+    private void EatCookedFood()
+    {
+        Stamina stamina = FindFirstObjectByType<Stamina>();
+        if (stamina == null)
+        {
+            return;
+        }
+
+        stamina.RestoreStamina(staminaRestoreAmount);
+        cookedFoodCount = Mathf.Max(0, cookedFoodCount - 1);
     }
 }
