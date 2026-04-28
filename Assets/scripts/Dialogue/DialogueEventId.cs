@@ -11,7 +11,7 @@ public enum DialogueEventId
     Water = 40,
     DoneRequest = 50,
     DoorHint = 60,
-    InventoryFull = 70,
+    GotTheLog = 70,
     ItemPickup = 80,
     BoarEncounter = 90,
     InvestigationStart = 100,

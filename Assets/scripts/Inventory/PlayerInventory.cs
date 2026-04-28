@@ -139,6 +139,54 @@ public class PlayerInventory : MonoBehaviour
         return addedAmount > 0;
     }
 
+    public int GetItemCount(InventoryItemDefinition itemDefinition)
+    {
+        EnsureSlotCount();
+        if (itemDefinition == null)
+        {
+            return 0;
+        }
+
+        int totalAmount = 0;
+        for (int i = 0; i < slots.Count; i++)
+        {
+            InventorySlot slot = slots[i];
+            if (!slot.IsEmpty && slot.Item == itemDefinition)
+            {
+                totalAmount += slot.Amount;
+            }
+        }
+
+        return totalAmount;
+    }
+
+    public bool TryRemoveItem(InventoryItemDefinition itemDefinition, int amount)
+    {
+        EnsureSlotCount();
+        amount = Mathf.Max(0, amount);
+        if (itemDefinition == null || amount == 0 || GetItemCount(itemDefinition) < amount)
+        {
+            return false;
+        }
+
+        int remainingAmount = amount;
+        for (int i = 0; i < slots.Count && remainingAmount > 0; i++)
+        {
+            InventorySlot slot = slots[i];
+            if (slot.IsEmpty || slot.Item != itemDefinition)
+            {
+                continue;
+            }
+
+            int amountToRemove = Mathf.Min(slot.Amount, remainingAmount);
+            remainingAmount -= amountToRemove;
+            slot.Set(slot.Item, slot.Amount - amountToRemove);
+        }
+
+        InventoryChanged?.Invoke();
+        return true;
+    }
+
     // Dung vat pham trong mot slot cu the.
     // Hanh vi "dung" that su duoc quyet dinh boi itemDefinition.TryUse(...).
     public bool TryUseSlot(int slotIndex)

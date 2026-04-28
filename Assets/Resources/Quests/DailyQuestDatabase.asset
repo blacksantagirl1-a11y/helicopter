@@ -15,55 +15,61 @@ MonoBehaviour:
   quests:
   - day: 1
     questId: 10
-    displayName: Phá hủy bẫy dậm
+    displayName: "T\xECm v\xE0 ph\xE1 h\u1EE7y b\u1EABy"
     objectiveType: 10
     interactionKey: trap
     targetItem: {fileID: 0}
     requiredCount: 3
-    dayDurationSeconds: 420
     completionDialogueEvent: 50
+    requiresTurnInAfterCompletionDialogue: 0
+    turnInCompletionDialogueEvent: 50
   - day: 2
     questId: 20
-    displayName: Gom gỗ đốt lửa
-    objectiveType: 20
-    interactionKey: 
-    targetItem: {fileID: 11400000, guid: b0910e5d01391994eadc6b6056e44785, type: 2}
-    requiredCount: 3
-    dayDurationSeconds: 360
-    completionDialogueEvent: 50
-  - day: 3
-    questId: 30
-    displayName: Săn thịt rừng
-    objectiveType: 20
-    interactionKey: 
-    targetItem: {fileID: 11400000, guid: a97f2816a4a24c44a5dbfb4204bc8a9c, type: 2}
-    requiredCount: 2
-    dayDurationSeconds: 360
-    completionDialogueEvent: 50
-  - day: 4
-    questId: 40
-    displayName: Câu thêm cá
-    objectiveType: 20
-    interactionKey: 
-    targetItem: {fileID: 11400000, guid: d6703daa303c4804f8a696c663c8e51f, type: 2}
-    requiredCount: 3
-    dayDurationSeconds: 420
-    completionDialogueEvent: 50
-  - day: 5
-    questId: 50
-    displayName: Tích trữ gỗ
+    displayName: "Gom g\u1ED7 \u0111\u1ED1t l\u1EEDa"
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: b0910e5d01391994eadc6b6056e44785, type: 2}
     requiredCount: 5
-    dayDurationSeconds: 360
+    completionDialogueEvent: 70
+    requiresTurnInAfterCompletionDialogue: 1
+    turnInCompletionDialogueEvent: 50
+  - day: 3
+    questId: 30
+    displayName: "S\u0103n th\u1ECBt r\u1EEBng"
+    objectiveType: 20
+    interactionKey: 
+    targetItem: {fileID: 11400000, guid: a97f2816a4a24c44a5dbfb4204bc8a9c, type: 2}
+    requiredCount: 2
     completionDialogueEvent: 50
+    requiresTurnInAfterCompletionDialogue: 0
+    turnInCompletionDialogueEvent: 50
+  - day: 4
+    questId: 40
+    displayName: "C\xE2u th\xEAm c\xE1"
+    objectiveType: 20
+    interactionKey: 
+    targetItem: {fileID: 11400000, guid: d6703daa303c4804f8a696c663c8e51f, type: 2}
+    requiredCount: 3
+    completionDialogueEvent: 50
+    requiresTurnInAfterCompletionDialogue: 0
+    turnInCompletionDialogueEvent: 50
+  - day: 5
+    questId: 50
+    displayName: "T\xEDch tr\u1EEF g\u1ED7"
+    objectiveType: 20
+    interactionKey: 
+    targetItem: {fileID: 11400000, guid: b0910e5d01391994eadc6b6056e44785, type: 2}
+    requiredCount: 5
+    completionDialogueEvent: 50
+    requiresTurnInAfterCompletionDialogue: 0
+    turnInCompletionDialogueEvent: 50
   - day: 6
     questId: 60
-    displayName: Chuyến câu cuối ngày
+    displayName: "Chuy\u1EBFn c\xE2u cu\u1ED1i ng\xE0y"
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: d6703daa303c4804f8a696c663c8e51f, type: 2}
     requiredCount: 4
-    dayDurationSeconds: 420
     completionDialogueEvent: 50
+    requiresTurnInAfterCompletionDialogue: 0
+    turnInCompletionDialogueEvent: 50

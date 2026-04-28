@@ -88,8 +88,8 @@ MonoBehaviour:
       questId: 0
     - speakerName: "Tu\u1EA5n"
       text: "t\xF4i hi\u1EC3u r\u1ED3i"
-      questAction: 0
-      questId: 0
+      questAction: 1
+      questId: 10
   - day: 1
     eventId: 40
     playerCanMove: 1
@@ -153,8 +153,7 @@ MonoBehaviour:
       questAction: 0
       questId: 0
     - speakerName: Nhi
-      text: "Mang v\u1EC1 cho t\xF4i 3 kh\xFAc g\u1ED7 tr\u01B0\u1EDBc khi h\u1EBFt
-        ng\xE0y."
+      text: "Mang về cho tôi 5 khúc gỗ, rồi đặt ở chỗ tấm thảm."
       questAction: 0
       questId: 0
     - speakerName: "Hi\u1EC3n"
@@ -162,17 +161,29 @@ MonoBehaviour:
       questAction: 1
       questId: 20
   - day: 2
+    eventId: 70
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Hi\u1EC3n"
+      text: "Tôi đã gom đủ 5 khúc gỗ."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Tốt. Mang đến Carpets2 và đặt xuống để nhóm lửa."
+      questAction: 0
+      questId: 0
+  - day: 2
     eventId: 50
     playerCanMove: 1
     timeScale: 1
     lines:
     - speakerName: "Hi\u1EC3n"
-      text: "T\xF4i \u0111\xE3 gom \u0111\u1EE7 3 kh\xFAc g\u1ED7."
+      text: "Gỗ đã đặt xong."
       questAction: 0
       questId: 0
     - speakerName: Nhi
-      text: "T\u1ED1t. L\u1EEDa t\u1ED1i nay s\u1EBD \u1ED5n h\u01A1n. Ngh\u1EC9
-        ng\u01A1i \u0111i."
+      text: "Tốt. Bó gỗ này đủ cho đêm nay. Nghỉ ngơi đi."
       questAction: 0
       questId: 0
   - day: 3
