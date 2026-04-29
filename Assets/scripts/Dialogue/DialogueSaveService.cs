@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 // Lop nay chi lo 1 viec: ghi nho "ngay hien tai cua dialogue" vao PlayerPrefs.
@@ -6,6 +7,7 @@ public static class DialogueSaveService
 {
     // Day la ten khoa luu trong bo nho PlayerPrefs cua Unity.
     private const string CurrentDayKey = "dialogue.currentDay";
+    public static event Action<DialogueDay> CurrentDayChanged;
 
     // Doc ngay hien tai tu save.
     // Neu chua co save thi mac dinh la Day1.
@@ -19,8 +21,14 @@ public static class DialogueSaveService
     public static void SetCurrentDay(DialogueDay day)
     {
         DialogueDay clampedDay = ClampDay((int)day);
+        DialogueDay previousDay = GetCurrentDay();
         PlayerPrefs.SetInt(CurrentDayKey, (int)clampedDay);
         PlayerPrefs.Save();
+
+        if (previousDay != clampedDay)
+        {
+            CurrentDayChanged?.Invoke(clampedDay);
+        }
     }
 
     // Tang ngay len 1 don vi va luu ngay moi.

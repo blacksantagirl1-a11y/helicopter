@@ -10,7 +10,9 @@ public class DailyQuestManager : MonoBehaviour
     private const string DefaultInfoTextName = "QuestInfoText";
     private const string DefaultTitleTextName = "QuestTitleText";
     private const string DefaultProgressTextName = "QuestProgressText";
-    private const string DefaultTimerTextName = "QuestTimerText";
+    private const string GatherWoodTurnInObjectName = "Carpets2";
+    private const string GatherWoodBundleObjectName = "BundOfWood";
+    private const string GatherWoodBundlePlacedKey = "quest.gatherWood.bundlePlaced";
 
     private static DailyQuestManager instance;
 
@@ -23,14 +25,15 @@ public class DailyQuestManager : MonoBehaviour
     [SerializeField] private GameObject questHudRoot;
     [SerializeField] private TextMeshProUGUI questTitleText;
     [SerializeField] private TextMeshProUGUI questProgressText;
-    [SerializeField] private TextMeshProUGUI questTimerText;
 
     private DailyQuestDefinition activeQuest;
     private int currentProgress;
-    private float remainingTime;
     private bool isQuestActive;
     private bool isWaitingForCompletionDialogue;
+    private bool isWaitingForTurnIn;
     private bool isReloadingScene;
+    private DialogueEventId pendingCompletionDialogueEvent = DialogueEventId.None;
+    private bool shouldAdvanceAfterPendingDialogue;
     private PlayerInventory subscribedInventory;
 
     public static bool IsQuestSystemActive => TryGetInstance() != null;
@@ -47,6 +50,7 @@ public class DailyQuestManager : MonoBehaviour
         ResolveDatabase();
         ResolveReferences();
         RefreshInventorySubscription();
+        ApplyPersistentSceneState();
         SetHudVisible(false);
     }
 
@@ -55,6 +59,7 @@ public class DailyQuestManager : MonoBehaviour
         ResolveDatabase();
         ResolveReferences();
         RefreshInventorySubscription();
+        ApplyPersistentSceneState();
     }
 
     private void OnDisable()
@@ -71,26 +76,6 @@ public class DailyQuestManager : MonoBehaviour
     {
         ResolveDatabase();
         ResolveReferences();
-    }
-
-    private void Update()
-    {
-        if (!isQuestActive || activeQuest == null || isReloadingScene)
-        {
-            return;
-        }
-
-        if (!isWaitingForCompletionDialogue)
-        {
-            remainingTime = Mathf.Max(0f, remainingTime - Time.deltaTime);
-            if (remainingTime <= 0f)
-            {
-                FailCurrentDay();
-                return;
-            }
-        }
-
-        RefreshHud();
     }
 
     public static void TryActivateQuest(DialogueDay day, DailyQuestId questId)
@@ -136,6 +121,33 @@ public class DailyQuestManager : MonoBehaviour
         manager.HandleInteractionReported(interactionKey, amount);
     }
 
+    public static bool CanTurnInQuest(DailyQuestId questId)
+    {
+        DailyQuestManager manager = TryGetInstance();
+        return manager != null &&
+            manager.isQuestActive &&
+            manager.activeQuest != null &&
+            manager.activeQuest.QuestId == questId &&
+            manager.isWaitingForTurnIn &&
+            !manager.isWaitingForCompletionDialogue &&
+            !manager.isReloadingScene;
+    }
+
+    public static bool TryCompleteTurnIn(
+        DailyQuestId questId,
+        InventoryItemDefinition requiredItem,
+        int requiredAmount,
+        bool consumeItems)
+    {
+        DailyQuestManager manager = TryGetInstance();
+        if (manager == null)
+        {
+            return false;
+        }
+
+        return manager.CompleteTurnIn(questId, requiredItem, requiredAmount, consumeItems);
+    }
+
     private static DailyQuestManager TryGetInstance()
     {
         if (instance != null)
@@ -166,34 +178,42 @@ public class DailyQuestManager : MonoBehaviour
         }
 
         activeQuest = quest;
-        currentProgress = 0;
-        remainingTime = quest.DayDurationSeconds;
+        currentProgress = GetInitialProgress(quest);
         isQuestActive = true;
         isWaitingForCompletionDialogue = false;
+        isWaitingForTurnIn = false;
         isReloadingScene = false;
+        pendingCompletionDialogueEvent = DialogueEventId.None;
+        shouldAdvanceAfterPendingDialogue = false;
+
+        PrepareTurnInScene(quest);
 
         SetHudVisible(true);
         RefreshHud();
+        TryCompleteQuest();
     }
 
     private void HandleDialogueFinished(DialogueDay day, DialogueEventId eventId)
     {
-        if (!isQuestActive || activeQuest == null || !isWaitingForCompletionDialogue)
+        if (!isQuestActive ||
+            activeQuest == null ||
+            !isWaitingForCompletionDialogue ||
+            pendingCompletionDialogueEvent == DialogueEventId.None)
         {
             return;
         }
 
-        if (day != activeQuest.Day || eventId != activeQuest.CompletionDialogueEvent)
+        if (day != activeQuest.Day || eventId != pendingCompletionDialogueEvent)
         {
             return;
         }
 
-        AdvanceToNextDay();
+        FinishPendingCompletionDialogue();
     }
 
     private void HandleInteractionReported(string interactionKey, int amount)
     {
-        if (!isQuestActive || activeQuest == null || isWaitingForCompletionDialogue)
+        if (!isQuestActive || activeQuest == null || isWaitingForCompletionDialogue || isWaitingForTurnIn)
         {
             return;
         }
@@ -215,7 +235,7 @@ public class DailyQuestManager : MonoBehaviour
 
     private void HandleInventoryItemAdded(InventoryItemDefinition itemDefinition, int amountAdded)
     {
-        if (!isQuestActive || activeQuest == null || isWaitingForCompletionDialogue)
+        if (!isQuestActive || activeQuest == null || isWaitingForCompletionDialogue || isWaitingForTurnIn)
         {
             return;
         }
@@ -240,26 +260,219 @@ public class DailyQuestManager : MonoBehaviour
         }
 
         currentProgress = activeQuest.RequiredCount;
+        BeginCompletionDialogue(
+            activeQuest.CompletionDialogueEvent,
+            !activeQuest.RequiresTurnInAfterCompletionDialogue);
+    }
+
+    private bool CompleteTurnIn(
+        DailyQuestId questId,
+        InventoryItemDefinition requiredItem,
+        int requiredAmount,
+        bool consumeItems)
+    {
+        if (!CanCompleteTurnIn(questId, requiredItem, requiredAmount, out PlayerInventory inventory))
+        {
+            return false;
+        }
+
+        requiredAmount = Mathf.Max(1, requiredAmount);
+        if (consumeItems && requiredItem != null && !inventory.TryRemoveItem(requiredItem, requiredAmount))
+        {
+            return false;
+        }
+
+        currentProgress = activeQuest.RequiredCount;
+        if (activeQuest.QuestId == DailyQuestId.GatherWood)
+        {
+            SetGatherWoodBundlePlaced(true);
+        }
+
+        BeginCompletionDialogue(activeQuest.TurnInCompletionDialogueEvent, true);
+        return true;
+    }
+
+    private bool CanCompleteTurnIn(
+        DailyQuestId questId,
+        InventoryItemDefinition requiredItem,
+        int requiredAmount,
+        out PlayerInventory inventory)
+    {
+        inventory = null;
+        if (!isQuestActive ||
+            activeQuest == null ||
+            activeQuest.QuestId != questId ||
+            !isWaitingForTurnIn ||
+            isWaitingForCompletionDialogue ||
+            isReloadingScene)
+        {
+            return false;
+        }
+
+        ResolveReferences();
+        RefreshInventorySubscription();
+        inventory = playerInventory;
+        if (requiredItem == null)
+        {
+            return true;
+        }
+
+        requiredAmount = Mathf.Max(1, requiredAmount);
+        return inventory != null && inventory.GetItemCount(requiredItem) >= requiredAmount;
+    }
+
+    private void BeginCompletionDialogue(DialogueEventId eventId, bool advanceAfterDialogue)
+    {
+        isWaitingForTurnIn = false;
         isWaitingForCompletionDialogue = true;
+        pendingCompletionDialogueEvent = eventId;
+        shouldAdvanceAfterPendingDialogue = advanceAfterDialogue;
         RefreshHud();
 
-        if (activeQuest.CompletionDialogueEvent == DialogueEventId.None ||
-            !DialogueController.RequestDialogue(activeQuest.CompletionDialogueEvent))
+        if (eventId == DialogueEventId.None || !DialogueController.RequestDialogue(eventId))
         {
-            AdvanceToNextDay();
+            FinishPendingCompletionDialogue();
         }
     }
 
-    private void FailCurrentDay()
+    private void FinishPendingCompletionDialogue()
     {
-        if (isReloadingScene)
+        bool shouldAdvance = shouldAdvanceAfterPendingDialogue;
+        isWaitingForCompletionDialogue = false;
+        pendingCompletionDialogueEvent = DialogueEventId.None;
+        shouldAdvanceAfterPendingDialogue = false;
+
+        if (shouldAdvance)
+        {
+            AdvanceToNextDay();
+            return;
+        }
+
+        isWaitingForTurnIn = true;
+        EnsureGatherWoodTurnInInteractable();
+        RefreshHud();
+    }
+
+    private void PrepareTurnInScene(DailyQuestDefinition quest)
+    {
+        if (quest == null || !quest.RequiresTurnInAfterCompletionDialogue)
         {
             return;
         }
 
-        isReloadingScene = true;
-        ResetQuestState();
-        ReloadCurrentScene();
+        GameObject bundle = FindSceneObjectByName(GatherWoodBundleObjectName, true);
+        if (bundle != null)
+        {
+            bundle.SetActive(false);
+        }
+    }
+
+    private void ApplyPersistentSceneState()
+    {
+        GameObject bundle = FindSceneObjectByName(GatherWoodBundleObjectName, true);
+        if (bundle == null)
+        {
+            return;
+        }
+
+        DialogueDay currentDay = DialogueController.GetCurrentDay();
+        if (currentDay == DialogueDay.Day1 && IsGatherWoodBundlePlaced())
+        {
+            SetGatherWoodBundlePlaced(false);
+        }
+
+        bool shouldShowGatherWoodBundle =
+            IsGatherWoodBundlePlaced() ||
+            (int)currentDay > (int)DialogueDay.Day2;
+        bundle.SetActive(shouldShowGatherWoodBundle);
+    }
+
+    private static bool IsGatherWoodBundlePlaced()
+    {
+        return PlayerPrefs.GetInt(GatherWoodBundlePlacedKey, 0) == 1;
+    }
+
+    private static void SetGatherWoodBundlePlaced(bool isPlaced)
+    {
+        if (isPlaced)
+        {
+            PlayerPrefs.SetInt(GatherWoodBundlePlacedKey, 1);
+        }
+        else
+        {
+            PlayerPrefs.DeleteKey(GatherWoodBundlePlacedKey);
+        }
+
+        PlayerPrefs.Save();
+    }
+
+    private void EnsureGatherWoodTurnInInteractable()
+    {
+        if (activeQuest == null ||
+            activeQuest.QuestId != DailyQuestId.GatherWood ||
+            !activeQuest.RequiresTurnInAfterCompletionDialogue)
+        {
+            return;
+        }
+
+        GameObject turnInObject = FindSceneObjectByName(GatherWoodTurnInObjectName, false);
+        if (turnInObject == null)
+        {
+            Debug.LogWarning($"DailyQuestManager could not find '{GatherWoodTurnInObjectName}' for GatherWood turn-in.", this);
+            return;
+        }
+
+        GatherWoodTurnInInteractable turnIn = turnInObject.GetComponent<GatherWoodTurnInInteractable>();
+        if (turnIn == null)
+        {
+            turnIn = turnInObject.AddComponent<GatherWoodTurnInInteractable>();
+        }
+
+        EnsureCollider(turnInObject);
+
+        GameObject bundle = FindSceneObjectByName(GatherWoodBundleObjectName, true);
+        turnIn.Configure(activeQuest.TargetItem, activeQuest.RequiredCount, bundle);
+    }
+
+    private static void EnsureCollider(GameObject target)
+    {
+        if (target == null || target.GetComponentInChildren<Collider>() != null)
+        {
+            return;
+        }
+
+        MeshFilter meshFilter = target.GetComponent<MeshFilter>();
+        if (meshFilter != null && meshFilter.sharedMesh != null)
+        {
+            MeshCollider meshCollider = target.AddComponent<MeshCollider>();
+            meshCollider.sharedMesh = meshFilter.sharedMesh;
+            return;
+        }
+
+        target.AddComponent<BoxCollider>();
+    }
+
+    private static GameObject FindSceneObjectByName(string objectName, bool includeInactive)
+    {
+        if (string.IsNullOrWhiteSpace(objectName))
+        {
+            return null;
+        }
+
+        FindObjectsInactive inactiveMode = includeInactive
+            ? FindObjectsInactive.Include
+            : FindObjectsInactive.Exclude;
+        Transform[] transforms = FindObjectsByType<Transform>(inactiveMode, FindObjectsSortMode.None);
+        for (int index = 0; index < transforms.Length; index++)
+        {
+            Transform candidate = transforms[index];
+            if (candidate != null && candidate.name == objectName)
+            {
+                return candidate.gameObject;
+            }
+        }
+
+        return null;
     }
 
     private void AdvanceToNextDay()
@@ -287,9 +500,11 @@ public class DailyQuestManager : MonoBehaviour
     {
         activeQuest = null;
         currentProgress = 0;
-        remainingTime = 0f;
         isQuestActive = false;
         isWaitingForCompletionDialogue = false;
+        isWaitingForTurnIn = false;
+        pendingCompletionDialogueEvent = DialogueEventId.None;
+        shouldAdvanceAfterPendingDialogue = false;
         SetHudVisible(false);
     }
 
@@ -339,11 +554,6 @@ public class DailyQuestManager : MonoBehaviour
             {
                 questProgressText = questHudRoot.transform.Find(DefaultProgressTextName)?.GetComponent<TextMeshProUGUI>();
             }
-
-            if (questTimerText == null)
-            {
-                questTimerText = questHudRoot.transform.Find(DefaultTimerTextName)?.GetComponent<TextMeshProUGUI>();
-            }
         }
     }
 
@@ -372,6 +582,21 @@ public class DailyQuestManager : MonoBehaviour
         }
     }
 
+    private int GetInitialProgress(DailyQuestDefinition quest)
+    {
+        if (quest == null ||
+            quest.ObjectiveType != QuestObjectiveType.InventoryItemCount ||
+            quest.TargetItem == null)
+        {
+            return 0;
+        }
+
+        ResolveReferences();
+        return playerInventory != null
+            ? Mathf.Min(quest.RequiredCount, playerInventory.GetItemCount(quest.TargetItem))
+            : 0;
+    }
+
     private void RefreshHud()
     {
         ResolveReferences();
@@ -388,19 +613,24 @@ public class DailyQuestManager : MonoBehaviour
 
         SetHudVisible(true);
 
-        string timerLabel = isWaitingForCompletionDialogue
-            ? "Dang bao cao nhiem vu..."
-            : $"Het ngay: {FormatTime(remainingTime)}";
-
-        if (questProgressText == null || questTimerText == null)
+        string progressLabel = BuildProgressLabel();
+        if (isWaitingForCompletionDialogue)
         {
-            questTitleText.text = $"{activeQuest.DisplayName}\n{BuildProgressLabel()}\n{timerLabel}";
+            progressLabel = $"{progressLabel}\n\u0110ang b\u00e1o c\u00e1o nhi\u1ec7m v\u1ee5...";
+        }
+        else if (isWaitingForTurnIn)
+        {
+            progressLabel = $"{progressLabel}\nMang g\u1ed7 \u0111\u1ebfn {GatherWoodTurnInObjectName}.";
+        }
+
+        if (questProgressText == null)
+        {
+            questTitleText.text = $"{activeQuest.DisplayName}\n{progressLabel}";
             return;
         }
 
         questTitleText.text = activeQuest.DisplayName;
-        questProgressText.text = BuildProgressLabel();
-        questTimerText.text = timerLabel;
+        questProgressText.text = progressLabel;
     }
 
     private string BuildProgressLabel()
@@ -413,8 +643,8 @@ public class DailyQuestManager : MonoBehaviour
         string label = activeQuest.ObjectiveType switch
         {
             QuestObjectiveType.InventoryItemCount when activeQuest.TargetItem != null => activeQuest.TargetItem.DisplayName,
-            QuestObjectiveType.InteractionKeyCount => "Tien do",
-            _ => "Tien do"
+            QuestObjectiveType.InteractionKeyCount => "Tiến độ",
+            _ => "Tiến độ"
         };
 
         return $"{label}: {currentProgress}/{activeQuest.RequiredCount}";
@@ -439,19 +669,6 @@ public class DailyQuestManager : MonoBehaviour
             {
                 questProgressText.text = string.Empty;
             }
-
-            if (questTimerText != null)
-            {
-                questTimerText.text = string.Empty;
-            }
         }
-    }
-
-    private static string FormatTime(float seconds)
-    {
-        int totalSeconds = Mathf.CeilToInt(Mathf.Max(0f, seconds));
-        int minutes = totalSeconds / 60;
-        int remainingSeconds = totalSeconds % 60;
-        return $"{minutes:00}:{remainingSeconds:00}";
     }
 }

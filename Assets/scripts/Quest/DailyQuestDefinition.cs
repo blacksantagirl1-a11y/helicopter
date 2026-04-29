@@ -13,10 +13,9 @@ public sealed class DailyQuestDefinition
     [SerializeField]
     [Min(1)]
     private int requiredCount = 1;
-    [SerializeField]
-    [Min(30f)]
-    private float dayDurationSeconds = 300f;
     [SerializeField] private DialogueEventId completionDialogueEvent = DialogueEventId.DoneRequest;
+    [SerializeField] private bool requiresTurnInAfterCompletionDialogue;
+    [SerializeField] private DialogueEventId turnInCompletionDialogueEvent = DialogueEventId.DoneRequest;
 
     public DialogueDay Day => day;
     public DailyQuestId QuestId => questId;
@@ -25,6 +24,7 @@ public sealed class DailyQuestDefinition
     public string InteractionKey => interactionKey;
     public InventoryItemDefinition TargetItem => targetItem;
     public int RequiredCount => Mathf.Max(1, requiredCount);
-    public float DayDurationSeconds => Mathf.Max(30f, dayDurationSeconds);
     public DialogueEventId CompletionDialogueEvent => completionDialogueEvent;
+    public bool RequiresTurnInAfterCompletionDialogue => requiresTurnInAfterCompletionDialogue;
+    public DialogueEventId TurnInCompletionDialogueEvent => turnInCompletionDialogueEvent;
 }
