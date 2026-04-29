@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: Fish
   m_EditorClassIdentifier: 
   itemId: river_fish
-  displayName: Cá
-  description: Một con cá vừa câu được từ hồ nước.
-  icon: {fileID: 0}
+  displayName: "C\xE1"
+  description: "M\u1ED9t con c\xE1 v\u1EEBa c\xE2u \u0111\u01B0\u1EE3c t\u1EEB h\u1ED3
+    n\u01B0\u1EDBc."
+  icon: {fileID: 21300000, guid: d32000a56e1950d4889c272f005efd78, type: 3}
   maxStack: 10
   canUse: 0
   consumeOnUse: 0
-  useMessage: Đã sử dụng cá.
-  cannotUseMessage: Cá là vật phẩm nguyên liệu, chưa thể sử dụng trực tiếp.
+  useMessage: "\u0110\xE3 s\u1EED d\u1EE5ng c\xE1."
+  cannotUseMessage: "C\xE1 l\xE0 v\u1EADt ph\u1EA9m nguy\xEAn li\u1EC7u, ch\u01B0a
+    th\u1EC3 s\u1EED d\u1EE5ng tr\u1EF1c ti\u1EBFp."
