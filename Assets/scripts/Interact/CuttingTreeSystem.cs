@@ -48,6 +48,12 @@ public class CuttingTreeSystem : MonoBehaviour
     [Tooltip("Khoảng random góc xoay Y của log sau khi spawn")]
     [SerializeField] private Vector2 pickupRandomYaw = new Vector2(0f, 360f);
 
+    [Header("After Cut")]
+    [Tooltip("Giu lai mot proxy vo hinh tu prefab cua cay de khong mat het collider/trigger sau khi chat")]
+    [SerializeField] private bool preservePrototypeProxyAfterCut = true;
+    [Tooltip("Doi collider tren proxy thanh trigger de khong chan duong sau khi cay bien mat")]
+    [SerializeField] private bool convertProxyCollidersToTriggers = true;
+
     // Nho xem moi cay da bi chat bao nhieu lan.
     private readonly Dictionary<string, int> treeHitCounts = new Dictionary<string, int>();
     private ActionScript subscribedActionScript;
@@ -109,6 +115,7 @@ public class CuttingTreeSystem : MonoBehaviour
 
         if (nextHitCount >= hitsToCutTree)
         {
+            SpawnPrototypeProxyAfterCut(terrain, treeInstance, treeWorldPosition);
             RemoveTree(terrain, treeIndex);
             treeHitCounts.Remove(treeKey);
             SpawnPickup(treeWorldPosition);
@@ -241,9 +248,9 @@ public class CuttingTreeSystem : MonoBehaviour
             Vector3 adjustedPosition = treeWorldPosition + pickupSpawnOffset;
             adjustedPosition.y = treeWorldPosition.y + bounds.extents.y + pickupSpawnOffset.y;
             spawnedPickup.transform.position = adjustedPosition;
-
-            EnsurePickupCollider(spawnedPickup, bounds);
         }
+
+        EnsurePickupCollider(spawnedPickup);
 
         if (spawnedPickup.GetComponent<TreeLogPickup>() == null)
         {
@@ -252,9 +259,27 @@ public class CuttingTreeSystem : MonoBehaviour
     }
 
     // Dam bao pickup co collider de co the duoc nhin va nhat.
-    private void EnsurePickupCollider(GameObject pickupObject, Bounds worldBounds)
+    private void EnsurePickupCollider(GameObject pickupObject)
     {
-        if (pickupObject == null || pickupObject.GetComponentInChildren<Collider>() != null)
+        if (pickupObject == null)
+        {
+            return;
+        }
+
+        Collider[] existingColliders = pickupObject.GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < existingColliders.Length; i++)
+        {
+            Collider existingCollider = existingColliders[i];
+            if (existingCollider == null)
+            {
+                continue;
+            }
+
+            existingCollider.enabled = true;
+            return;
+        }
+
+        if (!TryGetCombinedRendererBounds(pickupObject, out Bounds worldBounds))
         {
             return;
         }
@@ -262,6 +287,63 @@ public class CuttingTreeSystem : MonoBehaviour
         BoxCollider boxCollider = pickupObject.AddComponent<BoxCollider>();
         boxCollider.center = pickupObject.transform.InverseTransformPoint(worldBounds.center);
         boxCollider.size = WorldSizeToLocalSize(pickupObject.transform, worldBounds.size);
+    }
+
+    // Sau khi xoa TreeInstance, tao mot proxy vo hinh de giu lai collider/trigger cua prefab goc.
+    private void SpawnPrototypeProxyAfterCut(Terrain terrain, TreeInstance treeInstance, Vector3 treeWorldPosition)
+    {
+        if (!preservePrototypeProxyAfterCut)
+        {
+            return;
+        }
+
+        GameObject prototypePrefab = GetPrototypePrefab(terrain, treeInstance.prototypeIndex);
+        if (prototypePrefab == null)
+        {
+            return;
+        }
+
+        Quaternion proxyRotation = Quaternion.Euler(0f, treeInstance.rotation * Mathf.Rad2Deg, 0f);
+        GameObject proxy = Instantiate(prototypePrefab, treeWorldPosition, proxyRotation);
+        proxy.name = $"{prototypePrefab.name}_CutProxy";
+
+        Vector3 proxyScale = proxy.transform.localScale;
+        proxy.transform.localScale = new Vector3(
+            proxyScale.x * Mathf.Max(0.01f, treeInstance.widthScale),
+            proxyScale.y * Mathf.Max(0.01f, treeInstance.heightScale),
+            proxyScale.z * Mathf.Max(0.01f, treeInstance.widthScale));
+
+        Collider[] colliders = proxy.GetComponentsInChildren<Collider>(true);
+        if (colliders.Length == 0)
+        {
+            Destroy(proxy);
+            return;
+        }
+
+        Renderer[] renderers = proxy.GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            if (renderers[i] != null)
+            {
+                renderers[i].enabled = false;
+            }
+        }
+
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider collider = colliders[i];
+            if (collider == null)
+            {
+                continue;
+            }
+
+            collider.enabled = true;
+            if (convertProxyCollidersToTriggers)
+            {
+                collider.isTrigger = true;
+            }
+        }
+
     }
 
     // Chi cho phep chat nhung cay co ten prototype khop voi tu khoa cau hinh.
@@ -446,20 +528,26 @@ public class CuttingTreeSystem : MonoBehaviour
     // Lay ten prefab goc cua prototype cay, chu yeu de log / debug.
     private static string GetPrototypeName(Terrain terrain, int prototypeIndex)
     {
+        GameObject prototypePrefab = GetPrototypePrefab(terrain, prototypeIndex);
+        return prototypePrefab != null
+            ? prototypePrefab.name
+            : "Unknown";
+    }
+
+    private static GameObject GetPrototypePrefab(Terrain terrain, int prototypeIndex)
+    {
         if (terrain == null || terrain.terrainData == null)
         {
-            return "Unknown";
+            return null;
         }
 
         TreePrototype[] prototypes = terrain.terrainData.treePrototypes;
         if (prototypes == null || prototypeIndex < 0 || prototypeIndex >= prototypes.Length)
         {
-            return "Unknown";
+            return null;
         }
 
-        return prototypes[prototypeIndex].prefab != null
-            ? prototypes[prototypeIndex].prefab.name
-            : "Unknown";
+        return prototypes[prototypeIndex].prefab;
     }
 
     // Gom bounds cua cac renderer con lai thanh 1 bounds chung.

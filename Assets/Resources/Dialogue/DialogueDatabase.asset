@@ -187,27 +187,35 @@ MonoBehaviour:
       questAction: 0
       questId: 0
   - day: 3
+    eventId: 10
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Hi\u1EC3n"
+      text: "Mùi khói còn vương trong nhà. Bó gỗ hôm qua chắc vẫn dùng được."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Kiểm tra BundOfWood trước. Nếu ổn thì trải tấm thảm ra cho ấm."
+      questAction: 0
+      questId: 0
+  - day: 3
     eventId: 30
     playerCanMove: 1
     timeScale: 1
     lines:
-    - speakerName: Nhi
-      text: "Ngu\u1ED3n \u0111\u1ED3 \u0103n d\u1EF1 tr\u1EEF \u0111ang \xEDt d\u1EA7n."
-      questAction: 0
-      questId: 0
     - speakerName: "Hi\u1EC3n"
-      text: "T\xF4i c\u1EA7n b\u1ED5 sung lo\u1EA1i n\xE0o."
+      text: "Tấm thảm đã được trải xong."
       questAction: 0
       questId: 0
     - speakerName: Nhi
-      text: "H\xE3y l\u1EA5y cho t\xF4i 2 mi\u1EBFng th\u1ECBt tr\u01B0\u1EDBc l\xFAc
-        tr\u1EDDi t\u1ED1i."
+      text: "Tốt. Hôm nay nghỉ sớm, sáng mai chúng ta tiếp tục."
       questAction: 0
       questId: 0
     - speakerName: "Hi\u1EC3n"
-      text: "\u0110\xE3 hi\u1EC3u. T\xF4i s\u1EBD s\u0103n nhanh r\u1ED3i quay l\u1EA1i."
-      questAction: 1
-      questId: 30
+      text: "Tôi sẽ lên giường nghỉ."
+      questAction: 0
+      questId: 0
   - day: 3
     eventId: 50
     playerCanMove: 1

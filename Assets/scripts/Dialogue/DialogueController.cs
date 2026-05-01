@@ -96,6 +96,18 @@ public class DialogueController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI bodyText;
     [SerializeField] private TextMeshProUGUI advanceHintText;
 
+    [Header("Screen Fade")]
+    [SerializeField] private Image screenFadeOverlay;
+    [SerializeField]
+    [Min(0f)]
+    private float interactionFadeOutDuration = 0.18f;
+    [SerializeField]
+    [Min(0f)]
+    private float interactionFadeHoldDuration = 0.06f;
+    [SerializeField]
+    [Min(0f)]
+    private float interactionFadeInDuration = 0.22f;
+
     // Hang doi nay tranh truong hop nhieu noi trong game cung yeu cau hoi thoai mot luc.
     private readonly Queue<DialogueRequest> pendingRequests = new Queue<DialogueRequest>();
     // Truoc khi tat control cua player, ta nho lai trang thai cu de sau hoi thoai con tra lai dung.
@@ -120,6 +132,7 @@ public class DialogueController : MonoBehaviour
     private string dialogueHoldStatePath = string.Empty;
     private string dialogueExitStatePath = string.Empty;
     private Coroutine dialogueHandAnimationRoutine;
+    private Coroutine screenFadeRoutine;
     private bool isDialogueHandHoldActive;
     private bool hasLoggedDialogueHandSetupWarning;
     private DialogueHandAnimationState dialogueHandAnimationState = DialogueHandAnimationState.Inactive;
@@ -149,6 +162,23 @@ public class DialogueController : MonoBehaviour
         }
 
         return controller.EnqueueRequest(eventId);
+    }
+
+    public static bool PlayInteractionFade(System.Action midpointAction)
+    {
+        DialogueController controller = EnsureInstance();
+        if (controller == null)
+        {
+            return false;
+        }
+
+        if (!controller.enabled)
+        {
+            controller.enabled = true;
+        }
+
+        controller.BeginInteractionFade(midpointAction);
+        return true;
     }
 
     public static DialogueDay GetCurrentDay()
@@ -190,6 +220,9 @@ public class DialogueController : MonoBehaviour
         charactersPerSecond = Mathf.Max(1f, charactersPerSecond);
         dialogueLayerWeight = Mathf.Max(0f, dialogueLayerWeight);
         dialogueCrossFadeDuration = Mathf.Max(0f, dialogueCrossFadeDuration);
+        interactionFadeOutDuration = Mathf.Max(0f, interactionFadeOutDuration);
+        interactionFadeHoldDuration = Mathf.Max(0f, interactionFadeHoldDuration);
+        interactionFadeInDuration = Mathf.Max(0f, interactionFadeInDuration);
         ResolveDatabase();
         ResolveReferences();
         EnsureDialogueUI();
@@ -201,12 +234,16 @@ public class DialogueController : MonoBehaviour
     {
         RestoreDialogueState();
         ResetDialogueHandAnimationImmediately();
+        StopInteractionFadeRoutine();
+        SetScreenFadeAlpha(0f);
     }
 
     private void OnDestroy()
     {
         RestoreDialogueState();
         ResetDialogueHandAnimationImmediately();
+        StopInteractionFadeRoutine();
+        SetScreenFadeAlpha(0f);
 
         if (instance == this)
         {
@@ -220,6 +257,9 @@ public class DialogueController : MonoBehaviour
         charactersPerSecond = Mathf.Max(1f, charactersPerSecond);
         dialogueLayerWeight = Mathf.Max(0f, dialogueLayerWeight);
         dialogueCrossFadeDuration = Mathf.Max(0f, dialogueCrossFadeDuration);
+        interactionFadeOutDuration = Mathf.Max(0f, interactionFadeOutDuration);
+        interactionFadeHoldDuration = Mathf.Max(0f, interactionFadeHoldDuration);
+        interactionFadeInDuration = Mathf.Max(0f, interactionFadeInDuration);
         ResolveDatabase();
         ResolveReferences();
         CacheDialogueHandAnimationData();
@@ -773,6 +813,7 @@ public class DialogueController : MonoBehaviour
             bodyText != null &&
             advanceHintText != null)
         {
+            EnsureScreenFadeOverlay();
             return;
         }
 
@@ -871,6 +912,7 @@ public class DialogueController : MonoBehaviour
         ConfigureSpeakerText();
         ConfigureBodyText();
         ConfigureAdvanceHintText();
+        EnsureScreenFadeOverlay();
     }
 
     // Co gang tim Canvas de dat UI hoi thoai vao do.
@@ -1028,6 +1070,129 @@ public class DialogueController : MonoBehaviour
         {
             dialogueRoot.SetActive(visible);
         }
+    }
+
+    private void BeginInteractionFade(System.Action midpointAction)
+    {
+        ResolveReferences();
+        EnsureDialogueUI();
+        EnsureScreenFadeOverlay();
+
+        if (playerUI != null)
+        {
+            playerUI.UpdatePrompt(string.Empty);
+            playerUI.HideInteractionContent();
+        }
+
+        StopInteractionFadeRoutine();
+        screenFadeRoutine = StartCoroutine(PlayInteractionFadeRoutine(midpointAction));
+    }
+
+    private IEnumerator PlayInteractionFadeRoutine(System.Action midpointAction)
+    {
+        if (screenFadeOverlay == null)
+        {
+            midpointAction?.Invoke();
+            screenFadeRoutine = null;
+            yield break;
+        }
+
+        screenFadeOverlay.gameObject.SetActive(true);
+        screenFadeOverlay.transform.SetAsLastSibling();
+
+        yield return FadeScreenOverlay(0f, 1f, interactionFadeOutDuration);
+
+        midpointAction?.Invoke();
+
+        if (interactionFadeHoldDuration > 0f)
+        {
+            yield return new WaitForSecondsRealtime(interactionFadeHoldDuration);
+        }
+
+        yield return FadeScreenOverlay(1f, 0f, interactionFadeInDuration);
+        screenFadeRoutine = null;
+    }
+
+    private IEnumerator FadeScreenOverlay(float fromAlpha, float toAlpha, float duration)
+    {
+        SetScreenFadeAlpha(fromAlpha);
+
+        if (duration <= 0f)
+        {
+            SetScreenFadeAlpha(toAlpha);
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            SetScreenFadeAlpha(Mathf.Lerp(fromAlpha, toAlpha, t));
+            yield return null;
+        }
+
+        SetScreenFadeAlpha(toAlpha);
+    }
+
+    private void StopInteractionFadeRoutine()
+    {
+        if (screenFadeRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(screenFadeRoutine);
+        screenFadeRoutine = null;
+    }
+
+    private void EnsureScreenFadeOverlay()
+    {
+        Canvas canvas = ResolveCanvas();
+        if (canvas == null)
+        {
+            return;
+        }
+
+        if (screenFadeOverlay == null)
+        {
+            Transform existingOverlay = canvas.transform.Find("ScreenFadeOverlay");
+            if (existingOverlay != null)
+            {
+                screenFadeOverlay = existingOverlay.GetComponent<Image>();
+            }
+        }
+
+        if (screenFadeOverlay == null)
+        {
+            GameObject overlayObject = new GameObject("ScreenFadeOverlay", typeof(RectTransform), typeof(Image));
+            overlayObject.transform.SetParent(canvas.transform, false);
+            screenFadeOverlay = overlayObject.GetComponent<Image>();
+        }
+
+        RectTransform overlayRect = screenFadeOverlay.rectTransform;
+        overlayRect.anchorMin = Vector2.zero;
+        overlayRect.anchorMax = Vector2.one;
+        overlayRect.pivot = new Vector2(0.5f, 0.5f);
+        overlayRect.offsetMin = Vector2.zero;
+        overlayRect.offsetMax = Vector2.zero;
+
+        float currentAlpha = screenFadeRoutine == null ? 0f : screenFadeOverlay.color.a;
+        screenFadeOverlay.color = new Color(0f, 0f, 0f, currentAlpha);
+        screenFadeOverlay.raycastTarget = false;
+        screenFadeOverlay.gameObject.SetActive(true);
+    }
+
+    private void SetScreenFadeAlpha(float alpha)
+    {
+        if (screenFadeOverlay == null)
+        {
+            return;
+        }
+
+        Color color = screenFadeOverlay.color;
+        color.a = Mathf.Clamp01(alpha);
+        screenFadeOverlay.color = color;
     }
 
     private void RefreshDayBadge(DialogueDay day)

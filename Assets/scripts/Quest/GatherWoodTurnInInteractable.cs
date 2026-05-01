@@ -17,9 +17,10 @@ public sealed class GatherWoodTurnInInteractable : Interactable
     [SerializeField] private string notEnoughText = "Chua du go de dat vao day.";
 
     private bool completed;
+    private bool isProcessingTurnIn;
     private string feedbackText;
 
-    public override bool CanInteract => !completed && DailyQuestManager.CanTurnInQuest(questId);
+    public override bool CanInteract => !completed && !isProcessingTurnIn && DailyQuestManager.CanTurnInQuest(questId);
     public override bool HasPromptText => CanInteract && !string.IsNullOrWhiteSpace(promptText);
     public override string PromptText => HasPromptText ? promptText : string.Empty;
     public override string DialogueSpeaker => feedbackSpeaker;
@@ -47,22 +48,19 @@ public sealed class GatherWoodTurnInInteractable : Interactable
             return;
         }
 
-        if (!DailyQuestManager.TryCompleteTurnIn(questId, requiredItem, requiredAmount, consumeItems))
+        if (!HasEnoughItemsForTurnIn())
         {
             feedbackText = notEnoughText;
             return;
         }
 
-        if (objectToEnable != null)
+        isProcessingTurnIn = true;
+        if (DialogueController.PlayInteractionFade(CompleteTurnInAfterFade))
         {
-            objectToEnable.SetActive(true);
+            return;
         }
 
-        completed = true;
-        if (disableAfterSuccess)
-        {
-            enabled = false;
-        }
+        CompleteTurnInAfterFade();
     }
 
     protected override void PresentInteraction(PlayerUI playerUI)
@@ -79,5 +77,38 @@ public sealed class GatherWoodTurnInInteractable : Interactable
     private void OnValidate()
     {
         requiredAmount = Mathf.Max(1, requiredAmount);
+    }
+
+    private bool HasEnoughItemsForTurnIn()
+    {
+        if (requiredItem == null)
+        {
+            return true;
+        }
+
+        PlayerInventory inventory = FindFirstObjectByType<PlayerInventory>();
+        return inventory != null && inventory.GetItemCount(requiredItem) >= requiredAmount;
+    }
+
+    private void CompleteTurnInAfterFade()
+    {
+        if (!DailyQuestManager.TryCompleteTurnIn(questId, requiredItem, requiredAmount, consumeItems))
+        {
+            isProcessingTurnIn = false;
+            feedbackText = notEnoughText;
+            return;
+        }
+
+        if (objectToEnable != null)
+        {
+            objectToEnable.SetActive(true);
+        }
+
+        completed = true;
+        isProcessingTurnIn = false;
+        if (disableAfterSuccess)
+        {
+            enabled = false;
+        }
     }
 }
