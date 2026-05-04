@@ -3,25 +3,41 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class InteractableOnce : Interactable
 {
-    [Header("Prompt")]
-    [SerializeField] private string interactionPrompt = "Tuong tac";
-
     [Header("Dialogue")]
     [SerializeField] private DialogueEventId dialogueEventId = DialogueEventId.Water;
     [SerializeField] private DialogueDay requiredDay = DialogueDay.Day1;
 
     [Header("Behavior")]
+    [SerializeField] private bool triggerOnEnter = true;
     [SerializeField] private bool triggerOnce = true;
 
     private bool hasTriggered;
 
-    public override bool CanInteract => IsInteractionAvailable();
-    public override bool HasPromptText => CanInteract && !string.IsNullOrWhiteSpace(interactionPrompt);
-    public override string PromptText => HasPromptText ? interactionPrompt : string.Empty;
+    public override bool CanInteract => false;
+    public override bool HasPromptText => false;
+    public override string PromptText => string.Empty;
 
-    protected override void Interact()
+    private void OnTriggerEnter(Collider other)
     {
-        if (!IsInteractionAvailable())
+        if (!triggerOnEnter || !CanTriggerFrom(other))
+        {
+            return;
+        }
+
+        TryActivateFromTrigger();
+    }
+
+    protected override void PresentInteraction(PlayerUI playerUI)
+    {
+        if (playerUI != null)
+        {
+            playerUI.HideInteractionContent();
+        }
+    }
+
+    private void TryActivateFromTrigger()
+    {
+        if (!IsTriggerAvailable())
         {
             return;
         }
@@ -33,15 +49,7 @@ public sealed class InteractableOnce : Interactable
         }
     }
 
-    protected override void PresentInteraction(PlayerUI playerUI)
-    {
-        if (playerUI != null)
-        {
-            playerUI.HideInteractionContent();
-        }
-    }
-
-    private bool IsInteractionAvailable()
+    private bool IsTriggerAvailable()
     {
         if (triggerOnce && hasTriggered)
         {
@@ -49,5 +57,17 @@ public sealed class InteractableOnce : Interactable
         }
 
         return DialogueController.GetCurrentDay() == requiredDay;
+    }
+
+    private static bool CanTriggerFrom(Collider other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
+
+        return other.GetComponentInParent<PlayerMovement>() != null ||
+               other.GetComponentInParent<PickUpScript>() != null ||
+               other.CompareTag("Player");
     }
 }

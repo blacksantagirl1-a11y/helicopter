@@ -16,6 +16,7 @@ public class DailyQuestManager : MonoBehaviour
     private const string Day3CarpetsObjectName = "Carpets";
     private const string Day3BedObjectName = "bed";
     private const string Day3CarpetsShownKey = "quest.day3.carpetsShown";
+    private const DialogueDay BundleAndBedAdvanceDay = DialogueDay.Day4;
 
     private static DailyQuestManager instance;
 
@@ -153,7 +154,7 @@ public class DailyQuestManager : MonoBehaviour
 
     public static bool CanInteractWithDay3BundOfWood()
     {
-        return DialogueController.GetCurrentDay() == DialogueDay.Day3 &&
+        return DialogueController.GetCurrentDay() == BundleAndBedAdvanceDay &&
             !DialogueController.IsDialogueActive &&
             !IsDay3CarpetsShown();
     }
@@ -174,7 +175,7 @@ public class DailyQuestManager : MonoBehaviour
 
     public static bool CanAdvanceFromDay3Bed()
     {
-        return DialogueController.GetCurrentDay() == DialogueDay.Day3 &&
+        return DialogueController.GetCurrentDay() == BundleAndBedAdvanceDay &&
             !DialogueController.IsDialogueActive &&
             IsDay3CarpetsShown();
     }
@@ -438,7 +439,7 @@ public class DailyQuestManager : MonoBehaviour
 
     private static void ApplyDay3CarpetsState(DialogueDay currentDay)
     {
-        if ((int)currentDay < (int)DialogueDay.Day3 && IsDay3CarpetsShown())
+        if ((int)currentDay < (int)BundleAndBedAdvanceDay && IsDay3CarpetsShown())
         {
             SetDay3CarpetsShown(false);
         }
@@ -447,7 +448,7 @@ public class DailyQuestManager : MonoBehaviour
         if (carpets != null)
         {
             bool shouldShowCarpets =
-                (int)currentDay >= (int)DialogueDay.Day3 &&
+                (int)currentDay >= (int)BundleAndBedAdvanceDay &&
                 IsDay3CarpetsShown();
             carpets.SetActive(shouldShowCarpets);
         }
@@ -455,7 +456,7 @@ public class DailyQuestManager : MonoBehaviour
 
     private static void EnsureDay3Interactables(DialogueDay currentDay)
     {
-        if (currentDay != DialogueDay.Day3)
+        if (currentDay != BundleAndBedAdvanceDay)
         {
             return;
         }

@@ -13,7 +13,7 @@ public enum DialogueEventId
     DoorHint = 60,
     GotTheLog = 70,
     ItemPickup = 80,
-    BoarEncounter = 90,
+    BearTrap = 90,
     InvestigationStart = 100,
     InvestigationProgress = 110,
     InvestigationComplete = 120,
