@@ -307,8 +307,7 @@ MonoBehaviour:
     timeScale: 1
     lines:
     - speakerName: "Hi\u1EC3n"
-      text: "M\xF9i kh\xF3i c\xF2n v\u01B0\u01A1ng trong nh\xE0. B\xF3 g\u1ED7 h\xF4m
-        qua ch\u1EAFc v\u1EABn d\xF9ng \u0111\u01B0\u1EE3c."
+      text: 
       questAction: 0
       questId: 0
     - speakerName: Nhi
