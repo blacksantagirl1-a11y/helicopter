@@ -13,6 +13,10 @@ public class DailyQuestManager : MonoBehaviour
     private const string GatherWoodTurnInObjectName = "Carpets2";
     private const string GatherWoodBundleObjectName = "BundOfWood";
     private const string GatherWoodBundlePlacedKey = "quest.gatherWood.bundlePlaced";
+    private const string Day3CarpetsObjectName = "Carpets";
+    private const string Day3BedObjectName = "bed";
+    private const string Day3CarpetsShownKey = "quest.day3.carpetsShown";
+    private const DialogueDay BundleAndBedAdvanceDay = DialogueDay.Day4;
 
     private static DailyQuestManager instance;
 
@@ -146,6 +150,45 @@ public class DailyQuestManager : MonoBehaviour
         }
 
         return manager.CompleteTurnIn(questId, requiredItem, requiredAmount, consumeItems);
+    }
+
+    public static bool CanInteractWithDay3BundOfWood()
+    {
+        return DialogueController.GetCurrentDay() == BundleAndBedAdvanceDay &&
+            !DialogueController.IsDialogueActive &&
+            !IsDay3CarpetsShown();
+    }
+
+    public static bool TryHandleDay3BundOfWoodInteraction()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        if (manager == null || !CanInteractWithDay3BundOfWood())
+        {
+            return false;
+        }
+
+        SetDay3CarpetsShown(true);
+        manager.ApplyPersistentSceneState();
+        DialogueController.RequestDialogue(DialogueEventId.DayStart);
+        return true;
+    }
+
+    public static bool CanAdvanceFromDay3Bed()
+    {
+        return DialogueController.GetCurrentDay() == BundleAndBedAdvanceDay &&
+            !DialogueController.IsDialogueActive &&
+            IsDay3CarpetsShown();
+    }
+
+    public static bool TryAdvanceFromDay3Bed()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        if (manager == null || !CanAdvanceFromDay3Bed())
+        {
+            return false;
+        }
+
+        return manager.AdvanceDayFromBed();
     }
 
     private static DailyQuestManager TryGetInstance()
@@ -369,13 +412,20 @@ public class DailyQuestManager : MonoBehaviour
 
     private void ApplyPersistentSceneState()
     {
+        DialogueDay currentDay = DialogueController.GetCurrentDay();
+        ApplyGatherWoodBundleState(currentDay);
+        ApplyDay3CarpetsState(currentDay);
+        EnsureDay3Interactables(currentDay);
+    }
+
+    private static void ApplyGatherWoodBundleState(DialogueDay currentDay)
+    {
         GameObject bundle = FindSceneObjectByName(GatherWoodBundleObjectName, true);
         if (bundle == null)
         {
             return;
         }
 
-        DialogueDay currentDay = DialogueController.GetCurrentDay();
         if (currentDay == DialogueDay.Day1 && IsGatherWoodBundlePlaced())
         {
             SetGatherWoodBundlePlaced(false);
@@ -385,6 +435,45 @@ public class DailyQuestManager : MonoBehaviour
             IsGatherWoodBundlePlaced() ||
             (int)currentDay > (int)DialogueDay.Day2;
         bundle.SetActive(shouldShowGatherWoodBundle);
+    }
+
+    private static void ApplyDay3CarpetsState(DialogueDay currentDay)
+    {
+        if ((int)currentDay < (int)BundleAndBedAdvanceDay && IsDay3CarpetsShown())
+        {
+            SetDay3CarpetsShown(false);
+        }
+
+        GameObject carpets = FindSceneObjectByName(Day3CarpetsObjectName, true);
+        if (carpets != null)
+        {
+            bool shouldShowCarpets =
+                (int)currentDay >= (int)BundleAndBedAdvanceDay &&
+                IsDay3CarpetsShown();
+            carpets.SetActive(shouldShowCarpets);
+        }
+    }
+
+    private static void EnsureDay3Interactables(DialogueDay currentDay)
+    {
+        if (currentDay != BundleAndBedAdvanceDay)
+        {
+            return;
+        }
+
+        GameObject bundle = FindSceneObjectByName(GatherWoodBundleObjectName, true);
+        if (bundle != null)
+        {
+            bundle.SetActive(true);
+            EnsureCollider(bundle);
+            EnsureComponent<Day3BundOfWoodInteractable>(bundle);
+        }
+
+        GameObject bed = FindSceneObjectByName(Day3BedObjectName, false);
+        if (bed != null)
+        {
+            EnsureComponent<Day3BedAdvanceInteractable>(bed);
+        }
     }
 
     private static bool IsGatherWoodBundlePlaced()
@@ -401,6 +490,25 @@ public class DailyQuestManager : MonoBehaviour
         else
         {
             PlayerPrefs.DeleteKey(GatherWoodBundlePlacedKey);
+        }
+
+        PlayerPrefs.Save();
+    }
+
+    private static bool IsDay3CarpetsShown()
+    {
+        return PlayerPrefs.GetInt(Day3CarpetsShownKey, 0) == 1;
+    }
+
+    private static void SetDay3CarpetsShown(bool isShown)
+    {
+        if (isShown)
+        {
+            PlayerPrefs.SetInt(Day3CarpetsShownKey, 1);
+        }
+        else
+        {
+            PlayerPrefs.DeleteKey(Day3CarpetsShownKey);
         }
 
         PlayerPrefs.Save();
@@ -434,6 +542,22 @@ public class DailyQuestManager : MonoBehaviour
         turnIn.Configure(activeQuest.TargetItem, activeQuest.RequiredCount, bundle);
     }
 
+    private static T EnsureComponent<T>(GameObject target) where T : Component
+    {
+        if (target == null)
+        {
+            return null;
+        }
+
+        T component = target.GetComponent<T>();
+        if (component == null)
+        {
+            component = target.AddComponent<T>();
+        }
+
+        return component;
+    }
+
     private static void EnsureCollider(GameObject target)
     {
         if (target == null || target.GetComponentInChildren<Collider>() != null)
@@ -449,7 +573,31 @@ public class DailyQuestManager : MonoBehaviour
             return;
         }
 
-        target.AddComponent<BoxCollider>();
+        BoxCollider boxCollider = target.AddComponent<BoxCollider>();
+        Renderer[] renderers = target.GetComponentsInChildren<Renderer>(true);
+        if (renderers == null || renderers.Length == 0)
+        {
+            return;
+        }
+
+        Bounds bounds = renderers[0].bounds;
+        for (int index = 1; index < renderers.Length; index++)
+        {
+            bounds.Encapsulate(renderers[index].bounds);
+        }
+
+        Vector3 lossyScale = target.transform.lossyScale;
+        boxCollider.center = target.transform.InverseTransformPoint(bounds.center);
+        boxCollider.size = new Vector3(
+            SafeInverseScale(bounds.size.x, lossyScale.x),
+            SafeInverseScale(bounds.size.y, lossyScale.y),
+            SafeInverseScale(bounds.size.z, lossyScale.z));
+    }
+
+    private static float SafeInverseScale(float worldSize, float scale)
+    {
+        float absoluteScale = Mathf.Abs(scale);
+        return absoluteScale > 0.0001f ? worldSize / absoluteScale : worldSize;
     }
 
     private static GameObject FindSceneObjectByName(string objectName, bool includeInactive)
@@ -473,6 +621,29 @@ public class DailyQuestManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    private bool AdvanceDayFromBed()
+    {
+        if (isReloadingScene)
+        {
+            return false;
+        }
+
+        isReloadingScene = true;
+        DialogueDay previousDay = DialogueController.GetCurrentDay();
+        DialogueDay nextDay = DialogueController.AdvanceDay();
+        ResetQuestState();
+
+        if (nextDay == previousDay)
+        {
+            isReloadingScene = false;
+            ApplyPersistentSceneState();
+            return true;
+        }
+
+        ReloadCurrentScene();
+        return true;
     }
 
     private void AdvanceToNextDay()

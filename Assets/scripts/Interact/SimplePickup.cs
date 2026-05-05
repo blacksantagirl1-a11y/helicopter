@@ -10,18 +10,32 @@ public class SimplePickup : Interactable
     [SerializeField] private DialogueDay requiredCompletionDay = DialogueDay.Day1;
     [SerializeField] private DialogueEventId completionDialogueEvent = DialogueEventId.DoneRequest;
 
+    private bool isDestroying;
+
+    public override bool CanInteract => !isDestroying;
     public override string PromptText => pickupPromptOverride;
 
     protected override void Interact()
     {
-        DailyQuestManager.ReportInteraction(questInteractionKey);
         bool shouldRequestCompletionDialogue = !DailyQuestManager.IsQuestSystemActive && ShouldRequestCompletionDialogue();
-        Destroy(gameObject);
+        bool shouldPlayFade = string.Equals(
+            questInteractionKey,
+            "trap",
+            System.StringComparison.OrdinalIgnoreCase);
 
-        if (shouldRequestCompletionDialogue)
+        if (!shouldPlayFade)
         {
-            DialogueController.RequestDialogue(completionDialogueEvent);
+            CompletePickupInteraction(shouldRequestCompletionDialogue);
+            return;
         }
+
+        isDestroying = true;
+        if (DialogueController.PlayInteractionFade(() => CompletePickupInteraction(shouldRequestCompletionDialogue)))
+        {
+            return;
+        }
+
+        CompletePickupInteraction(shouldRequestCompletionDialogue);
     }
 
     protected override void PresentInteraction(PlayerUI playerUI)
@@ -58,5 +72,16 @@ public class SimplePickup : Interactable
         }
 
         return pickupsInCurrentScene == 1;
+    }
+
+    private void CompletePickupInteraction(bool shouldRequestCompletionDialogue)
+    {
+        DailyQuestManager.ReportInteraction(questInteractionKey);
+        Destroy(gameObject);
+
+        if (shouldRequestCompletionDialogue)
+        {
+            DialogueController.RequestDialogue(completionDialogueEvent);
+        }
     }
 }

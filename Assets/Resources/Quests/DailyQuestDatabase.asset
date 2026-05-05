@@ -23,7 +23,7 @@ MonoBehaviour:
     completionDialogueEvent: 50
     requiresTurnInAfterCompletionDialogue: 0
     turnInCompletionDialogueEvent: 50
-  - day: 2
+  - day: 3
     questId: 20
     displayName: "Gom g\u1ED7 \u0111\u1ED1t l\u1EEDa"
     objectiveType: 20
@@ -33,7 +33,7 @@ MonoBehaviour:
     completionDialogueEvent: 70
     requiresTurnInAfterCompletionDialogue: 1
     turnInCompletionDialogueEvent: 50
-  - day: 3
+  - day: 4
     questId: 30
     displayName: "S\u0103n th\u1ECBt r\u1EEBng"
     objectiveType: 20

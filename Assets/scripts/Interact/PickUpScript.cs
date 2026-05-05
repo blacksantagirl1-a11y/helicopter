@@ -107,14 +107,27 @@ public class PickUpScript : MonoBehaviour
             return false;
         }
 
-        interactable = hit.transform.GetComponentInParent<Interactable>();
-        if (interactable == null || !interactable.CanInteract)
+        Interactable[] candidates = hit.transform.GetComponentsInParent<Interactable>();
+        Interactable fallback = null;
+        for (int index = 0; index < candidates.Length; index++)
         {
-            interactable = null;
-            return false;
+            Interactable candidate = candidates[index];
+            if (candidate == null || !candidate.enabled || !candidate.CanInteract)
+            {
+                continue;
+            }
+
+            if (candidate.GetType() != typeof(Interactable))
+            {
+                interactable = candidate;
+                return true;
+            }
+
+            fallback ??= candidate;
         }
 
-        return true;
+        interactable = fallback;
+        return interactable != null;
     }
 
     private string GetInteractablePrompt(Interactable interactable)

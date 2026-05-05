@@ -1,14 +1,9 @@
 fileFormatVersion: 2
-guid: 321d4b536be47fd45bf4694d3bc64bfa
+guid: 1cf9b135bedf41e4fba85658f6e28915
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: beartrap_m
-    second: {fileID: 2100000, guid: ed4623ef7cb1f984bb37d34bd2ea75ea, type: 2}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 0
