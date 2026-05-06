@@ -74,6 +74,9 @@ public class FishingRob : MonoBehaviour
     private PlayerUI playerUI;
     private PlayerInventory playerInventory;
     private Stamina stamina;
+    private SoundManager soundManager;
+    private AudioSource loopingFishingSource;
+    private bool loopingFishingSourceWasLooping;
     private InventoryUIController inventoryUI;
     private Jump jump;
     private Camera mainCamera;
@@ -383,9 +386,14 @@ public class FishingRob : MonoBehaviour
 
     private void EnterHookChallengeState()
     {
+        bool shouldPlayBiteSound = currentState == FishingState.BiteReady;
         currentState = FishingState.HookChallenge;
         fishMotionOffset = Random.Range(0f, 100f);
         transientStatus = "Nhan E khi ca vao o vuong giua.";
+        if (shouldPlayBiteSound)
+        {
+            StartFishingBiteSoundLoop();
+        }
 
         EnsureUi();
         if (minigamePanel != null)
@@ -396,6 +404,7 @@ public class FishingRob : MonoBehaviour
 
     private void ResolveHookAttempt()
     {
+        StopFishingBiteSoundLoop();
         bool success = IsFishInsideTargetZone();
         if (success)
         {
@@ -431,6 +440,40 @@ public class FishingRob : MonoBehaviour
         stamina?.ConsumeFishingCatchStamina();
     }
 
+    private void StartFishingBiteSoundLoop()
+    {
+        soundManager ??= SoundManager.Instance;
+        soundManager ??= FindFirstObjectByType<SoundManager>();
+        if (soundManager != null && soundManager.fishingSource != null)
+        {
+            AudioSource fishingSource = soundManager.fishingSource;
+            if (loopingFishingSource != fishingSource)
+            {
+                StopFishingBiteSoundLoop();
+                loopingFishingSource = fishingSource;
+                loopingFishingSourceWasLooping = fishingSource.loop;
+            }
+
+            fishingSource.loop = true;
+            if (!fishingSource.isPlaying)
+            {
+                fishingSource.Play();
+            }
+        }
+    }
+
+    private void StopFishingBiteSoundLoop()
+    {
+        if (loopingFishingSource == null)
+        {
+            return;
+        }
+
+        loopingFishingSource.Stop();
+        loopingFishingSource.loop = loopingFishingSourceWasLooping;
+        loopingFishingSource = null;
+    }
+
     private void ExitFishingMode()
     {
         transientStatus = string.Empty;
@@ -439,6 +482,8 @@ public class FishingRob : MonoBehaviour
 
     private void CleanupFishingSession()
     {
+        StopFishingBiteSoundLoop();
+
         if (biteRoutine != null)
         {
             StopCoroutine(biteRoutine);
@@ -1438,6 +1483,8 @@ public class FishingRob : MonoBehaviour
         playerUI ??= GetComponent<PlayerUI>();
         playerInventory ??= GetComponent<PlayerInventory>();
         stamina ??= FindFirstObjectByType<Stamina>();
+        soundManager ??= SoundManager.Instance;
+        soundManager ??= FindFirstObjectByType<SoundManager>();
         inventoryUI ??= GetComponent<InventoryUIController>();
         jump ??= GetComponent<Jump>();
         playerRigidbody ??= GetComponent<Rigidbody>();

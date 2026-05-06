@@ -30,6 +30,8 @@ public sealed class MiniGameCookingController : MonoBehaviour
     private Coroutine finishRoutine;
     private CampingCookingInteractable cookingTarget;
     private CampingCookingModeController cookingModeController;
+    private AudioSource loopingCookingSource;
+    private bool loopingCookingSourceWasLooping;
 
     public bool IsActive => gameObject.activeInHierarchy && (isRunning || finishRoutine != null);
 
@@ -41,6 +43,7 @@ public sealed class MiniGameCookingController : MonoBehaviour
 
     private void OnDisable()
     {
+        StopCookingSoundLoop();
         isRunning = false;
         if (finishRoutine != null)
         {
@@ -157,6 +160,7 @@ public sealed class MiniGameCookingController : MonoBehaviour
         cookingTarget = target;
         cookingModeController = modeController;
         isRunning = true;
+        StartCookingSoundLoop();
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -165,6 +169,7 @@ public sealed class MiniGameCookingController : MonoBehaviour
 
     public void Close()
     {
+        StopCookingSoundLoop();
         isRunning = false;
         HideResultLabels();
         cookingTarget = null;
@@ -298,6 +303,48 @@ public sealed class MiniGameCookingController : MonoBehaviour
         }
 
         finishRoutine = StartCoroutine(CloseAfterResult());
+    }
+
+    private void StartCookingSoundLoop()
+    {
+        SoundManager soundManager = ResolveSoundManager();
+        if (soundManager == null || soundManager.cookingSource == null)
+        {
+            return;
+        }
+
+        AudioSource cookingSource = soundManager.cookingSource;
+        if (loopingCookingSource != cookingSource)
+        {
+            StopCookingSoundLoop();
+            loopingCookingSource = cookingSource;
+            loopingCookingSourceWasLooping = cookingSource.loop;
+        }
+
+        cookingSource.loop = true;
+        if (!cookingSource.isPlaying)
+        {
+            cookingSource.Play();
+        }
+    }
+
+    private void StopCookingSoundLoop()
+    {
+        if (loopingCookingSource == null)
+        {
+            return;
+        }
+
+        loopingCookingSource.Stop();
+        loopingCookingSource.loop = loopingCookingSourceWasLooping;
+        loopingCookingSource = null;
+    }
+
+    private static SoundManager ResolveSoundManager()
+    {
+        return SoundManager.Instance != null
+            ? SoundManager.Instance
+            : FindFirstObjectByType<SoundManager>();
     }
 
     private IEnumerator CloseAfterResult()

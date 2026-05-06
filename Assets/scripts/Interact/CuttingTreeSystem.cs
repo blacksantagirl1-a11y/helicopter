@@ -112,9 +112,11 @@ public class CuttingTreeSystem : MonoBehaviour
 
         string treeKey = BuildTreeKey(treeInstance);
         int nextHitCount = GetHitCount(treeKey) + 1;
+        PlayChopTreeSound();
 
         if (nextHitCount >= hitsToCutTree)
         {
+            PlayTreeFallSound();
             SpawnPrototypeProxyAfterCut(terrain, treeInstance, treeWorldPosition);
             RemoveTree(terrain, treeIndex);
             treeHitCounts.Remove(treeKey);
@@ -125,6 +127,41 @@ public class CuttingTreeSystem : MonoBehaviour
 
         treeHitCounts[treeKey] = nextHitCount;
         Debug.Log($"Tree hit {nextHitCount}/{hitsToCutTree}: {GetPrototypeName(terrain, treeInstance.prototypeIndex)}");
+    }
+
+    private static void PlayChopTreeSound()
+    {
+        SoundManager soundManager = ResolveSoundManager();
+        PlayOneShot(soundManager != null ? soundManager.chopTreeSource : null);
+    }
+
+    private static void PlayTreeFallSound()
+    {
+        SoundManager soundManager = ResolveSoundManager();
+        PlayOneShot(soundManager != null ? soundManager.treeFallSource : null);
+    }
+
+    private static SoundManager ResolveSoundManager()
+    {
+        return SoundManager.Instance != null
+            ? SoundManager.Instance
+            : FindFirstObjectByType<SoundManager>();
+    }
+
+    private static void PlayOneShot(AudioSource audioSource)
+    {
+        if (audioSource == null)
+        {
+            return;
+        }
+
+        if (audioSource.clip != null)
+        {
+            audioSource.PlayOneShot(audioSource.clip);
+            return;
+        }
+
+        audioSource.Play();
     }
 
     // Thu tim cay dang duoc nham toi.

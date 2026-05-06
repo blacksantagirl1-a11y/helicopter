@@ -240,6 +240,7 @@ public class Boar : MonoBehaviour
         }
 
         ConsumeKillStamina();
+        PlayKillBoarSound();
         BoarKilled?.Invoke(this);
         SpawnMeatPickup();
         Destroy(gameObject);
@@ -252,6 +253,35 @@ public class Boar : MonoBehaviour
         {
             stamina.ConsumeBoarKillStamina();
         }
+    }
+
+    private static void PlayKillBoarSound()
+    {
+        SoundManager soundManager = ResolveSoundManager();
+        PlayOneShot(soundManager != null ? soundManager.killBoarSource : null);
+    }
+
+    private static SoundManager ResolveSoundManager()
+    {
+        return SoundManager.Instance != null
+            ? SoundManager.Instance
+            : FindFirstObjectByType<SoundManager>();
+    }
+
+    private static void PlayOneShot(AudioSource audioSource)
+    {
+        if (audioSource == null)
+        {
+            return;
+        }
+
+        if (audioSource.clip != null)
+        {
+            audioSource.PlayOneShot(audioSource.clip);
+            return;
+        }
+
+        audioSource.Play();
     }
 
     private void UpdateNavMeshMovement()

@@ -53,6 +53,8 @@ public class InventoryPickup : Interactable
             return;
         }
 
+        PlayPickUpSound();
+
         if (remainingAmount <= 0)
         {
             Destroy(gameObject);
@@ -65,6 +67,35 @@ public class InventoryPickup : Interactable
     // Pickup nay chi can prompt, khong can mo panel noi dung rieng.
     protected override void PresentInteraction(PlayerUI playerUI)
     {
+    }
+
+    private static void PlayPickUpSound()
+    {
+        SoundManager soundManager = ResolveSoundManager();
+        PlayOneShot(soundManager != null ? soundManager.pickUpSource : null);
+    }
+
+    private static SoundManager ResolveSoundManager()
+    {
+        return SoundManager.Instance != null
+            ? SoundManager.Instance
+            : FindFirstObjectByType<SoundManager>();
+    }
+
+    private static void PlayOneShot(AudioSource audioSource)
+    {
+        if (audioSource == null)
+        {
+            return;
+        }
+
+        if (audioSource.clip != null)
+        {
+            audioSource.PlayOneShot(audioSource.clip);
+            return;
+        }
+
+        audioSource.Play();
     }
 
     private void OnValidate()
