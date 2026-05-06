@@ -7,6 +7,8 @@ public sealed class DailyQuestDefinition
     [SerializeField] private DialogueDay day = DialogueDay.Day1;
     [SerializeField] private DailyQuestId questId = DailyQuestId.None;
     [SerializeField] private string displayName = "Quest";
+    [SerializeField] private string turnInDisplayName = string.Empty;
+    [SerializeField] private string instructionText = string.Empty;
     [SerializeField] private QuestObjectiveType objectiveType = QuestObjectiveType.None;
     [SerializeField] private string interactionKey = string.Empty;
     [SerializeField] private InventoryItemDefinition targetItem;
@@ -20,6 +22,8 @@ public sealed class DailyQuestDefinition
     public DialogueDay Day => day;
     public DailyQuestId QuestId => questId;
     public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? questId.ToString() : displayName;
+    public string TurnInDisplayName => string.IsNullOrWhiteSpace(turnInDisplayName) ? DisplayName : turnInDisplayName.Trim();
+    public string InstructionText => instructionText?.Trim() ?? string.Empty;
     public QuestObjectiveType ObjectiveType => objectiveType;
     public string InteractionKey => interactionKey;
     public InventoryItemDefinition TargetItem => targetItem;

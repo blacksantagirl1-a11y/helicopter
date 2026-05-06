@@ -785,23 +785,46 @@ public class DailyQuestManager : MonoBehaviour
         SetHudVisible(true);
 
         string progressLabel = BuildProgressLabel();
-        if (isWaitingForCompletionDialogue)
+        string instructionLabel = BuildInstructionLabel();
+        if (!string.IsNullOrWhiteSpace(instructionLabel))
         {
-            progressLabel = $"{progressLabel}\n\u0110ang b\u00e1o c\u00e1o nhi\u1ec7m v\u1ee5...";
+            progressLabel = $"{progressLabel}\n{instructionLabel}";
         }
-        else if (isWaitingForTurnIn)
+
+        string statusLabel = BuildStatusLabel();
+        if (!string.IsNullOrWhiteSpace(statusLabel))
         {
-            progressLabel = $"{progressLabel}\nMang g\u1ed7 \u0111\u1ebfn {GatherWoodTurnInObjectName}.";
+            progressLabel = $"{progressLabel}\n{statusLabel}";
         }
 
         if (questProgressText == null)
         {
-            questTitleText.text = $"{activeQuest.DisplayName}\n{progressLabel}";
+            questTitleText.text = $"{BuildDisplayName()}\n{progressLabel}";
             return;
         }
 
-        questTitleText.text = activeQuest.DisplayName;
+        questTitleText.text = BuildDisplayName();
         questProgressText.text = progressLabel;
+    }
+
+    private string BuildDisplayName()
+    {
+        if (activeQuest == null)
+        {
+            return string.Empty;
+        }
+
+        return ShouldShowTurnInDisplayName()
+            ? activeQuest.TurnInDisplayName
+            : activeQuest.DisplayName;
+    }
+
+    private bool ShouldShowTurnInDisplayName()
+    {
+        return activeQuest != null &&
+            activeQuest.RequiresTurnInAfterCompletionDialogue &&
+            currentProgress >= activeQuest.RequiredCount &&
+            (isWaitingForCompletionDialogue || isWaitingForTurnIn);
     }
 
     private string BuildProgressLabel()
@@ -819,6 +842,43 @@ public class DailyQuestManager : MonoBehaviour
         };
 
         return $"{label}: {currentProgress}/{activeQuest.RequiredCount}";
+    }
+
+    private string BuildInstructionLabel()
+    {
+        if (activeQuest == null)
+        {
+            return string.Empty;
+        }
+
+        if (!string.IsNullOrWhiteSpace(activeQuest.InstructionText))
+        {
+            return $"H\u01b0\u1edbng d\u1eabn: {activeQuest.InstructionText}";
+        }
+
+        return activeQuest.ObjectiveType switch
+        {
+            QuestObjectiveType.InventoryItemCount when activeQuest.TargetItem != null =>
+                $"H\u01b0\u1edbng d\u1eabn: Thu th\u1eadp {activeQuest.TargetItem.DisplayName} cho \u0111\u1ee7 s\u1ed1 l\u01b0\u1ee3ng.",
+            QuestObjectiveType.InteractionKeyCount =>
+                "H\u01b0\u1edbng d\u1eabn: T\u01b0\u01a1ng t\u00e1c v\u1edbi c\u00e1c m\u1ee5c ti\u00eau trong khu v\u1ef1c \u0111\u1ec3 t\u0103ng ti\u1ebfn \u0111\u1ed9.",
+            _ => string.Empty
+        };
+    }
+
+    private string BuildStatusLabel()
+    {
+        if (isWaitingForCompletionDialogue)
+        {
+            return "\u0110ang b\u00e1o c\u00e1o nhi\u1ec7m v\u1ee5...";
+        }
+
+        if (isWaitingForTurnIn)
+        {
+            return "Ch\u1edd b\u00e0n giao nhi\u1ec7m v\u1ee5.";
+        }
+
+        return string.Empty;
     }
 
     private void SetHudVisible(bool visible)
