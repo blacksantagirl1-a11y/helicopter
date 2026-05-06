@@ -18,6 +18,18 @@ public class SoundManager : MonoBehaviour
 
     public AudioSource cookingSource;
 
+    public AudioSource walkingSource;
+    
+    public AudioSource runningSource;
+
+    public AudioSource winSource;
+
+    public AudioSource loseSource;
+
+    public AudioSource eatSource;
+
+    public AudioSource openDoorSource;
+
     private void Awake()
     {
         

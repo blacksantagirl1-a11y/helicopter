@@ -48,6 +48,10 @@ public class Door : Interactable
     public void Toggle()
     {
         isOpen = !isOpen;
+        if (isOpen)
+        {
+            PlayOpenDoorSound();
+        }
 
         if (isOpen
             && !hasTriggeredDayStartDialogue)
@@ -80,5 +84,34 @@ public class Door : Interactable
         // Chot dung goc dich de tranh sai so lech nho sau khi noi suy.
         doorTransform.localRotation = target;
         rotateRoutine = null;
+    }
+
+    private static void PlayOpenDoorSound()
+    {
+        SoundManager soundManager = ResolveSoundManager();
+        PlayOneShot(soundManager != null ? soundManager.openDoorSource : null);
+    }
+
+    private static SoundManager ResolveSoundManager()
+    {
+        return SoundManager.Instance != null
+            ? SoundManager.Instance
+            : FindFirstObjectByType<SoundManager>();
+    }
+
+    private static void PlayOneShot(AudioSource audioSource)
+    {
+        if (audioSource == null)
+        {
+            return;
+        }
+
+        if (audioSource.clip != null)
+        {
+            audioSource.PlayOneShot(audioSource.clip);
+            return;
+        }
+
+        audioSource.Play();
     }
 }

@@ -287,6 +287,7 @@ public sealed class MiniGameCookingController : MonoBehaviour
     private void Resolve(bool isWin)
     {
         isRunning = false;
+        PlayResultSound(isWin);
         if (isWin && cookingTarget != null)
         {
             cookingTarget.AddCookedFood();
@@ -345,6 +346,33 @@ public sealed class MiniGameCookingController : MonoBehaviour
         return SoundManager.Instance != null
             ? SoundManager.Instance
             : FindFirstObjectByType<SoundManager>();
+    }
+
+    private static void PlayResultSound(bool isWin)
+    {
+        SoundManager soundManager = ResolveSoundManager();
+        if (soundManager == null)
+        {
+            return;
+        }
+
+        PlayOneShot(isWin ? soundManager.winSource : soundManager.loseSource);
+    }
+
+    private static void PlayOneShot(AudioSource audioSource)
+    {
+        if (audioSource == null)
+        {
+            return;
+        }
+
+        if (audioSource.clip != null)
+        {
+            audioSource.PlayOneShot(audioSource.clip);
+            return;
+        }
+
+        audioSource.Play();
     }
 
     private IEnumerator CloseAfterResult()

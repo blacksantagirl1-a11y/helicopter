@@ -294,7 +294,7 @@ public class FishingRob : MonoBehaviour
             UpdateLineRenderer();
         }
 
-        EnterHookChallengeState();
+        ScheduleNextBite();
         fishingRoutine = null;
         yield break;
     }
@@ -408,11 +408,13 @@ public class FishingRob : MonoBehaviour
         bool success = IsFishInsideTargetZone();
         if (success)
         {
+            PlayResultSound(true);
             TryStoreFish();
             transientStatus = "Da cau duoc ca!";
         }
         else
         {
+            PlayResultSound(false);
             transientStatus = "Ca thoat roi. Tiep tuc cho ca can.";
         }
 
@@ -438,6 +440,34 @@ public class FishingRob : MonoBehaviour
         }
 
         stamina?.ConsumeFishingCatchStamina();
+    }
+
+    private void PlayResultSound(bool isWin)
+    {
+        soundManager ??= SoundManager.Instance;
+        soundManager ??= FindFirstObjectByType<SoundManager>();
+        if (soundManager == null)
+        {
+            return;
+        }
+
+        PlayOneShot(isWin ? soundManager.winSource : soundManager.loseSource);
+    }
+
+    private static void PlayOneShot(AudioSource audioSource)
+    {
+        if (audioSource == null)
+        {
+            return;
+        }
+
+        if (audioSource.clip != null)
+        {
+            audioSource.PlayOneShot(audioSource.clip);
+            return;
+        }
+
+        audioSource.Play();
     }
 
     private void StartFishingBiteSoundLoop()

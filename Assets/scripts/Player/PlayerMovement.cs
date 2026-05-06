@@ -64,6 +64,8 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rigidbodyComponent;
     private ActionScript actionScript;
     private FishingRob fishingRob;
+    private SoundManager soundManager;
+    private AudioSource activeMovementAudio;
     private RigidbodyConstraints originalConstraints;
     private bool originalRigidbodyIsKinematic;
     private bool originalAnimatorApplyRootMotion;
@@ -125,11 +127,13 @@ public class PlayerMovement : MonoBehaviour
     {
         if (rigidbodyComponent == null)
         {
+            StopMovementAudio();
             return;
         }
 
         if (isCutscenePlaying)
         {
+            StopMovementAudio();
             if (!rigidbodyComponent.isKinematic)
             {
                 rigidbodyComponent.linearVelocity = Vector3.zero;
@@ -153,6 +157,13 @@ public class PlayerMovement : MonoBehaviour
 
         rigidbodyComponent.linearVelocity =
             transform.rotation * new Vector3(targetVelocity.x, rigidbodyComponent.linearVelocity.y, targetVelocity.y);
+
+        UpdateMovementAudio();
+    }
+
+    private void OnDisable()
+    {
+        StopMovementAudio();
     }
 
     private void Update()
@@ -280,6 +291,67 @@ public class PlayerMovement : MonoBehaviour
                Input.GetKey(KeyCode.A) ||
                Input.GetKey(KeyCode.S) ||
                Input.GetKey(KeyCode.D);
+    }
+
+    private void UpdateMovementAudio()
+    {
+        if (!HasMovementInput())
+        {
+            StopMovementAudio();
+            return;
+        }
+
+        SoundManager resolvedSoundManager = ResolveSoundManager();
+        if (resolvedSoundManager == null)
+        {
+            StopMovementAudio();
+            return;
+        }
+
+        AudioSource movementAudio = IsRunning
+            ? resolvedSoundManager.runningSource
+            : resolvedSoundManager.walkingSource;
+
+        PlayLoopingMovementAudio(movementAudio);
+    }
+
+    private void PlayLoopingMovementAudio(AudioSource movementAudio)
+    {
+        if (movementAudio == null)
+        {
+            StopMovementAudio();
+            return;
+        }
+
+        if (activeMovementAudio != null && activeMovementAudio != movementAudio)
+        {
+            activeMovementAudio.Stop();
+        }
+
+        activeMovementAudio = movementAudio;
+        activeMovementAudio.loop = true;
+        if (!activeMovementAudio.isPlaying)
+        {
+            activeMovementAudio.Play();
+        }
+    }
+
+    private void StopMovementAudio()
+    {
+        if (activeMovementAudio == null)
+        {
+            return;
+        }
+
+        activeMovementAudio.Stop();
+        activeMovementAudio = null;
+    }
+
+    private SoundManager ResolveSoundManager()
+    {
+        soundManager ??= SoundManager.Instance;
+        soundManager ??= FindFirstObjectByType<SoundManager>();
+        return soundManager;
     }
 
     private void ApplyMoveState(int moveState, bool force)
@@ -519,6 +591,11 @@ public class PlayerMovement : MonoBehaviour
         if (fishingRob == null)
         {
             fishingRob = GetComponent<FishingRob>();
+        }
+
+        if (soundManager == null)
+        {
+            soundManager = FindFirstObjectByType<SoundManager>();
         }
 
         if (cameraMain == null)

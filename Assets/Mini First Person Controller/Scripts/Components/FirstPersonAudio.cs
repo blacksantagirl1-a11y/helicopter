@@ -41,7 +41,10 @@ public class FirstPersonAudio : MonoBehaviour
     [Tooltip("Danh sách clip âm thanh bắt đầu cúi và kết thúc cúi")]
     public AudioClip[] crouchStartSFX, crouchEndSFX;
 
-    AudioSource[] MovingAudios => new AudioSource[] { stepAudio, runningAudio, crouchedAudio };
+    SoundManager soundManager;
+    AudioSource WalkingAudio => ResolveSoundManager() != null ? soundManager.walkingSource : null;
+    AudioSource RunningAudio => ResolveSoundManager() != null ? soundManager.runningSource : null;
+    AudioSource[] MovingAudios => new AudioSource[] { stepAudio, runningAudio, crouchedAudio, WalkingAudio, RunningAudio };
 
 
     void Reset()
@@ -76,9 +79,7 @@ public class FirstPersonAudio : MonoBehaviour
 
     void FixedUpdate()
     {
-        // Play moving audio if the character is moving and on the ground.
-        float velocity = Vector3.Distance(CurrentCharacterPosition, lastCharacterPosition);
-        if (velocity >= velocityThreshold && groundCheck && groundCheck.isGrounded)
+        if (CanPlayMovementAudio())
         {
             if (crouch && crouch.IsCrouched)
             {
@@ -86,11 +87,11 @@ public class FirstPersonAudio : MonoBehaviour
             }
             else if (character.IsRunning)
             {
-                SetPlayingMovingAudio(runningAudio);
+                SetPlayingMovingAudio(RunningAudio);
             }
             else
             {
-                SetPlayingMovingAudio(stepAudio);
+                SetPlayingMovingAudio(WalkingAudio);
             }
         }
         else
@@ -102,6 +103,23 @@ public class FirstPersonAudio : MonoBehaviour
         lastCharacterPosition = CurrentCharacterPosition;
     }
 
+    bool CanPlayMovementAudio()
+    {
+        if (character == null || !character.isActiveAndEnabled || character.IsCutscenePlaying)
+        {
+            return false;
+        }
+
+        if (groundCheck != null && !groundCheck.isGrounded)
+        {
+            return false;
+        }
+
+        return Input.GetKey(KeyCode.W) ||
+               Input.GetKey(KeyCode.A) ||
+               Input.GetKey(KeyCode.S) ||
+               Input.GetKey(KeyCode.D);
+    }
 
     /// <summary>
     /// Pause all MovingAudios and enforce play on audioToPlay.
@@ -115,11 +133,25 @@ public class FirstPersonAudio : MonoBehaviour
             audio.Pause();
         }
 
+        if (!audioToPlay)
+        {
+            return;
+        }
+
+        audioToPlay.loop = true;
+
         // Play audioToPlay if it was not playing.
-        if (audioToPlay && !audioToPlay.isPlaying)
+        if (!audioToPlay.isPlaying)
         {
             audioToPlay.Play();
         }
+    }
+
+    SoundManager ResolveSoundManager()
+    {
+        soundManager ??= SoundManager.Instance;
+        soundManager ??= FindFirstObjectByType<SoundManager>();
+        return soundManager;
     }
 
     #region Play instant-related audios.
