@@ -16,6 +16,10 @@ MonoBehaviour:
   - day: 1
     questId: 10
     displayName: "T\xECm v\xE0 ph\xE1 h\u1EE7y b\u1EABy"
+    turnInDisplayName: 
+    instructionText: "B\u1EA5m Q \u0111\u1EC3 t\xECm ki\u1EBFm nh\u1EEFng c\xE1i
+      b\u1EABy"
+    turnInInstructionText: 
     objectiveType: 10
     interactionKey: trap
     targetItem: {fileID: 0}
@@ -25,7 +29,11 @@ MonoBehaviour:
     turnInCompletionDialogueEvent: 50
   - day: 3
     questId: 20
-    displayName: "Gom g\u1ED7 \u0111\u1ED1t l\u1EEDa"
+    displayName: "Gom g\u1ED7 "
+    turnInDisplayName: "Ch\u1EA5t g\u1ED7 c\u1EA1nh c\u0103n cabin"
+    instructionText: "Nhi \u0111ang g\u1EE3i \xFD ra v\xF9ng h\u1ED3 ki\u1EC3m tra"
+    turnInInstructionText: "Mang s\u1ED1 g\u1ED7 \u0111\xE3 gom \u0111\u1EBFn ch\u1ED7
+      ch\u1EA5t g\u1ED7 c\u1EA1nh c\u0103n cabin \u0111\u1EC3 b\xE0n giao"
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: b0910e5d01391994eadc6b6056e44785, type: 2}
@@ -33,9 +41,13 @@ MonoBehaviour:
     completionDialogueEvent: 70
     requiresTurnInAfterCompletionDialogue: 1
     turnInCompletionDialogueEvent: 50
-  - day: 4
+  - day: 2
     questId: 30
-    displayName: "S\u0103n th\u1ECBt r\u1EEBng"
+    displayName: "S\u0103n th\u1ECBt l\u1EE3n r\u1EEBng"
+    turnInDisplayName: 
+    instructionText: "B\u1EA5m F v\xE0 chu\u1ED9t tr\xE1i \u0111\u1EC7 ch\xE9m l\u1EE3n/ch\u1EB7t
+      c\xE2y"
+    turnInInstructionText: 
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: a97f2816a4a24c44a5dbfb4204bc8a9c, type: 2}
@@ -46,6 +58,10 @@ MonoBehaviour:
   - day: 4
     questId: 40
     displayName: "C\xE2u th\xEAm c\xE1"
+    turnInDisplayName: 
+    instructionText: "Ra g\u1EA7n h\u1ED3 ho\u1EB7c b\u1EDD n\u01B0\u1EDBc \u0111\u1EC3
+      c\xE2u th\xEAm c\xE1."
+    turnInInstructionText: 
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: d6703daa303c4804f8a696c663c8e51f, type: 2}
@@ -56,6 +72,10 @@ MonoBehaviour:
   - day: 5
     questId: 50
     displayName: "T\xEDch tr\u1EEF g\u1ED7"
+    turnInDisplayName: 
+    instructionText: "Ti\u1EBFp t\u1EE5c thu th\u1EADp g\u1ED7 trong r\u1EEBng \u0111\u1EC3
+      t\xEDch tr\u1EEF."
+    turnInInstructionText: 
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: b0910e5d01391994eadc6b6056e44785, type: 2}
@@ -65,11 +85,14 @@ MonoBehaviour:
     turnInCompletionDialogueEvent: 50
   - day: 6
     questId: 60
-    displayName: "Chuy\u1EBFn c\xE2u cu\u1ED1i ng\xE0y"
+    displayName: 
+    turnInDisplayName: 
+    instructionText: 
+    turnInInstructionText: 
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: d6703daa303c4804f8a696c663c8e51f, type: 2}
-    requiredCount: 4
+    requiredCount: 1
     completionDialogueEvent: 50
     requiresTurnInAfterCompletionDialogue: 0
     turnInCompletionDialogueEvent: 50

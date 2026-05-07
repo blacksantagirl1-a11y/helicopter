@@ -52,6 +52,8 @@ public class DialogueController : MonoBehaviour
     private static DialogueController instance;
     private static bool isCreatingInstance;
 
+    public static event System.Action<DialogueDay, DialogueEventId> DialogueFinished;
+
     [Header("Data")]
     // Database la noi chua toan bo kich ban hoi thoai cua game.
     [SerializeField] private DialogueDatabase database;
@@ -205,6 +207,7 @@ public class DialogueController : MonoBehaviour
     {
         instance = null;
         isCreatingInstance = false;
+        DialogueFinished = null;
     }
 
     // Awake: chuan bi database, tim reference, tao UI neu can va dam bao hop hoi thoai dang an.
@@ -542,6 +545,7 @@ public class DialogueController : MonoBehaviour
         }
 
         DailyQuestManager.NotifyDialogueFinished(completedRequest.Day, completedRequest.EventId);
+        DialogueFinished?.Invoke(completedRequest.Day, completedRequest.EventId);
         TryActivateQuestFromDialogue(completedRequest.Day, completedRequest.Entry);
     }
 

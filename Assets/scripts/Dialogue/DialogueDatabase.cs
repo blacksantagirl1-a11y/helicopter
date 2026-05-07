@@ -8,6 +8,8 @@ using UnityEngine;
 // - EventId: su kien dang xay ra
 public class DialogueDatabase : ScriptableObject
 {
+    private const int MaxLinesPerEntry = 15;
+
     // Danh sach tat ca cac doan hoi thoai.
     [SerializeField] private List<DialogueEntry> entries = new List<DialogueEntry>();
 
@@ -72,10 +74,10 @@ public class DialogueDatabase : ScriptableObject
                 Debug.LogWarning($"DialogueDatabase '{name}' has an entry using DialogueEventId.None.", this);
             }
 
-            if (entry.LineCount < 1 || entry.LineCount > 10)
+            if (entry.LineCount < 1 || entry.LineCount > MaxLinesPerEntry)
             {
                 Debug.LogWarning(
-                    $"DialogueDatabase '{name}' entry {entry.Day} / {entry.EventId} must contain between 1 and 5 lines.",
+                    $"DialogueDatabase '{name}' entry {entry.Day} / {entry.EventId} must contain between 1 and {MaxLinesPerEntry} lines.",
                     this);
             }
 

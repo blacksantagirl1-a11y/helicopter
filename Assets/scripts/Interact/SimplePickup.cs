@@ -1,9 +1,16 @@
+using System.Text;
 using UnityEngine;
 
 public class SimplePickup : Interactable
 {
+    private const string CollectedKeyPrefix = "simplePickup.collected";
+    private const string CampaignIdKey = "simplePickup.campaignId";
+    private const string LastKnownDayKey = "simplePickup.lastKnownDay";
+
     [SerializeField] private string questInteractionKey = "trap";
     [SerializeField] private string pickupPromptOverride = "Phá Hủy";
+
+    [SerializeField] private bool persistCollectedAcrossDays = true;
 
     [Header("Completion Dialogue")]
     [SerializeField] private bool requestDoneDialogueWhenAllCollected = true;
@@ -11,9 +18,20 @@ public class SimplePickup : Interactable
     [SerializeField] private DialogueEventId completionDialogueEvent = DialogueEventId.DoneRequest;
 
     private bool isDestroying;
+    private string persistentPickupKey;
 
     public override bool CanInteract => !isDestroying;
     public override string PromptText => pickupPromptOverride;
+
+    private void Awake()
+    {
+        ApplyPersistentCollectedState();
+    }
+
+    private void OnEnable()
+    {
+        ApplyPersistentCollectedState();
+    }
 
     protected override void Interact()
     {
@@ -76,8 +94,8 @@ public class SimplePickup : Interactable
 
     private void CompletePickupInteraction(bool shouldRequestCompletionDialogue)
     {
+        MarkAsCollectedPersistently();
         DailyQuestManager.ReportInteraction(questInteractionKey);
-        PlayPickUpSound();
         Destroy(gameObject);
 
         if (shouldRequestCompletionDialogue)
@@ -86,8 +104,108 @@ public class SimplePickup : Interactable
         }
     }
 
-    private static void PlayPickUpSound()
+    private void ApplyPersistentCollectedState()
     {
-        ReSoundManager.Resolve()?.PlaySound2D(SoundIds.PickUp);
+        if (!persistCollectedAcrossDays)
+        {
+            persistentPickupKey = null;
+            return;
+        }
+
+        SyncPersistentPickupCampaign();
+        persistentPickupKey = BuildPersistentPickupKey();
+        if (string.IsNullOrEmpty(persistentPickupKey) || PlayerPrefs.GetInt(persistentPickupKey, 0) != 1)
+        {
+            return;
+        }
+
+        gameObject.SetActive(false);
+    }
+
+    private void MarkAsCollectedPersistently()
+    {
+        if (!persistCollectedAcrossDays)
+        {
+            return;
+        }
+
+        if (string.IsNullOrEmpty(persistentPickupKey))
+        {
+            SyncPersistentPickupCampaign();
+            persistentPickupKey = BuildPersistentPickupKey();
+        }
+
+        if (string.IsNullOrEmpty(persistentPickupKey))
+        {
+            return;
+        }
+
+        PlayerPrefs.SetInt(persistentPickupKey, 1);
+        PlayerPrefs.Save();
+    }
+
+    private static void SyncPersistentPickupCampaign()
+    {
+        int currentDay = Mathf.Max((int)DialogueDay.Day1, (int)DialogueController.GetCurrentDay());
+        int lastKnownDay = PlayerPrefs.GetInt(LastKnownDayKey, currentDay);
+
+        if (currentDay == (int)DialogueDay.Day1 && lastKnownDay > (int)DialogueDay.Day1)
+        {
+            int nextCampaignId = PlayerPrefs.GetInt(CampaignIdKey, 0) + 1;
+            PlayerPrefs.SetInt(CampaignIdKey, nextCampaignId);
+        }
+
+        if (lastKnownDay != currentDay)
+        {
+            PlayerPrefs.SetInt(LastKnownDayKey, currentDay);
+        }
+
+        PlayerPrefs.Save();
+    }
+
+    public static void StartNewPersistentPickupCampaign(DialogueDay day)
+    {
+        int nextCampaignId = PlayerPrefs.GetInt(CampaignIdKey, 0) + 1;
+        int clampedDay = Mathf.Max((int)DialogueDay.Day1, (int)day);
+
+        PlayerPrefs.SetInt(CampaignIdKey, nextCampaignId);
+        PlayerPrefs.SetInt(LastKnownDayKey, clampedDay);
+        PlayerPrefs.Save();
+    }
+
+    private string BuildPersistentPickupKey()
+    {
+        string sceneIdentifier = gameObject.scene.path;
+        if (string.IsNullOrWhiteSpace(sceneIdentifier))
+        {
+            sceneIdentifier = gameObject.scene.name;
+        }
+
+        if (string.IsNullOrWhiteSpace(sceneIdentifier))
+        {
+            return null;
+        }
+
+        StringBuilder hierarchyPathBuilder = new StringBuilder(sceneIdentifier);
+        hierarchyPathBuilder.Append('|');
+        hierarchyPathBuilder.Append(GetHierarchyPath(transform));
+
+        int campaignId = PlayerPrefs.GetInt(CampaignIdKey, 0);
+        return $"{CollectedKeyPrefix}.{campaignId}.{hierarchyPathBuilder}";
+    }
+
+    private static string GetHierarchyPath(Transform current)
+    {
+        if (current == null)
+        {
+            return string.Empty;
+        }
+
+        if (current.parent == null)
+        {
+            return current.name;
+        }
+
+        return $"{GetHierarchyPath(current.parent)}/{current.name}";
     }
 }

@@ -1,5 +1,24 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8934491564982372369
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13a5e1ae0cfae87498ba9c2cb9d27ec9, type: 3}
+  m_Name: HintDay3 Kino Glitch
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  glitchShader: {fileID: 4800000, guid: 51deba0d6e9147442b11c2fa2876b6d3, type: 3}
+  renderPassEvent: 600
+  maxScanLineJitter: 0.275
+  maxVerticalJump: 0.09
+  maxHorizontalShake: 0.06
+  maxColorDrift: 0.12
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26,7 +45,8 @@ MonoBehaviour:
     probeVolumeBlendStatesCS: {fileID: 7200000, guid: b9a23f869c4fd45f19c5ada54dd82176, type: 3}
   m_RendererFeatures:
   - {fileID: 7833122117494664109}
-  m_RendererFeatureMap: ad6b866f10d7b46c
+  - {fileID: -8934491564982372369}
+  m_RendererFeatureMap: ad6b866f10d7b46cef778034424f0284
   m_UseNativeRenderPass: 1
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
