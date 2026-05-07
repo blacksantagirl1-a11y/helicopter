@@ -276,7 +276,7 @@ MonoBehaviour:
       text: .....
       questAction: 0
       questId: 0
-    - speakerName: System
+    - speakerName: "Tu\u1EA5n"
       text: "C\xF4 \u1EA5y h\xE0nh x\u1EED l\u1EA1 th\u1EADt"
       questAction: 0
       questId: 0
@@ -285,17 +285,6 @@ MonoBehaviour:
         tr\u01B0\u1EDBc khi tr\u1EDF v\u1EC1"
       questAction: 1
       questId: 30
-    - speakerName: System
-      text: "Nh\u1EA5n F \u0111\u1EC3 trang b\u1ECB v\u0169 kh\xED, chu\u1ED9t tr\xE1i
-        \u0111\u1EC3 ch\u1EB7t c\xE2y/l\u1EE3n r\u1EEBng, b\u1EA5m E \u0111\u1EC3
-        nh\u1EB7t v\u1EADt ph\u1EA9m."
-      questAction: 0
-      questId: 0
-    - speakerName: System
-      text: "L\u1EE3n r\u1EEBng c\u1EA7n ch\xE9m 3 ph\xE1t\nC\xE2y c\u1EA7n ch\u1EB7t
-        2 l\u1EA7n"
-      questAction: 0
-      questId: 0
   - day: 2
     eventId: 50
     playerCanMove: 1
@@ -361,6 +350,12 @@ MonoBehaviour:
       text: "T\xF4i c\xF3 theo d\xF5i th\u1EDDi ti\u1EBFt."
       questAction: 0
       questId: 0
+    - speakerName: Nhi
+      text: "Trong l\xFAc ch\u1EB7t g\u1ED7 th\xEC anh n\xEAn \u0111i ki\u1EC3m tra
+        xung quanh cho ch\u1EAFc, nh\u01B0 l\xE0 \u0111i qua v\xF9ng h\u1ED3 ch\u1EB3ng
+        h\u1EA1n."
+      questAction: 0
+      questId: 0
   - day: 3
     eventId: 70
     playerCanMove: 1
@@ -373,12 +368,6 @@ MonoBehaviour:
     - speakerName: Nhi
       text: "H\xE3y \u0111em s\u1ED1 l\u01B0\u1EE3ng g\u1ED7 \u0111\xF3 ch\u1EA5t
         b\xEAn c\u1EA1nh c\u0103n cabin"
-      questAction: 0
-      questId: 0
-    - speakerName: Nhi
-      text: "Tr\u01B0\u1EDBc khi ho\xE0n th\xE0nh c\xF4ng vi\u1EC7c t\xF4i ngh\u0129
-        anh n\xEAn \u0111i ki\u1EC3m tra xung quanh nh\u01B0 l\xE0 \u0111i qua v\xF9ng
-        h\u1ED3 ch\u1EB3ng h\u1EA1n."
       questAction: 0
       questId: 0
     - speakerName: "Tu\u1EA5n"
@@ -469,8 +458,34 @@ MonoBehaviour:
         hi\u1EC7n t\u01B0\u1EE3ng k\u1EF3 l\u1EA1 \u0111\xF3 ra kh\u1ECFi \u0111\u1EA7u..."
       questAction: 0
       questId: 0
+  - day: 4
+    eventId: 10
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: Nhi
+      text: "Tu\u1EA5n, d\u1EADy \u0111i. Nghe t\xF4i n\xF3i r\xF5 kh\xF4ng?"
+      questAction: 0
+      questId: 0
     - speakerName: "Tu\u1EA5n"
-      text: "M\xECnh c\u1EA7n ph\u1EA3i l\xE0m g\xEC \u0111\xF3...."
+      text: "T\xF4i nghe... ngo\xE0i kia m\u01B0a l\u1EDBn qu\xE1."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "\u0110\xFAng. V\xE0 anh c\u1EA7n ra ngo\xE0i ngay."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "Ra ngo\xE0i trong m\u01B0a? "
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "\u0110\u1ED1ng g\u1ED7 c\u1EA1nh cabin ph\u1EA3i \u0111\u01B0\u1EE3c
+        ph\u1EE7 b\u1EA1t l\u1EA1i tr\u01B0\u1EDBc khi \u01B0\u1EDBt h\u1EBFt."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "ah ph\u1EA3i r\u1ED3i"
       questAction: 0
       questId: 0
   - day: 4
@@ -478,34 +493,179 @@ MonoBehaviour:
     playerCanMove: 1
     timeScale: 1
     lines:
-    - speakerName: Nhi
-      text: "Su\u1ED1i l\xEAn m\u1EE9c, \u0111\xE2y l\xE0 l\xFAc t\u1ED1t \u0111\u1EC3
-        c\xE2u th\xEAm c\xE1."
-      questAction: 0
-      questId: 0
-    - speakerName: "Hi\u1EC3n"
-      text: "M\u1EE5c ti\xEAu h\xF4m nay l\xE0 g\xEC."
+    - speakerName: "Tu\u1EA5n"
+      text: "Nhi... chuy\u1EC7n h\xF4m qua l\xE0 g\xEC? Th\xED nghi\u1EC7m s\u1ED1
+        762 l\xE0 sao?"
       questAction: 0
       questId: 0
     - speakerName: Nhi
-      text: "B\u1EAFt cho t\xF4i 3 con c\xE1 tr\u01B0\u1EDBc khi h\u1EBFt ng\xE0y."
+      text: .....
       questAction: 0
       questId: 0
-    - speakerName: "Hi\u1EC3n"
-      text: "\u0110\xE3 r\xF5. T\xF4i \u0111i ra h\u1ED3 ngay."
-      questAction: 1
-      questId: 40
+    - speakerName: Nhi
+      text: "H\xE3y mau ph\u1EE7 k\xEDn b\xF3 b\xF3 g\u1ED7"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "C\xF4 \u0111ang run \xE0?"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "\u0110\u01B0\u1EDDng truy\u1EC1n \u0111ang nhi\u1EC5u."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "Kh\xF4ng. Gi\u1ECDng c\xF4 \u0111ang run."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "...\u1EEA"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "Nhi, \u0111\xE2y l\xE0 \u0111\xE2u?"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "M\u1ED9t n\u01A1i kh\xF4ng n\xEAn t\u1ED3n t\u1EA1i."
+      questAction: 0
+      questId: 0
   - day: 4
-    eventId: 50
+    eventId: 100
     playerCanMove: 1
     timeScale: 1
     lines:
-    - speakerName: "Hi\u1EC3n"
-      text: "C\xE1 \u0111\xE3 \u0111\u1EE7 r\u1ED3i."
+    - speakerName: "Tu\u1EA5n"
+      text: "T\xF4i \u0111ang ph\u1EE7 b\u1EA1t. Gi\u1EDD n\xF3i \u0111i."
       questAction: 0
       questId: 0
     - speakerName: Nhi
-      text: "T\u1ED1t. Ch\xFAng ta c\xF3 th\xEAm th\u1EE9c \u0103n cho ng\xE0y mai."
+      text: "C\u01A1n m\u01B0a n\xE0y kh\xF4ng ph\u1EA3i th\u1EDDi ti\u1EBFt th\u1EADt."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "\xDD c\xF4 l\xE0 sao?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "T\u1ED5 ch\u1EE9c c\u1EE7a t\xF4i \u0111ang t\u1EA5n c\xF4ng v\xE0o
+        m\u1EA1ng l\u01B0\u1EDBi c\u1EE7a VING. M\u01B0a l\xE0 l\u1EDBp nhi\u1EC5u
+        \u0111\u01B0\u1EE3c \u0111\u1EA9y v\xE0o m\xF4 ph\u1ECFng \u0111\u1EC3 l\xE0m
+        ch\u1EADm h\u1EC7 th\u1ED1ng gi\xE1m s\xE1t."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "M\xF4 ph\u1ECFng?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Th\u1EBF gi\u1EDBi anh \u0111ang th\u1EA5y kh\xF4ng ph\u1EA3i th\u1EADt.
+        Cabin, khu r\u1EEBng, h\u1ED3, tr\u1EA1m ph\xE1t s\xF3ng... t\u1EA5t c\u1EA3
+        l\xE0 m\xF4i tr\u01B0\u1EDDng nghi\xEAn c\u1EE9u h\xE0nh vi."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Anh v\xE0 nhi\u1EC1u ng\u01B0\u1EDDi kh\xE1c \u0111ang b\u1ECB nh\u1ED1t
+        \u0111\u1EC3 VING h\u1ECDc c\xE1ch t\u1EA1o ra \u0111\u1ED9i qu\xE2n AI c\xF3
+        th\u1EC3 ra quy\u1EBFt \u0111\u1ECBnh ngo\xE0i chi\u1EBFn tr\u01B0\u1EDDng
+        nh\u01B0 con ng\u01B0\u1EDDi."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "T\xF4i l\xE0 t\xF9 nh\xE2n?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Anh l\xE0 \u0111\u1ED1i t\u01B0\u1EE3ng th\xED nghi\u1EC7m"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Nh\u1EEFng vi\u1EC7c anh l\xE0m h\xE0ng ng\xE0y, c\xE1ch anh ho\u1EA1t
+        \u0111\u1ED9ng,..\""
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "N\xF3 c\u0169ng gi\xFAp h\u1ECD t\u1EA1o AI kh\xF4ng ch\u1EC9 bi\u1EBFt
+        tu\xE2n l\u1EC7nh, m\xE0 c\xF2n bi\u1EBFt \u1EE9ng bi\u1EBFn nh\u01B0 ng\u01B0\u1EDDi
+        th\u1EADt."
+      questAction: 0
+      questId: 0
+  - day: 4
+    eventId: 110
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Tu\u1EA5n"
+      text: "C\xF2n c\xF4? C\xF4 l\xE0 ai?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "T\xF4i thu\u1ED9c nh\xF3m ch\u1ED1ng l\u1EA1i VING. H\u1ECD g\u1ECDi
+        ch\xFAng t\xF4i l\xE0 ph\u1EA3n \u0111\u1ED9ng. Ch\xFAng t\xF4i g\u1ECDi
+        m\xECnh l\xE0 Steins Gate."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "V\u1EADy t\u1EEB \u0111\u1EA7u c\xF4 \u0111\xE3 gi\xFAp t\xF4i?"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "T\xF4i nghe gi\u1ECDng n\xF3i ng\xE0y th\u1EE9 6 c\xF3 chi\u1EBFn d\u1ECBch.
+        Chi\u1EBFn d\u1ECBch g\xEC?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "VING s\u1EBD tr\xEDch xu\u1EA5t d\u1EEF li\u1EC7u t\u1EEB c\xE1c \u0111\u1ED1i
+        t\u01B0\u1EE3ng c\xF2n s\u1ED1ng, r\u1ED3i x\xF3a m\xF4 ph\u1ECFng ph\u1EE5."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "X\xF3a ngh\u0129a l\xE0 sao?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "V\u1EDBi anh, c\xF3 th\u1EC3 l\xE0 ch\u1EBFt. C\xF3 th\u1EC3 l\xE0 b\u1ECB
+        reset. T\xF4i kh\xF4ng bi\u1EBFt c\xE1i n\xE0o t\u1EC7 h\u01A1n."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Ch\xFAng t\xF4i s\u1EBD m\u1EDF chi\u1EBFn d\u1ECBch t\u1EA5n c\xF4ng
+        t\u1EDBi tr\u1EA1m nghi\xEAn c\u1EE9u v\xE0o th\u1EDDi \u0111i\u1EC3m \u0111\xF3."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Nh\u01B0ng hi\u1EC7n ch\xFAng t\xF4i kh\xF4ng m\u1EDF \u0111\u01B0\u1EE3c
+        m\xE3 kh\xF3a l\xF5i"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "M\xE3 kh\xF3a n\xE0o?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Th\u1EBF gi\u1EDBi c\u1EE7a anh \u0111ang b\u1ECB m\xE3 h\xF3a b\u1EB1ng
+        m\u1ED9t kh\xF3a h\xE0nh vi. Ch\xFAng t\xF4i kh\xF4ng th\u1EC3 gi\xFAp anh
+        \u0111\u01B0\u1EE3c."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "V\u1EADy t\xF4i l\xE0 ng\u01B0\u1EDDi duy nh\u1EA5t t\u1EF1 m\u1EDF
+        \u0111\u01B0\u1EE3c?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "\u0110\xFAng r\u1ED3i tr\u01B0\u1EDBc \u0111\xE2y anh l\xE0 l\u1EADp
+        tr\xECnh vi\xEAn \u0111\xF9ng kh\xF4ng? n\u1EBFu d\xF9ng c\xE1ch \u0111\xF3
+        th\xEC c\xF3 th\u1EC3 \u0111\u1EA5y."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Ng\xE0y Mai t\xF4i s\u1EBD g\u1EEDi n\xF3 \u0111\u1EBFn cho anh"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "gi\u1EDD anh c\xF3 th\u1EC3 quay v\u1EC1 gi\u01B0\u1EDDng ngh\u1EC9
+        nh\u01B0 m\u1ECDi khi"
       questAction: 0
       questId: 0
   - day: 5

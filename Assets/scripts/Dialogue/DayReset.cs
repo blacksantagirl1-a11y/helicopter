@@ -40,6 +40,11 @@ public class DayResetDebug : MonoBehaviour
 
     private static void SetDayInEditor(DialogueDay day)
     {
+        if (day == DialogueDay.Day1)
+        {
+            SimplePickup.StartNewPersistentPickupCampaign(day);
+        }
+
         DialogueSaveService.SetCurrentDay(day);
         Debug.Log($"Dialogue current day set to {day}.");
     }

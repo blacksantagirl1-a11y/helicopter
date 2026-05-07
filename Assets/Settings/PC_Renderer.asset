@@ -15,10 +15,10 @@ MonoBehaviour:
   m_Active: 1
   glitchShader: {fileID: 4800000, guid: 51deba0d6e9147442b11c2fa2876b6d3, type: 3}
   renderPassEvent: 600
-  maxScanLineJitter: 0.1375
-  maxVerticalJump: 0.045
-  maxHorizontalShake: 0.03
-  maxColorDrift: 0.06
+  maxScanLineJitter: 0.275
+  maxVerticalJump: 0.09
+  maxHorizontalShake: 0.06
+  maxColorDrift: 0.12
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

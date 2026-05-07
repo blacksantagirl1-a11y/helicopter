@@ -16,6 +16,8 @@ public class DailyQuestManager : MonoBehaviour
     private const string Day3CarpetsObjectName = "Carpets";
     private const string Day3BedObjectName = "bed";
     private const string Day3CarpetsShownKey = "quest.day3.carpetsShown";
+    private const string Day4BlockTriggerObjectName = "BlockTriggerDay4";
+    private const string Day4DialogueTriggerObjectName = "DialogueTriggerDay4";
     private const DialogueDay BundleAndBedAdvanceDay = DialogueDay.Day4;
 
     private static DailyQuestManager instance;
@@ -169,7 +171,7 @@ public class DailyQuestManager : MonoBehaviour
 
         SetDay3CarpetsShown(true);
         manager.ApplyPersistentSceneState();
-        DialogueController.RequestDialogue(DialogueEventId.DayStart);
+        DialogueController.RequestDialogue(DialogueEventId.InvestigationStart);
         return true;
     }
 
@@ -415,6 +417,7 @@ public class DailyQuestManager : MonoBehaviour
         DialogueDay currentDay = DialogueController.GetCurrentDay();
         ApplyGatherWoodBundleState(currentDay);
         ApplyDay3CarpetsState(currentDay);
+        ApplyDay4TriggerState(currentDay);
         EnsureDay3Interactables(currentDay);
     }
 
@@ -452,6 +455,17 @@ public class DailyQuestManager : MonoBehaviour
                 IsDay3CarpetsShown();
             carpets.SetActive(shouldShowCarpets);
         }
+    }
+
+    private static void ApplyDay4TriggerState(DialogueDay currentDay)
+    {
+        SetSceneObjectActive(
+            Day4BlockTriggerObjectName,
+            currentDay == BundleAndBedAdvanceDay);
+
+        SetSceneObjectActive(
+            Day4DialogueTriggerObjectName,
+            currentDay == BundleAndBedAdvanceDay && IsDay3CarpetsShown());
     }
 
     private static void EnsureDay3Interactables(DialogueDay currentDay)
@@ -621,6 +635,15 @@ public class DailyQuestManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    private static void SetSceneObjectActive(string objectName, bool isActive)
+    {
+        GameObject sceneObject = FindSceneObjectByName(objectName, true);
+        if (sceneObject != null)
+        {
+            sceneObject.SetActive(isActive);
+        }
     }
 
     private bool AdvanceDayFromBed()
@@ -827,6 +850,14 @@ public class DailyQuestManager : MonoBehaviour
             (isWaitingForCompletionDialogue || isWaitingForTurnIn);
     }
 
+    private bool ShouldShowTurnInInstruction()
+    {
+        return activeQuest != null &&
+            activeQuest.RequiresTurnInAfterCompletionDialogue &&
+            currentProgress >= activeQuest.RequiredCount &&
+            (isWaitingForCompletionDialogue || isWaitingForTurnIn);
+    }
+
     private string BuildProgressLabel()
     {
         if (activeQuest == null)
@@ -849,6 +880,16 @@ public class DailyQuestManager : MonoBehaviour
         if (activeQuest == null)
         {
             return string.Empty;
+        }
+
+        if (ShouldShowTurnInInstruction())
+        {
+            if (!string.IsNullOrWhiteSpace(activeQuest.TurnInInstructionText))
+            {
+                return $"H\u01b0\u1edbng d\u1eabn: {activeQuest.TurnInInstructionText}";
+            }
+
+            return "H\u01b0\u1edbng d\u1eabn: Mang v\u1eadt ph\u1ea9m \u0111\u1ebfn \u0111i\u1ec3m b\u00e0n giao \u0111\u1ec3 ho\u00e0n t\u1ea5t nhi\u1ec7m v\u1ee5.";
         }
 
         if (!string.IsNullOrWhiteSpace(activeQuest.InstructionText))

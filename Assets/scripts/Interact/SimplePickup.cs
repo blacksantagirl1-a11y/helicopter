@@ -163,6 +163,16 @@ public class SimplePickup : Interactable
         PlayerPrefs.Save();
     }
 
+    public static void StartNewPersistentPickupCampaign(DialogueDay day)
+    {
+        int nextCampaignId = PlayerPrefs.GetInt(CampaignIdKey, 0) + 1;
+        int clampedDay = Mathf.Max((int)DialogueDay.Day1, (int)day);
+
+        PlayerPrefs.SetInt(CampaignIdKey, nextCampaignId);
+        PlayerPrefs.SetInt(LastKnownDayKey, clampedDay);
+        PlayerPrefs.Save();
+    }
+
     private string BuildPersistentPickupKey()
     {
         string sceneIdentifier = gameObject.scene.path;

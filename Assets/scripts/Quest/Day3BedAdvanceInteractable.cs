@@ -3,7 +3,7 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class Day3BedAdvanceInteractable : Interactable
 {
-    [SerializeField] private string promptText = "Ngu den ngay tiep theo";
+    [SerializeField] private string promptText = "Nghỉ ngơi";
 
     public override bool CanInteract => DailyQuestManager.CanAdvanceFromDay3Bed();
     public override bool HasPromptText => CanInteract && !string.IsNullOrWhiteSpace(promptText);
