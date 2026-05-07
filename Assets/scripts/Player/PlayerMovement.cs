@@ -10,6 +10,7 @@ public class PlayerMovement : MonoBehaviour
     private const int MoveStateBackward = 3;
     private const int MoveStateLeft = 4;
     private const int MoveStateRunning = 5;
+    private const string MovementLoopKey = "PlayerMovement";
 
     [Header("Movement")]
     [Tooltip("Tốc độ di chuyển cơ bản của nhân vật")]
@@ -64,8 +65,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rigidbodyComponent;
     private ActionScript actionScript;
     private FishingRob fishingRob;
-    private SoundManager soundManager;
-    private AudioSource activeMovementAudio;
+    private ReSoundManager soundManager;
     private RigidbodyConstraints originalConstraints;
     private bool originalRigidbodyIsKinematic;
     private bool originalAnimatorApplyRootMotion;
@@ -301,56 +301,25 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        SoundManager resolvedSoundManager = ResolveSoundManager();
+        ReSoundManager resolvedSoundManager = ResolveSoundManager();
         if (resolvedSoundManager == null)
         {
             StopMovementAudio();
             return;
         }
 
-        AudioSource movementAudio = IsRunning
-            ? resolvedSoundManager.runningSource
-            : resolvedSoundManager.walkingSource;
-
-        PlayLoopingMovementAudio(movementAudio);
-    }
-
-    private void PlayLoopingMovementAudio(AudioSource movementAudio)
-    {
-        if (movementAudio == null)
-        {
-            StopMovementAudio();
-            return;
-        }
-
-        if (activeMovementAudio != null && activeMovementAudio != movementAudio)
-        {
-            activeMovementAudio.Stop();
-        }
-
-        activeMovementAudio = movementAudio;
-        activeMovementAudio.loop = true;
-        if (!activeMovementAudio.isPlaying)
-        {
-            activeMovementAudio.Play();
-        }
+        string movementSound = IsRunning ? SoundIds.Running : SoundIds.Walking;
+        resolvedSoundManager.PlayLoop2D(movementSound, MovementLoopKey);
     }
 
     private void StopMovementAudio()
     {
-        if (activeMovementAudio == null)
-        {
-            return;
-        }
-
-        activeMovementAudio.Stop();
-        activeMovementAudio = null;
+        ResolveSoundManager()?.StopLoop2D(MovementLoopKey);
     }
 
-    private SoundManager ResolveSoundManager()
+    private ReSoundManager ResolveSoundManager()
     {
-        soundManager ??= SoundManager.Instance;
-        soundManager ??= FindFirstObjectByType<SoundManager>();
+        soundManager ??= ReSoundManager.Resolve();
         return soundManager;
     }
 
@@ -595,7 +564,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (soundManager == null)
         {
-            soundManager = FindFirstObjectByType<SoundManager>();
+            soundManager = FindFirstObjectByType<ReSoundManager>();
         }
 
         if (cameraMain == null)

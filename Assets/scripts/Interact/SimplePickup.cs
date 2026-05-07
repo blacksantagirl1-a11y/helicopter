@@ -88,30 +88,6 @@ public class SimplePickup : Interactable
 
     private static void PlayPickUpSound()
     {
-        SoundManager soundManager = ResolveSoundManager();
-        PlayOneShot(soundManager != null ? soundManager.pickUpSource : null);
-    }
-
-    private static SoundManager ResolveSoundManager()
-    {
-        return SoundManager.Instance != null
-            ? SoundManager.Instance
-            : FindFirstObjectByType<SoundManager>();
-    }
-
-    private static void PlayOneShot(AudioSource audioSource)
-    {
-        if (audioSource == null)
-        {
-            return;
-        }
-
-        if (audioSource.clip != null)
-        {
-            audioSource.PlayOneShot(audioSource.clip);
-            return;
-        }
-
-        audioSource.Play();
+        ReSoundManager.Resolve()?.PlaySound2D(SoundIds.PickUp);
     }
 }

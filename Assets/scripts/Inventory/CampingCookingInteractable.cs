@@ -61,30 +61,6 @@ public sealed class CampingCookingInteractable : Interactable
 
     private static void PlayEatSound()
     {
-        SoundManager soundManager = ResolveSoundManager();
-        PlayOneShot(soundManager != null ? soundManager.eatSource : null);
-    }
-
-    private static SoundManager ResolveSoundManager()
-    {
-        return SoundManager.Instance != null
-            ? SoundManager.Instance
-            : FindFirstObjectByType<SoundManager>();
-    }
-
-    private static void PlayOneShot(AudioSource audioSource)
-    {
-        if (audioSource == null)
-        {
-            return;
-        }
-
-        if (audioSource.clip != null)
-        {
-            audioSource.PlayOneShot(audioSource.clip);
-            return;
-        }
-
-        audioSource.Play();
+        ReSoundManager.Resolve()?.PlaySound2D(SoundIds.Eat);
     }
 }

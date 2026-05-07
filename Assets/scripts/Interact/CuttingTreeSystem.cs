@@ -131,37 +131,12 @@ public class CuttingTreeSystem : MonoBehaviour
 
     private static void PlayChopTreeSound()
     {
-        SoundManager soundManager = ResolveSoundManager();
-        PlayOneShot(soundManager != null ? soundManager.chopTreeSource : null);
+        ReSoundManager.Resolve()?.PlaySound2D(SoundIds.ChopTree);
     }
 
     private static void PlayTreeFallSound()
     {
-        SoundManager soundManager = ResolveSoundManager();
-        PlayOneShot(soundManager != null ? soundManager.treeFallSource : null);
-    }
-
-    private static SoundManager ResolveSoundManager()
-    {
-        return SoundManager.Instance != null
-            ? SoundManager.Instance
-            : FindFirstObjectByType<SoundManager>();
-    }
-
-    private static void PlayOneShot(AudioSource audioSource)
-    {
-        if (audioSource == null)
-        {
-            return;
-        }
-
-        if (audioSource.clip != null)
-        {
-            audioSource.PlayOneShot(audioSource.clip);
-            return;
-        }
-
-        audioSource.Play();
+        ReSoundManager.Resolve()?.PlaySound2D(SoundIds.TreeFall);
     }
 
     // Thu tim cay dang duoc nham toi.

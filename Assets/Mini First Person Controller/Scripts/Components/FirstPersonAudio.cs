@@ -41,10 +41,9 @@ public class FirstPersonAudio : MonoBehaviour
     [Tooltip("Danh sách clip âm thanh bắt đầu cúi và kết thúc cúi")]
     public AudioClip[] crouchStartSFX, crouchEndSFX;
 
-    SoundManager soundManager;
-    AudioSource WalkingAudio => ResolveSoundManager() != null ? soundManager.walkingSource : null;
-    AudioSource RunningAudio => ResolveSoundManager() != null ? soundManager.runningSource : null;
-    AudioSource[] MovingAudios => new AudioSource[] { stepAudio, runningAudio, crouchedAudio, WalkingAudio, RunningAudio };
+    const string MovementLoopKey = "PlayerMovement";
+
+    AudioSource[] MovingAudios => new AudioSource[] { stepAudio, runningAudio, crouchedAudio };
 
 
     void Reset()
@@ -83,20 +82,24 @@ public class FirstPersonAudio : MonoBehaviour
         {
             if (crouch && crouch.IsCrouched)
             {
+                StopSharedMovementAudio();
                 SetPlayingMovingAudio(crouchedAudio);
             }
             else if (character.IsRunning)
             {
-                SetPlayingMovingAudio(RunningAudio);
+                SetPlayingMovingAudio(null);
+                PlaySharedMovementAudio(SoundIds.Running);
             }
             else
             {
-                SetPlayingMovingAudio(WalkingAudio);
+                SetPlayingMovingAudio(null);
+                PlaySharedMovementAudio(SoundIds.Walking);
             }
         }
         else
         {
             SetPlayingMovingAudio(null);
+            StopSharedMovementAudio();
         }
 
         // Remember lastCharacterPosition.
@@ -147,11 +150,14 @@ public class FirstPersonAudio : MonoBehaviour
         }
     }
 
-    SoundManager ResolveSoundManager()
+    static void PlaySharedMovementAudio(string soundId)
     {
-        soundManager ??= SoundManager.Instance;
-        soundManager ??= FindFirstObjectByType<SoundManager>();
-        return soundManager;
+        ReSoundManager.Resolve()?.PlayLoop2D(soundId, MovementLoopKey);
+    }
+
+    static void StopSharedMovementAudio()
+    {
+        ReSoundManager.Resolve()?.StopLoop2D(MovementLoopKey);
     }
 
     #region Play instant-related audios.

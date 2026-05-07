@@ -30,8 +30,7 @@ public sealed class MiniGameCookingController : MonoBehaviour
     private Coroutine finishRoutine;
     private CampingCookingInteractable cookingTarget;
     private CampingCookingModeController cookingModeController;
-    private AudioSource loopingCookingSource;
-    private bool loopingCookingSourceWasLooping;
+    private const string CookingLoopKey = "Cooking";
 
     public bool IsActive => gameObject.activeInHierarchy && (isRunning || finishRoutine != null);
 
@@ -308,71 +307,17 @@ public sealed class MiniGameCookingController : MonoBehaviour
 
     private void StartCookingSoundLoop()
     {
-        SoundManager soundManager = ResolveSoundManager();
-        if (soundManager == null || soundManager.cookingSource == null)
-        {
-            return;
-        }
-
-        AudioSource cookingSource = soundManager.cookingSource;
-        if (loopingCookingSource != cookingSource)
-        {
-            StopCookingSoundLoop();
-            loopingCookingSource = cookingSource;
-            loopingCookingSourceWasLooping = cookingSource.loop;
-        }
-
-        cookingSource.loop = true;
-        if (!cookingSource.isPlaying)
-        {
-            cookingSource.Play();
-        }
+        ReSoundManager.Resolve()?.PlayLoop2D(SoundIds.Cooking, CookingLoopKey);
     }
 
     private void StopCookingSoundLoop()
     {
-        if (loopingCookingSource == null)
-        {
-            return;
-        }
-
-        loopingCookingSource.Stop();
-        loopingCookingSource.loop = loopingCookingSourceWasLooping;
-        loopingCookingSource = null;
-    }
-
-    private static SoundManager ResolveSoundManager()
-    {
-        return SoundManager.Instance != null
-            ? SoundManager.Instance
-            : FindFirstObjectByType<SoundManager>();
+        ReSoundManager.Resolve()?.StopLoop2D(CookingLoopKey);
     }
 
     private static void PlayResultSound(bool isWin)
     {
-        SoundManager soundManager = ResolveSoundManager();
-        if (soundManager == null)
-        {
-            return;
-        }
-
-        PlayOneShot(isWin ? soundManager.winSource : soundManager.loseSource);
-    }
-
-    private static void PlayOneShot(AudioSource audioSource)
-    {
-        if (audioSource == null)
-        {
-            return;
-        }
-
-        if (audioSource.clip != null)
-        {
-            audioSource.PlayOneShot(audioSource.clip);
-            return;
-        }
-
-        audioSource.Play();
+        ReSoundManager.Resolve()?.PlaySound2D(isWin ? SoundIds.Win : SoundIds.Lose);
     }
 
     private IEnumerator CloseAfterResult()

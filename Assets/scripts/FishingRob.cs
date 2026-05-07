@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class FishingRob : MonoBehaviour
 {
     private const float TargetZoneCenterNormalized = 0.5f;
+    private const string FishingLoopKey = "Fishing";
 
     private enum FishingState
     {
@@ -74,9 +75,7 @@ public class FishingRob : MonoBehaviour
     private PlayerUI playerUI;
     private PlayerInventory playerInventory;
     private Stamina stamina;
-    private SoundManager soundManager;
-    private AudioSource loopingFishingSource;
-    private bool loopingFishingSourceWasLooping;
+    private ReSoundManager soundManager;
     private InventoryUIController inventoryUI;
     private Jump jump;
     private Camera mainCamera;
@@ -444,64 +443,20 @@ public class FishingRob : MonoBehaviour
 
     private void PlayResultSound(bool isWin)
     {
-        soundManager ??= SoundManager.Instance;
-        soundManager ??= FindFirstObjectByType<SoundManager>();
-        if (soundManager == null)
-        {
-            return;
-        }
-
-        PlayOneShot(isWin ? soundManager.winSource : soundManager.loseSource);
-    }
-
-    private static void PlayOneShot(AudioSource audioSource)
-    {
-        if (audioSource == null)
-        {
-            return;
-        }
-
-        if (audioSource.clip != null)
-        {
-            audioSource.PlayOneShot(audioSource.clip);
-            return;
-        }
-
-        audioSource.Play();
+        soundManager ??= ReSoundManager.Resolve();
+        soundManager?.PlaySound2D(isWin ? SoundIds.Win : SoundIds.Lose);
     }
 
     private void StartFishingBiteSoundLoop()
     {
-        soundManager ??= SoundManager.Instance;
-        soundManager ??= FindFirstObjectByType<SoundManager>();
-        if (soundManager != null && soundManager.fishingSource != null)
-        {
-            AudioSource fishingSource = soundManager.fishingSource;
-            if (loopingFishingSource != fishingSource)
-            {
-                StopFishingBiteSoundLoop();
-                loopingFishingSource = fishingSource;
-                loopingFishingSourceWasLooping = fishingSource.loop;
-            }
-
-            fishingSource.loop = true;
-            if (!fishingSource.isPlaying)
-            {
-                fishingSource.Play();
-            }
-        }
+        soundManager ??= ReSoundManager.Resolve();
+        soundManager?.PlayLoop2D(SoundIds.Fishing, FishingLoopKey);
     }
 
     private void StopFishingBiteSoundLoop()
     {
-        if (loopingFishingSource == null)
-        {
-            return;
-        }
-
-        loopingFishingSource.Stop();
-        loopingFishingSource.loop = loopingFishingSourceWasLooping;
-        loopingFishingSource = null;
+        soundManager ??= ReSoundManager.Resolve();
+        soundManager?.StopLoop2D(FishingLoopKey);
     }
 
     private void ExitFishingMode()
@@ -1513,8 +1468,7 @@ public class FishingRob : MonoBehaviour
         playerUI ??= GetComponent<PlayerUI>();
         playerInventory ??= GetComponent<PlayerInventory>();
         stamina ??= FindFirstObjectByType<Stamina>();
-        soundManager ??= SoundManager.Instance;
-        soundManager ??= FindFirstObjectByType<SoundManager>();
+        soundManager ??= ReSoundManager.Resolve();
         inventoryUI ??= GetComponent<InventoryUIController>();
         jump ??= GetComponent<Jump>();
         playerRigidbody ??= GetComponent<Rigidbody>();
