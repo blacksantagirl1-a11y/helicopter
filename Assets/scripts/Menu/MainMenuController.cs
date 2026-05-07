@@ -141,12 +141,20 @@ public class MainMenuController : MonoBehaviour
     {
         UnbindUiEvents();
         KillTweens();
+        StopMenuMusic();
     }
 
     void Start()
     {
         StartIntroFade();
         StartCoroutine(SelectButtonNextFrame(playButton));
+        StartCoroutine(PlayMusicDelayed());
+    }
+
+    IEnumerator PlayMusicDelayed()
+    {
+        yield return null;
+        Play();
     }
 
     void BindUiEvents()
@@ -447,10 +455,12 @@ public class MainMenuController : MonoBehaviour
 
         MenuSettingsService.Save(currentSettings);
         SetState(MenuState.Loading, playButton);
+        StopMenuMusic();
 
         if (!LoadingManager.LoadScene(gameplaySceneName))
         {
             SetState(MenuState.Idle, null);
+            Play();
             StartCoroutine(SelectButtonNextFrame(playButton));
         }
     }
@@ -829,6 +839,22 @@ public class MainMenuController : MonoBehaviour
         public Button button;
         public TMP_Text label;
         public RectTransform rect;
+    }
+
+    public void Play()
+    {
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.PlayMusic("MainMenu");
+        }
+    }
+
+    void StopMenuMusic()
+    {
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.StopMusic();
+        }
     }
 }
 
