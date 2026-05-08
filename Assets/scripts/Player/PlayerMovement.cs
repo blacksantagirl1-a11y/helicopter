@@ -65,6 +65,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rigidbodyComponent;
     private ActionScript actionScript;
     private FishingRob fishingRob;
+    private Crouch crouch;
     private ReSoundManager soundManager;
     private RigidbodyConstraints originalConstraints;
     private bool originalRigidbodyIsKinematic;
@@ -143,7 +144,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        IsRunning = canRun && HasMovementInput() && Input.GetKey(runningKey);
+        IsRunning = canRun && !IsCrouchingOrTryingToCrouch() && HasMovementInput() && Input.GetKey(runningKey);
 
         float targetMovingSpeed = IsRunning ? runSpeed : speed;
         if (speedOverrides.Count > 0)
@@ -308,7 +309,9 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        string movementSound = IsRunning ? SoundIds.Running : SoundIds.Walking;
+        string movementSound = IsRunning && !IsCrouchingOrTryingToCrouch()
+            ? SoundIds.Running
+            : SoundIds.Walking;
         resolvedSoundManager.PlayLoop2D(movementSound, MovementLoopKey);
     }
 
@@ -321,6 +324,11 @@ public class PlayerMovement : MonoBehaviour
     {
         soundManager ??= ReSoundManager.Resolve();
         return soundManager;
+    }
+
+    private bool IsCrouchingOrTryingToCrouch()
+    {
+        return crouch != null && (crouch.IsCrouched || Input.GetKey(crouch.key));
     }
 
     private void ApplyMoveState(int moveState, bool force)
@@ -560,6 +568,11 @@ public class PlayerMovement : MonoBehaviour
         if (fishingRob == null)
         {
             fishingRob = GetComponent<FishingRob>();
+        }
+
+        if (crouch == null)
+        {
+            crouch = GetComponent<Crouch>();
         }
 
         if (soundManager == null)
