@@ -331,6 +331,8 @@ public sealed class MiniGameCookingController : MonoBehaviour
         {
             modeController.ExitCookingMode();
         }
+
+        DailyQuestManager.NotifyCookingMiniGameClosed();
     }
 
     private bool IsSliderTouchingRectangle()

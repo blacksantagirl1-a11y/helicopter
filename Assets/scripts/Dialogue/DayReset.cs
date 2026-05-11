@@ -46,6 +46,11 @@ public class DayResetDebug : MonoBehaviour
         }
 
         DialogueSaveService.SetCurrentDay(day);
+        if (day == DialogueDay.Day5)
+        {
+            DailyQuestManager.ResetDay5DataPackageForReplay();
+        }
+
         Debug.Log($"Dialogue current day set to {day}.");
     }
 #endif

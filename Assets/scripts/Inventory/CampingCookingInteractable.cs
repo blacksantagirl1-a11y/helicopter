@@ -11,16 +11,18 @@ public sealed class CampingCookingInteractable : Interactable
     private int cookedFoodCount;
 
     public override bool HasPromptText => true;
-    public override string PromptText => cookedFoodCount > 0 ? eatPrompt : cookingPrompt;
+    public override string PromptText => ShouldCookBeforeEating() ? cookingPrompt : HasCookedFoodAvailable() ? eatPrompt : cookingPrompt;
 
     public void AddCookedFood(int amount = 1)
     {
-        cookedFoodCount += Mathf.Max(1, amount);
+        int safeAmount = Mathf.Max(1, amount);
+        cookedFoodCount += safeAmount;
+        DailyQuestManager.ReportInteraction(DailyQuestManager.Day5CookedFoodInteractionKey, safeAmount);
     }
 
     protected override void Interact()
     {
-        if (cookedFoodCount > 0)
+        if (HasCookedFoodAvailable() && !ShouldCookBeforeEating())
         {
             EatCookedFood();
             return;
@@ -49,18 +51,32 @@ public sealed class CampingCookingInteractable : Interactable
     private void EatCookedFood()
     {
         Stamina stamina = FindFirstObjectByType<Stamina>();
-        if (stamina == null)
+        if (stamina != null)
         {
-            return;
+            stamina.RestoreStamina(staminaRestoreAmount);
         }
 
-        stamina.RestoreStamina(staminaRestoreAmount);
-        cookedFoodCount = Mathf.Max(0, cookedFoodCount - 1);
+        if (cookedFoodCount > 0)
+        {
+            cookedFoodCount = Mathf.Max(0, cookedFoodCount - 1);
+        }
+
         PlayEatSound();
+        DailyQuestManager.ReportInteraction(DailyQuestManager.Day5AteFoodInteractionKey);
     }
 
     private static void PlayEatSound()
     {
         ReSoundManager.Resolve()?.PlaySound2D(SoundIds.Eat);
+    }
+
+    private static bool ShouldCookBeforeEating()
+    {
+        return DailyQuestManager.ShouldPrioritizeDay5CookingOverEating();
+    }
+
+    private bool HasCookedFoodAvailable()
+    {
+        return cookedFoodCount > 0 || DailyQuestManager.CanEatDay5CookedFood();
     }
 }

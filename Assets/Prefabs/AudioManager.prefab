@@ -247,6 +247,9 @@ MonoBehaviour:
   - groupID: OpenDoor
     clips:
     - {fileID: 8300000, guid: 07a98ddcb5b2ff547a20dd3a840ed31d, type: 3}
+  - groupID: GunShot
+    clips:
+    - {fileID: 8300000, guid: 5e2ac552191856647a24956ac037dced, type: 3}
 --- !u!114 &155603303554308607
 MonoBehaviour:
   m_ObjectHideFlags: 0

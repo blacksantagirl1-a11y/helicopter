@@ -18,6 +18,14 @@ public enum DialogueEventId
     InvestigationProgress = 110,
     InvestigationComplete = 120,
     EndingStart = 130,
+    Day5DataCubeAppears = 140,
+    Day5ComputerOpened = 150,
+    Day5FishComplete = 160,
+    Day5WoodComplete = 170,
+    Day5CampfirePlaced = 180,
+    Day5CookingComplete = 190,
+    Day5AfterGunshot = 200,
+    Day5QuestComplete = 210,
 
   
 }

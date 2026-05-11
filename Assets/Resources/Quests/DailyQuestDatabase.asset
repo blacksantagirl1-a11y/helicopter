@@ -70,17 +70,16 @@ MonoBehaviour:
     requiresTurnInAfterCompletionDialogue: 0
     turnInCompletionDialogueEvent: 50
   - day: 5
-    questId: 50
-    displayName: "T\xEDch tr\u1EEF g\u1ED7"
+    questId: 70
+    displayName: "Sinh tồn ngày 5"
     turnInDisplayName: 
-    instructionText: "Ti\u1EBFp t\u1EE5c thu th\u1EADp g\u1ED7 trong r\u1EEBng \u0111\u1EC3
-      t\xEDch tr\u1EEF."
+    instructionText: "Bắt 7 con cá, chặt 5 cây gỗ, nấu 3 món ăn, rồi ăn 1 lần."
     turnInInstructionText: 
-    objectiveType: 20
+    objectiveType: 30
     interactionKey: 
-    targetItem: {fileID: 11400000, guid: b0910e5d01391994eadc6b6056e44785, type: 2}
-    requiredCount: 5
-    completionDialogueEvent: 50
+    targetItem: {fileID: 0}
+    requiredCount: 1
+    completionDialogueEvent: 210
     requiresTurnInAfterCompletionDialogue: 0
     turnInCompletionDialogueEvent: 50
   - day: 6

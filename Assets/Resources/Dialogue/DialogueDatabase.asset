@@ -669,40 +669,265 @@ MonoBehaviour:
       questAction: 0
       questId: 0
   - day: 5
+    eventId: 10
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: Nhi
+      text: "Tuấn... anh dậy chưa?"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Tôi dậy rồi. Tín hiệu hôm nay nghe tệ thật."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Ừ... hôm nay hệ thống giám sát hoạt động mạnh hơn."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Lại có chuyện gì sao?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Đừng hỏi nhiều. Chỉ cần nghe tôi."
+      questAction: 0
+      questId: 0
+  - day: 5
+    eventId: 140
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: System
+      text: "Một khối cube méo mó như lỗi texture xuất hiện giữa cabin rồi đứng yên trên bàn."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "...Cái gì đây?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Một gói dữ liệu tôi chèn vào được."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Cô vừa tạo vật thể giữa không khí à?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Tôi không có nhiều thời gian đâu."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Nó dùng để làm gì?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Mở nó ra đi."
+      questAction: 0
+      questId: 0
+  - day: 5
+    eventId: 150
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: System
+      text: "Tuấn chạm vào khối cube. Một màn hình máy tính cũ bật lên từ bên trong."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "...Đây đúng là máy tính."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Tạm thời thôi. Hệ thống sẽ sớm phát hiện bất thường."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Tôi dùng nó được không?"
+      questAction: 0
+      questId: 0
+    - speakerName: System
+      text: "Nhi im lặng vài giây như đang suy nghĩ."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Hiện tại thì chưa, anh cần có mật khẩu."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Hôm nay tôi bị theo dõi nên không thể nói trực tiếp."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Vậy tôi phải làm sao?"
+      questAction: 0
+      questId: 0
+    - speakerName: System
+      text: "Bộ đàm im lặng vài giây."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Hiện tại anh cần sống sót trước đã."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Ý cô là sao?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Hôm nay hãy kiếm thức ăn tử tế đi."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Bắt 7 con cá, chặt 5 cây gỗ, nấu 3 món ăn, rồi ăn 1 lần."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Nghe giống sinh tồn hơn là công việc kiểm lâm."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Trong thế giới này... biết đâu đó mới là điều quan trọng nhất."
+      questAction: 1
+      questId: 70
+  - day: 5
     eventId: 30
     playerCanMove: 1
     timeScale: 1
     lines:
-    - speakerName: Nhi
-      text: "Khu tr\xFA \u1EA9n c\u1EA7n th\xEAm nhi\xEAn li\u1EC7u d\u1EF1 ph\xF2ng."
+    - speakerName: "Tuấn"
+      text: "Mình nên làm theo những gì Nhi giao trước."
       questAction: 0
       questId: 0
-    - speakerName: "Hi\u1EC3n"
-      text: "C\u1EA7n nhi\u1EC1u g\u1ED7 h\u01A1n h\xF4m tr\u01B0\u1EDBc \u0111\xFAng
-        kh\xF4ng."
-      questAction: 0
-      questId: 0
-    - speakerName: Nhi
-      text: "\u0110\xFAng v\u1EADy. Gom cho t\xF4i 5 kh\xFAc g\u1ED7 tr\u01B0\u1EDBc
-        l\xFAc h\u1EBFt ng\xE0y."
-      questAction: 0
-      questId: 0
-    - speakerName: "Hi\u1EC3n"
-      text: "\u0110\xE3 r\xF5. T\xF4i \u0111i ngay."
-      questAction: 1
-      questId: 50
   - day: 5
-    eventId: 50
+    eventId: 160
     playerCanMove: 1
     timeScale: 1
     lines:
-    - speakerName: "Hi\u1EC3n"
-      text: "T\xF4i \u0111\xE3 ch\u1EB7t \u0111\u1EE7 s\u1ED1 g\u1ED7 c\u1EA7n thi\u1EBFt."
+    - speakerName: "Tuấn"
+      text: "Tôi bắt đủ cá rồi."
       questAction: 0
       questId: 0
     - speakerName: Nhi
-      text: "T\u1ED1t. Ch\xFAng ta \u0111\xE3 s\u1EB5n s\xE0ng h\u01A1n r\u1EA5t
-        nhi\u1EC1u."
+      text: "Tốt. Giờ kiếm thêm ít gỗ đi."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Cô nói cứ như mẹ tôi vậy."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Nếu tôi không nhắc thì anh sẽ chết đói mất."
+      questAction: 0
+      questId: 0
+  - day: 5
+    eventId: 170
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Tuấn"
+      text: "Được rồi, đủ củi rồi."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Vậy nhóm lửa lên."
+      questAction: 0
+      questId: 0
+  - day: 5
+    eventId: 180
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Tuấn"
+      text: "Lâu rồi tôi mới tự nấu ăn thế này."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Cảm giác thế nào?"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Yên bình."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "*tiếng cười* Nếu mọi thứ kết thúc... anh sẽ làm gì?"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Tôi không biết."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Vậy hãy sống sót đến lúc đó trước đi."
+      questAction: 0
+      questId: 0
+  - day: 5
+    eventId: 190
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Tuấn"
+      text: "Xong rồi."
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Tốt..."
+      questAction: 0
+      questId: 0
+    - speakerName: System
+      text: "Đột nhiên tín hiệu bộ đàm nhiễu mạnh."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Nhi?"
+      questAction: 0
+      questId: 0
+    - speakerName: Nhi
+      text: "Hãy nhớ tôi bảo anh phải làm gì."
+      questAction: 0
+      questId: 0
+  - day: 5
+    eventId: 200
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: System
+      text: "ĐOÀNG!"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "NHI?!"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "...Nhi?"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Có tiếng súng, Nhi có sao không?"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "Cô ấy bảo mình phải làm gì đó."
+      questAction: 0
+      questId: 0
+  - day: 5
+    eventId: 210
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Tuấn"
+      text: "7 con cá, 5 khúc gỗ, nấu 3 lần và ăn 1 lần."
+      questAction: 0
+      questId: 0
+    - speakerName: "Tuấn"
+      text: "7 5 3 1. Mật khẩu là 7 5 3 1."
+      questAction: 0
+      questId: 0
+    - speakerName: System
+      text: "Hết ngày."
       questAction: 0
       questId: 0
   - day: 6

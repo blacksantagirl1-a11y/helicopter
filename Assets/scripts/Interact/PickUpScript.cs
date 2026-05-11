@@ -35,25 +35,42 @@ public class PickUpScript : MonoBehaviour
             fishingRob.RefreshInteractionAvailability();
         }
 
-        if (fishingRob != null && fishingRob.ShouldOverrideDefaultInteraction)
+        bool hasLookInteractable = TryGetLookInteractable(out Interactable lookInteractable);
+        bool fishingIsActive = fishingRob != null && fishingRob.IsFishingActive;
+
+        if (fishingRob != null && fishingRob.ShouldOverrideDefaultInteraction && (fishingIsActive || !hasLookInteractable))
         {
             ShowPromptUI(fishingRob.CurrentPrompt);
         }
+        else if (hasLookInteractable)
+        {
+            ShowInteractablePrompt(lookInteractable);
+        }
         else
         {
-            CheckForInteractables();
+            HidePromptUI();
         }
 
         // E kich hoat object dang duoc raycast vao.
         if (Input.GetKeyDown(KeyCode.E))
         {
-            if (fishingRob != null && fishingRob.TryConsumeInteractInput())
+            if (fishingIsActive && fishingRob.TryConsumeInteractInput())
             {
                 HidePromptUI();
                 return;
             }
 
-            HandleInteractInput();
+            if (hasLookInteractable)
+            {
+                HandleInteractInput(lookInteractable);
+                return;
+            }
+
+            if (fishingRob != null && fishingRob.TryConsumeInteractInput())
+            {
+                HidePromptUI();
+                return;
+            }
         }
     }
 
@@ -74,24 +91,46 @@ public class PickUpScript : MonoBehaviour
         HidePromptUI();
     }
 
+    private void HandleInteractInput(Interactable interactable)
+    {
+        if (interactable == null)
+        {
+            return;
+        }
+
+        // Khi subtitle cua chinh object nay dang hien thi, khong kich hoat lai cho den khi no tu tat.
+        if (playerUI != null && playerUI.IsShowingContent(interactable))
+        {
+            return;
+        }
+
+        interactable.BaseInteract(playerUI);
+        HidePromptUI();
+    }
+
     private void CheckForInteractables()
     {
         if (TryGetLookInteractable(out Interactable interactable))
         {
-            // Khi panel cua chinh object dang mo thi an prompt de UI doan nay khong chong len nhau.
-            if (playerUI != null && playerUI.IsShowingContent(interactable))
-            {
-                HidePromptUI();
-            }
-            else
-            {
-                ShowPromptUI(GetInteractablePrompt(interactable));
-            }
+            ShowInteractablePrompt(interactable);
 
             return;
         }
 
         HidePromptUI();
+    }
+
+    private void ShowInteractablePrompt(Interactable interactable)
+    {
+        // Khi panel cua chinh object dang mo thi an prompt de UI doan nay khong chong len nhau.
+        if (playerUI != null && playerUI.IsShowingContent(interactable))
+        {
+            HidePromptUI();
+        }
+        else
+        {
+            ShowPromptUI(GetInteractablePrompt(interactable));
+        }
     }
 
     private bool TryGetLookInteractable(out Interactable interactable)

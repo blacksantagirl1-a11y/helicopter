@@ -1214,9 +1214,11 @@ public class InventoryUIController : MonoBehaviour
             return;
         }
 
+        GameObject placedCamping = activeCampingInstance;
+
         activeCampingSlotIndex = -1;
-        SetCampingCollidersEnabled(activeCampingInstance, true);
-        EnsureCampingInteraction(activeCampingInstance);
+        SetCampingCollidersEnabled(placedCamping, true);
+        EnsureCampingInteraction(placedCamping);
         activeCampingInstance = null;
         activeCampingItemDefinition = null;
         activeCampingBottomOffset = 0f;
@@ -1229,6 +1231,8 @@ public class InventoryUIController : MonoBehaviour
         {
             playerUI.UpdatePrompt(string.Empty);
         }
+
+        DailyQuestManager.ReportInteraction(DailyQuestManager.Day5CampfirePlacedInteractionKey);
     }
 
     private void SubmitIngredientToCamping()

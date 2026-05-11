@@ -2,9 +2,24 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 [DisallowMultipleComponent]
 public class DailyQuestManager : MonoBehaviour
 {
+    private enum Day5SurvivalStage
+    {
+        Inactive,
+        CatchFish,
+        GatherWood,
+        PlaceCampfire,
+        CookFood,
+        EatFood,
+        Completed
+    }
+
     private const string DefaultDatabaseResourcePath = "Quests/DailyQuestDatabase";
     private const string DefaultHudRootName = "QuestHUDRoot";
     private const string DefaultInfoTextName = "QuestInfoText";
@@ -19,6 +34,32 @@ public class DailyQuestManager : MonoBehaviour
     private const string Day4BlockTriggerObjectName = "BlockTriggerDay4";
     private const string Day4DialogueTriggerObjectName = "DialogueTriggerDay4";
     private const DialogueDay BundleAndBedAdvanceDay = DialogueDay.Day4;
+    private const string Day5EventRootObjectName = "EVENTDAY5";
+    private const string Day5DataCubeObjectName = "Day5DataCube";
+    private const string Day5ComputerObjectName = "Day5Computer";
+    private const string Day5DataCubeAppearedKey = "quest.day5.dataCubeAppeared";
+    private const string Day5DataCubeOpenedKey = "quest.day5.dataCubeOpened";
+    private const string Day5TableObjectName = "table";
+    private const string Day5FishItemId = "river_fish";
+    private const string Day5WoodItemId = "wood_log";
+    private const string Day5ComputerPrefabAssetPath = "Assets/model/computer/source/PC/PC/PC.prefab";
+    private const string Day5ComputerPrefabFallbackAssetPath = "Assets/model/Computer/source/PC/PC/PC.prefab";
+    private const int Day5RequiredFish = 7;
+    private const int Day5RequiredWood = 5;
+    private const int Day5RequiredCookedFood = 3;
+    private const int Day5RequiredEatenFood = 1;
+
+    public const string Day5CampfirePlacedInteractionKey = "day5_campfire_placed";
+    public const string Day5CookedFoodInteractionKey = "day5_cooked_food";
+    public const string Day5AteFoodInteractionKey = "day5_ate_food";
+
+    private static readonly string[] Day5ComputerObjectNames =
+    {
+        Day5ComputerObjectName,
+        "PC",
+        "Computer",
+        "computer"
+    };
 
     private static DailyQuestManager instance;
 
@@ -41,6 +82,23 @@ public class DailyQuestManager : MonoBehaviour
     private DialogueEventId pendingCompletionDialogueEvent = DialogueEventId.None;
     private bool shouldAdvanceAfterPendingDialogue;
     private PlayerInventory subscribedInventory;
+    private Day5SurvivalStage day5Stage = Day5SurvivalStage.Inactive;
+    private int day5FishCount;
+    private int day5WoodCount;
+    private int day5CookedFoodCount;
+    private int day5EatenFoodCount;
+    private bool day5FishReady;
+    private bool day5WoodReady;
+    private bool day5FishDialoguePlayed;
+    private bool day5WoodDialoguePlayed;
+    private bool day5CampfirePlaced;
+    private bool day5CampfireDialoguePlayed;
+    private bool day5CookingCompleteDialoguePending;
+    private bool day5CookingCompleteDialoguePlayed;
+    private bool day5GunshotFollowupRequested;
+    private bool hasPreparedDay5DataPackageThisSession;
+    private Coroutine day5CookingCompleteDialogueRoutine;
+    private Coroutine day5EatingInteractionRestoreRoutine;
 
     public static bool IsQuestSystemActive => TryGetInstance() != null;
 
@@ -70,6 +128,8 @@ public class DailyQuestManager : MonoBehaviour
 
     private void OnDisable()
     {
+        CancelDay5CookingCompleteDialogueRoutine();
+        CancelDay5EatingInteractionRestoreRoutine();
         UnsubscribeInventory();
 
         if (instance == this)
@@ -154,6 +214,66 @@ public class DailyQuestManager : MonoBehaviour
         return manager.CompleteTurnIn(questId, requiredItem, requiredAmount, consumeItems);
     }
 
+    public static bool CanOpenDay5DataCube()
+    {
+        return DialogueController.GetCurrentDay() == DialogueDay.Day5 &&
+            IsDay5DataCubeAppeared() &&
+            !IsDay5DataCubeOpened() &&
+            !DialogueController.IsDialogueActive;
+    }
+
+    public static bool TryOpenDay5DataCube()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        return manager != null && manager.OpenDay5DataCube();
+    }
+
+    public static void ResetDay5DataPackageForReplay()
+    {
+        ClearDay5DataPackageState();
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+
+        DailyQuestManager manager = TryGetInstance();
+        if (manager != null)
+        {
+            manager.hasPreparedDay5DataPackageThisSession = false;
+            manager.ApplyPersistentSceneState();
+        }
+    }
+
+    public static void NotifyFishingModeExited()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        if (manager != null)
+        {
+            manager.HandleFishingModeExited();
+        }
+    }
+
+    public static void NotifyCookingMiniGameClosed()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        if (manager != null)
+        {
+            manager.HandleCookingMiniGameClosed();
+        }
+    }
+
+    public static bool ShouldPrioritizeDay5CookingOverEating()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        return manager != null && manager.IsDay5CookingObjectiveActive();
+    }
+
+    public static bool CanEatDay5CookedFood()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        return manager != null && manager.IsDay5EatingObjectiveActive();
+    }
+
     public static bool CanInteractWithDay3BundOfWood()
     {
         return DialogueController.GetCurrentDay() == BundleAndBedAdvanceDay &&
@@ -231,6 +351,15 @@ public class DailyQuestManager : MonoBehaviour
         pendingCompletionDialogueEvent = DialogueEventId.None;
         shouldAdvanceAfterPendingDialogue = false;
 
+        if (quest.ObjectiveType == QuestObjectiveType.Day5Survival)
+        {
+            BeginDay5SurvivalQuest();
+        }
+        else
+        {
+            ResetDay5SurvivalState();
+        }
+
         PrepareTurnInScene(quest);
 
         SetHudVisible(true);
@@ -240,6 +369,8 @@ public class DailyQuestManager : MonoBehaviour
 
     private void HandleDialogueFinished(DialogueDay day, DialogueEventId eventId)
     {
+        HandleDay5StoryDialogueFinished(day, eventId);
+
         if (!isQuestActive ||
             activeQuest == null ||
             !isWaitingForCompletionDialogue ||
@@ -260,6 +391,12 @@ public class DailyQuestManager : MonoBehaviour
     {
         if (!isQuestActive || activeQuest == null || isWaitingForCompletionDialogue || isWaitingForTurnIn)
         {
+            return;
+        }
+
+        if (activeQuest.ObjectiveType == QuestObjectiveType.Day5Survival)
+        {
+            HandleDay5InteractionReported(interactionKey, amount);
             return;
         }
 
@@ -285,6 +422,12 @@ public class DailyQuestManager : MonoBehaviour
             return;
         }
 
+        if (activeQuest.ObjectiveType == QuestObjectiveType.Day5Survival)
+        {
+            HandleDay5InventoryItemAdded(itemDefinition, amountAdded);
+            return;
+        }
+
         if (activeQuest.ObjectiveType != QuestObjectiveType.InventoryItemCount ||
             activeQuest.TargetItem == null ||
             itemDefinition != activeQuest.TargetItem)
@@ -299,6 +442,12 @@ public class DailyQuestManager : MonoBehaviour
 
     private void TryCompleteQuest()
     {
+        if (activeQuest != null && activeQuest.ObjectiveType == QuestObjectiveType.Day5Survival)
+        {
+            TryCompleteDay5SurvivalQuest();
+            return;
+        }
+
         if (!isQuestActive || activeQuest == null || currentProgress < activeQuest.RequiredCount)
         {
             return;
@@ -398,6 +547,463 @@ public class DailyQuestManager : MonoBehaviour
         RefreshHud();
     }
 
+    private void HandleDay5StoryDialogueFinished(DialogueDay day, DialogueEventId eventId)
+    {
+        if (day != DialogueDay.Day5)
+        {
+            return;
+        }
+
+        if (eventId == DialogueEventId.IntroWakeUp)
+        {
+            hasPreparedDay5DataPackageThisSession = true;
+            ClearDay5DataPackageState();
+            SetDay5DataCubeAppeared(true);
+            ApplyDay5DataPackageState(day);
+            DialogueController.RequestDialogue(DialogueEventId.Day5DataCubeAppears);
+            return;
+        }
+
+        if (eventId == DialogueEventId.Day5CookingComplete && !day5GunshotFollowupRequested)
+        {
+            day5GunshotFollowupRequested = true;
+            ReSoundManager.Resolve()?.PlaySound2D(SoundIds.GunShot);
+            if (!DialogueController.RequestDialogue(DialogueEventId.Day5AfterGunshot))
+            {
+                ScheduleDay5EatingInteractionRestore();
+                RefreshDay5Stage();
+                RefreshHud();
+            }
+
+            return;
+        }
+
+        if (eventId == DialogueEventId.Day5AfterGunshot)
+        {
+            ScheduleDay5EatingInteractionRestore();
+            RefreshDay5Stage();
+            RefreshHud();
+        }
+    }
+
+    private void BeginDay5SurvivalQuest()
+    {
+        day5Stage = Day5SurvivalStage.CatchFish;
+        day5FishCount = 0;
+        day5WoodCount = 0;
+        day5CookedFoodCount = 0;
+        day5EatenFoodCount = 0;
+        day5FishReady = false;
+        day5WoodReady = false;
+        day5FishDialoguePlayed = false;
+        day5WoodDialoguePlayed = false;
+        day5CampfirePlaced = false;
+        day5CampfireDialoguePlayed = false;
+        day5CookingCompleteDialoguePending = false;
+        day5CookingCompleteDialoguePlayed = false;
+        day5GunshotFollowupRequested = false;
+        CancelDay5CookingCompleteDialogueRoutine();
+        CancelDay5EatingInteractionRestoreRoutine();
+        currentProgress = 0;
+        SyncDay5InventoryProgress(false, false);
+        RefreshDay5Stage();
+    }
+
+    private void ResetDay5SurvivalState()
+    {
+        day5Stage = Day5SurvivalStage.Inactive;
+        day5FishCount = 0;
+        day5WoodCount = 0;
+        day5CookedFoodCount = 0;
+        day5EatenFoodCount = 0;
+        day5FishReady = false;
+        day5WoodReady = false;
+        day5FishDialoguePlayed = false;
+        day5WoodDialoguePlayed = false;
+        day5CampfirePlaced = false;
+        day5CampfireDialoguePlayed = false;
+        day5CookingCompleteDialoguePending = false;
+        day5CookingCompleteDialoguePlayed = false;
+        day5GunshotFollowupRequested = false;
+        hasPreparedDay5DataPackageThisSession = false;
+        CancelDay5CookingCompleteDialogueRoutine();
+        CancelDay5EatingInteractionRestoreRoutine();
+    }
+
+    private void HandleDay5InventoryItemAdded(InventoryItemDefinition itemDefinition, int amountAdded)
+    {
+        if (itemDefinition == null || amountAdded <= 0)
+        {
+            return;
+        }
+
+        bool addedWood = MatchesItemId(itemDefinition, Day5WoodItemId);
+        SyncDay5InventoryProgress(false, addedWood);
+        RefreshDay5Stage();
+        RefreshHud();
+    }
+
+    private void HandleDay5InteractionReported(string interactionKey, int amount)
+    {
+        amount = Mathf.Max(1, amount);
+
+        if (string.Equals(interactionKey, Day5CampfirePlacedInteractionKey, System.StringComparison.OrdinalIgnoreCase))
+        {
+            day5CampfirePlaced = true;
+            if (!day5CampfireDialoguePlayed)
+            {
+                day5CampfireDialoguePlayed = true;
+                DialogueController.RequestDialogue(DialogueEventId.Day5CampfirePlaced);
+            }
+
+            RefreshDay5Stage();
+            RefreshHud();
+            return;
+        }
+
+        if (string.Equals(interactionKey, Day5CookedFoodInteractionKey, System.StringComparison.OrdinalIgnoreCase))
+        {
+            day5CookedFoodCount = Mathf.Min(Day5RequiredCookedFood, day5CookedFoodCount + amount);
+            if (day5CookedFoodCount >= Day5RequiredCookedFood && !day5CookingCompleteDialoguePlayed)
+            {
+                day5CookingCompleteDialoguePending = true;
+                TryRequestDay5CookingCompleteDialogue();
+            }
+
+            RefreshDay5Stage();
+            RefreshHud();
+            return;
+        }
+
+        if (string.Equals(interactionKey, Day5AteFoodInteractionKey, System.StringComparison.OrdinalIgnoreCase))
+        {
+            day5EatenFoodCount = Mathf.Min(Day5RequiredEatenFood, day5EatenFoodCount + amount);
+            RefreshDay5Stage();
+            RefreshHud();
+            TryCompleteDay5SurvivalQuest();
+        }
+    }
+
+    private void TryCompleteDay5SurvivalQuest()
+    {
+        if (!isQuestActive ||
+            activeQuest == null ||
+            activeQuest.ObjectiveType != QuestObjectiveType.Day5Survival ||
+            isWaitingForCompletionDialogue)
+        {
+            return;
+        }
+
+        if (day5Stage == Day5SurvivalStage.Completed && currentProgress >= activeQuest.RequiredCount)
+        {
+            return;
+        }
+
+        SyncDay5InventoryProgress(false, false);
+        if (!day5FishReady ||
+            !day5WoodReady ||
+            !day5CampfirePlaced ||
+            day5CookedFoodCount < Day5RequiredCookedFood ||
+            day5EatenFoodCount < Day5RequiredEatenFood)
+        {
+            RefreshDay5Stage();
+            return;
+        }
+
+        day5Stage = Day5SurvivalStage.Completed;
+        currentProgress = activeQuest.RequiredCount;
+        BeginCompletionDialogue(activeQuest.CompletionDialogueEvent, true);
+    }
+
+    private void HandleFishingModeExited()
+    {
+        if (!IsDay5SurvivalQuestActive())
+        {
+            return;
+        }
+
+        SyncDay5InventoryProgress(true, false);
+        RefreshDay5Stage();
+        RefreshHud();
+        TryCompleteDay5SurvivalQuest();
+    }
+
+    private bool IsDay5SurvivalQuestActive()
+    {
+        return isQuestActive &&
+            activeQuest != null &&
+            activeQuest.ObjectiveType == QuestObjectiveType.Day5Survival;
+    }
+
+    private bool IsDay5CookingObjectiveActive()
+    {
+        return IsDay5SurvivalQuestActive() &&
+            day5CampfirePlaced &&
+            day5CookedFoodCount < Day5RequiredCookedFood &&
+            !isWaitingForCompletionDialogue &&
+            !DialogueController.IsDialogueActive;
+    }
+
+    private bool IsDay5EatingObjectiveActive()
+    {
+        return IsDay5SurvivalQuestActive() &&
+            day5CampfirePlaced &&
+            day5CookedFoodCount >= Day5RequiredCookedFood &&
+            day5EatenFoodCount < Day5RequiredEatenFood &&
+            !isWaitingForCompletionDialogue &&
+            !isWaitingForTurnIn &&
+            !DialogueController.IsDialogueActive;
+    }
+
+    private void SyncDay5InventoryProgress(bool allowFishDialogue, bool allowWoodDialogue)
+    {
+        if (!IsDay5SurvivalQuestActive())
+        {
+            return;
+        }
+
+        ResolveReferences();
+        int fishInInventory = CountInventoryItemsById(Day5FishItemId);
+        int woodInInventory = CountInventoryItemsById(Day5WoodItemId);
+
+        day5FishCount = Mathf.Min(Day5RequiredFish, Mathf.Max(day5FishCount, fishInInventory));
+        day5WoodCount = Mathf.Min(Day5RequiredWood, Mathf.Max(day5WoodCount, woodInInventory));
+
+        if (day5FishCount >= Day5RequiredFish)
+        {
+            day5FishReady = true;
+            if (allowFishDialogue && !day5FishDialoguePlayed)
+            {
+                day5FishDialoguePlayed = true;
+                DialogueController.RequestDialogue(DialogueEventId.Day5FishComplete);
+            }
+        }
+
+        if (day5WoodCount >= Day5RequiredWood)
+        {
+            day5WoodReady = true;
+            if (allowWoodDialogue && !day5WoodDialoguePlayed)
+            {
+                day5WoodDialoguePlayed = true;
+                DialogueController.RequestDialogue(DialogueEventId.Day5WoodComplete);
+            }
+        }
+    }
+
+    private int CountInventoryItemsById(string itemId)
+    {
+        if (playerInventory == null || string.IsNullOrWhiteSpace(itemId))
+        {
+            return 0;
+        }
+
+        int totalAmount = 0;
+        System.Collections.Generic.IReadOnlyList<PlayerInventory.InventorySlot> slots = playerInventory.Slots;
+        for (int index = 0; index < slots.Count; index++)
+        {
+            PlayerInventory.InventorySlot slot = slots[index];
+            if (slot != null && !slot.IsEmpty && MatchesItemId(slot.Item, itemId))
+            {
+                totalAmount += slot.Amount;
+            }
+        }
+
+        return totalAmount;
+    }
+
+    private void RefreshDay5Stage()
+    {
+        if (!IsDay5SurvivalQuestActive())
+        {
+            day5Stage = Day5SurvivalStage.Inactive;
+            return;
+        }
+
+        if (day5Stage == Day5SurvivalStage.Completed)
+        {
+            return;
+        }
+
+        if (!day5FishReady || !day5WoodReady)
+        {
+            day5Stage = Day5SurvivalStage.CatchFish;
+            return;
+        }
+
+        if (!day5CampfirePlaced)
+        {
+            day5Stage = Day5SurvivalStage.PlaceCampfire;
+            return;
+        }
+
+        if (day5CookedFoodCount < Day5RequiredCookedFood)
+        {
+            day5Stage = Day5SurvivalStage.CookFood;
+            return;
+        }
+
+        if (day5EatenFoodCount < Day5RequiredEatenFood)
+        {
+            day5Stage = Day5SurvivalStage.EatFood;
+            return;
+        }
+
+        day5Stage = Day5SurvivalStage.Completed;
+    }
+
+    private void TryRequestDay5CookingCompleteDialogue()
+    {
+        if (!IsDay5SurvivalQuestActive() ||
+            !day5CookingCompleteDialoguePending ||
+            day5CookingCompleteDialoguePlayed ||
+            MiniGameCookingController.IsAnyMiniGameActive())
+        {
+            return;
+        }
+
+        day5CookingCompleteDialoguePending = false;
+        day5CookingCompleteDialoguePlayed = true;
+        RefreshDay5Stage();
+        DialogueController.RequestDialogue(DialogueEventId.Day5CookingComplete);
+    }
+
+    private void HandleCookingMiniGameClosed()
+    {
+        if (!day5CookingCompleteDialoguePending || day5CookingCompleteDialoguePlayed)
+        {
+            return;
+        }
+
+        if (day5CookingCompleteDialogueRoutine != null)
+        {
+            StopCoroutine(day5CookingCompleteDialogueRoutine);
+        }
+
+        day5CookingCompleteDialogueRoutine = StartCoroutine(RequestDay5CookingCompleteDialogueAfterFrame());
+    }
+
+    private System.Collections.IEnumerator RequestDay5CookingCompleteDialogueAfterFrame()
+    {
+        yield return null;
+
+        day5CookingCompleteDialogueRoutine = null;
+        RestoreDay5EatingInteraction();
+        TryRequestDay5CookingCompleteDialogue();
+    }
+
+    private void CancelDay5CookingCompleteDialogueRoutine()
+    {
+        if (day5CookingCompleteDialogueRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(day5CookingCompleteDialogueRoutine);
+        day5CookingCompleteDialogueRoutine = null;
+    }
+
+    private void ScheduleDay5EatingInteractionRestore()
+    {
+        RestoreDay5EatingInteraction();
+
+        if (day5EatingInteractionRestoreRoutine != null)
+        {
+            StopCoroutine(day5EatingInteractionRestoreRoutine);
+        }
+
+        day5EatingInteractionRestoreRoutine = StartCoroutine(RestoreDay5EatingInteractionAfterFrame());
+    }
+
+    private System.Collections.IEnumerator RestoreDay5EatingInteractionAfterFrame()
+    {
+        yield return null;
+
+        day5EatingInteractionRestoreRoutine = null;
+        RestoreDay5EatingInteraction();
+        RefreshDay5Stage();
+        RefreshHud();
+    }
+
+    private void CancelDay5EatingInteractionRestoreRoutine()
+    {
+        if (day5EatingInteractionRestoreRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(day5EatingInteractionRestoreRoutine);
+        day5EatingInteractionRestoreRoutine = null;
+    }
+
+    private static void RestoreDay5EatingInteraction()
+    {
+        CampingCookingModeController[] controllers = FindObjectsByType<CampingCookingModeController>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        foreach (CampingCookingModeController controller in controllers)
+        {
+            if (controller != null && controller.IsCookingModeActive)
+            {
+                controller.ExitCookingMode();
+            }
+        }
+
+        DailyQuestManager manager = TryGetInstance();
+        if (manager == null || !manager.IsDay5EatingObjectiveActive())
+        {
+            return;
+        }
+
+        InventoryUIController inventory = FindActiveOrAnyBehaviour<InventoryUIController>();
+        if (inventory != null && inventory.gameObject.activeInHierarchy && !inventory.enabled)
+        {
+            inventory.enabled = true;
+        }
+
+        PickUpScript pickUpScript = FindActiveOrAnyBehaviour<PickUpScript>();
+        if (pickUpScript != null && pickUpScript.gameObject.activeInHierarchy && !pickUpScript.enabled)
+        {
+            pickUpScript.enabled = true;
+        }
+
+        PlayerUI playerUI = FindFirstObjectByType<PlayerUI>();
+        if (playerUI != null)
+        {
+            playerUI.UpdatePrompt(string.Empty);
+        }
+    }
+
+    private static T FindActiveOrAnyBehaviour<T>() where T : Behaviour
+    {
+        T[] behaviours = FindObjectsByType<T>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        T fallback = null;
+
+        for (int index = 0; index < behaviours.Length; index++)
+        {
+            T behaviour = behaviours[index];
+            if (behaviour == null)
+            {
+                continue;
+            }
+
+            fallback ??= behaviour;
+            if (behaviour.gameObject.activeInHierarchy)
+            {
+                return behaviour;
+            }
+        }
+
+        return fallback;
+    }
+
+    private static bool MatchesItemId(InventoryItemDefinition itemDefinition, string itemId)
+    {
+        return itemDefinition != null &&
+            !string.IsNullOrWhiteSpace(itemId) &&
+            string.Equals(itemDefinition.ItemId, itemId, System.StringComparison.OrdinalIgnoreCase);
+    }
+
     private void PrepareTurnInScene(DailyQuestDefinition quest)
     {
         if (quest == null || !quest.RequiresTurnInAfterCompletionDialogue)
@@ -418,6 +1024,7 @@ public class DailyQuestManager : MonoBehaviour
         ApplyGatherWoodBundleState(currentDay);
         ApplyDay3CarpetsState(currentDay);
         ApplyDay4TriggerState(currentDay);
+        ApplyDay5DataPackageState(currentDay);
         EnsureDay3Interactables(currentDay);
     }
 
@@ -490,6 +1097,266 @@ public class DailyQuestManager : MonoBehaviour
         }
     }
 
+    private void ApplyDay5DataPackageState(DialogueDay currentDay)
+    {
+        if (currentDay != DialogueDay.Day5)
+        {
+            hasPreparedDay5DataPackageThisSession = false;
+        }
+
+        if ((int)currentDay < (int)DialogueDay.Day5 && (IsDay5DataCubeAppeared() || IsDay5DataCubeOpened()))
+        {
+            ClearDay5DataPackageState();
+        }
+
+        if (currentDay == DialogueDay.Day5 &&
+            !hasPreparedDay5DataPackageThisSession &&
+            !IsDay5SurvivalQuestActive() &&
+            (IsDay5DataCubeAppeared() || IsDay5DataCubeOpened()))
+        {
+            ClearDay5DataPackageState();
+        }
+
+        bool isDay5 = currentDay == DialogueDay.Day5;
+        bool cubeAppeared = isDay5 && IsDay5DataCubeAppeared();
+        bool cubeOpened = isDay5 && IsDay5DataCubeOpened();
+
+        EnsureDay5DataCubeObject(cubeAppeared && !cubeOpened);
+        EnsureDay5ComputerObject(cubeOpened);
+    }
+
+    private bool OpenDay5DataCube()
+    {
+        if (!CanOpenDay5DataCube())
+        {
+            return false;
+        }
+
+        SetDay5DataCubeOpened(true);
+        ApplyDay5DataPackageState(DialogueDay.Day5);
+        DialogueController.RequestDialogue(DialogueEventId.Day5ComputerOpened);
+        return true;
+    }
+
+    private void EnsureDay5DataCubeObject(bool shouldShow)
+    {
+        GameObject dataCube = FindSceneObjectByName(Day5DataCubeObjectName, true);
+        if (dataCube == null && shouldShow)
+        {
+            dataCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            dataCube.name = Day5DataCubeObjectName;
+            dataCube.AddComponent<Day5DataCubeInteractable>();
+
+            Renderer renderer = dataCube.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+                if (shader == null)
+                {
+                    shader = Shader.Find("Standard");
+                }
+
+                if (shader != null)
+                {
+                    Material material = new Material(shader)
+                    {
+                        color = new Color(0.25f, 0.85f, 1f, 0.92f)
+                    };
+                    renderer.sharedMaterial = material;
+                }
+            }
+        }
+
+        ParentToDay5EventRoot(dataCube);
+
+        if (dataCube == null)
+        {
+            return;
+        }
+
+        dataCube.transform.localScale = new Vector3(0.48f, 0.32f, 0.42f);
+        PositionDay5ObjectOnTable(dataCube, dataCube.transform.lossyScale.y * 0.5f);
+        dataCube.transform.rotation = ResolveDay5PackageRotation() * Quaternion.Euler(17f, 33f, -11f);
+        dataCube.SetActive(shouldShow);
+    }
+
+    private void EnsureDay5ComputerObject(bool shouldShow)
+    {
+        GameObject computer = FindDay5ComputerObject();
+        bool isAutoSpawnedComputer = false;
+        if (computer == null && shouldShow)
+        {
+            computer = InstantiateDay5Computer();
+            isAutoSpawnedComputer = true;
+        }
+
+        if (computer == null)
+        {
+            return;
+        }
+
+        ParentToDay5EventRoot(computer);
+
+        if (isAutoSpawnedComputer)
+        {
+            PositionDay5ObjectOnTable(computer, 0.02f);
+            FitObjectToDay5Table(computer, 1.25f);
+        }
+
+        computer.SetActive(shouldShow);
+    }
+
+    private static GameObject FindDay5ComputerObject()
+    {
+        for (int index = 0; index < Day5ComputerObjectNames.Length; index++)
+        {
+            GameObject computer = FindSceneObjectByName(Day5ComputerObjectNames[index], true);
+            if (computer != null)
+            {
+                return computer;
+            }
+        }
+
+        return null;
+    }
+
+    private GameObject InstantiateDay5Computer()
+    {
+        GameObject computerPrefab = null;
+
+#if UNITY_EDITOR
+        computerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(Day5ComputerPrefabAssetPath);
+        if (computerPrefab == null)
+        {
+            computerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(Day5ComputerPrefabFallbackAssetPath);
+        }
+#endif
+
+        GameObject computer = computerPrefab != null
+            ? Instantiate(computerPrefab)
+            : CreateFallbackDay5Computer();
+
+        computer.name = Day5ComputerObjectName;
+        ParentToDay5EventRoot(computer);
+        return computer;
+    }
+
+    private static GameObject CreateFallbackDay5Computer()
+    {
+        GameObject root = new GameObject(Day5ComputerObjectName);
+        GameObject monitor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        monitor.name = "Monitor";
+        monitor.transform.SetParent(root.transform, false);
+        monitor.transform.localPosition = new Vector3(0f, 0.45f, 0f);
+        monitor.transform.localScale = new Vector3(0.95f, 0.58f, 0.08f);
+
+        GameObject baseObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        baseObject.name = "Base";
+        baseObject.transform.SetParent(root.transform, false);
+        baseObject.transform.localPosition = new Vector3(0f, 0.08f, 0f);
+        baseObject.transform.localScale = new Vector3(0.75f, 0.12f, 0.45f);
+
+        return root;
+    }
+
+    private static void ParentToDay5EventRoot(GameObject target)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        Transform eventRoot = EnsureDay5EventRoot();
+        if (eventRoot != null && target.transform.parent != eventRoot)
+        {
+            target.transform.SetParent(eventRoot, true);
+        }
+    }
+
+    private static Transform EnsureDay5EventRoot()
+    {
+        GameObject eventRoot = FindSceneObjectByName(Day5EventRootObjectName, true);
+        if (eventRoot == null)
+        {
+            eventRoot = new GameObject(Day5EventRootObjectName);
+        }
+
+        return eventRoot.transform;
+    }
+
+    private static void PositionDay5ObjectOnTable(GameObject target, float extraHeight)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        Vector3 position = ResolveDay5PackagePosition(extraHeight);
+        target.transform.SetPositionAndRotation(position, ResolveDay5PackageRotation());
+    }
+
+    private static Vector3 ResolveDay5PackagePosition(float extraHeight)
+    {
+        GameObject table = FindSceneObjectByName(Day5TableObjectName, true);
+        if (table != null && TryGetCombinedBounds(table, out Bounds tableBounds))
+        {
+            return new Vector3(
+                tableBounds.center.x,
+                tableBounds.max.y + Mathf.Max(0f, extraHeight),
+                tableBounds.center.z);
+        }
+
+        PlayerMovement player = FindFirstObjectByType<PlayerMovement>();
+        if (player != null)
+        {
+            Transform playerTransform = player.transform;
+            return playerTransform.position + playerTransform.forward * 1.8f + Vector3.up * 1.1f;
+        }
+
+        return Vector3.up;
+    }
+
+    private static Quaternion ResolveDay5PackageRotation()
+    {
+        GameObject table = FindSceneObjectByName(Day5TableObjectName, true);
+        if (table != null)
+        {
+            return Quaternion.Euler(0f, table.transform.eulerAngles.y, 0f);
+        }
+
+        PlayerMovement player = FindFirstObjectByType<PlayerMovement>();
+        if (player != null)
+        {
+            return Quaternion.Euler(0f, player.transform.eulerAngles.y, 0f);
+        }
+
+        return Quaternion.identity;
+    }
+
+    private static void FitObjectToDay5Table(GameObject target, float targetMaxSize)
+    {
+        if (target == null || !TryGetCombinedBounds(target, out Bounds bounds))
+        {
+            return;
+        }
+
+        float maxSize = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
+        if (maxSize > 0.0001f)
+        {
+            float scaleFactor = Mathf.Clamp(targetMaxSize / maxSize, 0.05f, 5f);
+            target.transform.localScale *= scaleFactor;
+        }
+
+        if (!TryGetCombinedBounds(target, out bounds))
+        {
+            return;
+        }
+
+        Vector3 targetBottomCenter = ResolveDay5PackagePosition(0.02f);
+        Vector3 currentBottomCenter = new Vector3(bounds.center.x, bounds.min.y, bounds.center.z);
+        target.transform.position += targetBottomCenter - currentBottomCenter;
+    }
+
     private static bool IsGatherWoodBundlePlaced()
     {
         return PlayerPrefs.GetInt(GatherWoodBundlePlacedKey, 0) == 1;
@@ -523,6 +1390,51 @@ public class DailyQuestManager : MonoBehaviour
         else
         {
             PlayerPrefs.DeleteKey(Day3CarpetsShownKey);
+        }
+
+        PlayerPrefs.Save();
+    }
+
+    private static bool IsDay5DataCubeAppeared()
+    {
+        return PlayerPrefs.GetInt(Day5DataCubeAppearedKey, 0) == 1;
+    }
+
+    private static void SetDay5DataCubeAppeared(bool hasAppeared)
+    {
+        if (hasAppeared)
+        {
+            PlayerPrefs.SetInt(Day5DataCubeAppearedKey, 1);
+        }
+        else
+        {
+            PlayerPrefs.DeleteKey(Day5DataCubeAppearedKey);
+        }
+
+        PlayerPrefs.Save();
+    }
+
+    private static void ClearDay5DataPackageState()
+    {
+        PlayerPrefs.DeleteKey(Day5DataCubeAppearedKey);
+        PlayerPrefs.DeleteKey(Day5DataCubeOpenedKey);
+        PlayerPrefs.Save();
+    }
+
+    private static bool IsDay5DataCubeOpened()
+    {
+        return PlayerPrefs.GetInt(Day5DataCubeOpenedKey, 0) == 1;
+    }
+
+    private static void SetDay5DataCubeOpened(bool isOpened)
+    {
+        if (isOpened)
+        {
+            PlayerPrefs.SetInt(Day5DataCubeOpenedKey, 1);
+        }
+        else
+        {
+            PlayerPrefs.DeleteKey(Day5DataCubeOpenedKey);
         }
 
         PlayerPrefs.Save();
@@ -614,6 +1526,49 @@ public class DailyQuestManager : MonoBehaviour
         return absoluteScale > 0.0001f ? worldSize / absoluteScale : worldSize;
     }
 
+    private static bool TryGetCombinedBounds(GameObject target, out Bounds bounds)
+    {
+        bounds = default;
+        if (target == null)
+        {
+            return false;
+        }
+
+        Renderer[] renderers = target.GetComponentsInChildren<Renderer>(true);
+        if (renderers != null && renderers.Length > 0)
+        {
+            bounds = renderers[0].bounds;
+            for (int index = 1; index < renderers.Length; index++)
+            {
+                Renderer renderer = renderers[index];
+                if (renderer != null)
+                {
+                    bounds.Encapsulate(renderer.bounds);
+                }
+            }
+
+            return true;
+        }
+
+        Collider[] colliders = target.GetComponentsInChildren<Collider>(true);
+        if (colliders == null || colliders.Length == 0)
+        {
+            return false;
+        }
+
+        bounds = colliders[0].bounds;
+        for (int index = 1; index < colliders.Length; index++)
+        {
+            Collider collider = colliders[index];
+            if (collider != null)
+            {
+                bounds.Encapsulate(collider.bounds);
+            }
+        }
+
+        return true;
+    }
+
     private static GameObject FindSceneObjectByName(string objectName, bool includeInactive)
     {
         if (string.IsNullOrWhiteSpace(objectName))
@@ -699,6 +1654,7 @@ public class DailyQuestManager : MonoBehaviour
         isWaitingForTurnIn = false;
         pendingCompletionDialogueEvent = DialogueEventId.None;
         shouldAdvanceAfterPendingDialogue = false;
+        ResetDay5SurvivalState();
         SetHudVisible(false);
     }
 
@@ -805,6 +1761,12 @@ public class DailyQuestManager : MonoBehaviour
             return;
         }
 
+        if (activeQuest.ObjectiveType == QuestObjectiveType.Day5Survival)
+        {
+            SyncDay5InventoryProgress(false, false);
+            RefreshDay5Stage();
+        }
+
         SetHudVisible(true);
 
         string progressLabel = BuildProgressLabel();
@@ -865,6 +1827,15 @@ public class DailyQuestManager : MonoBehaviour
             return string.Empty;
         }
 
+        if (activeQuest.ObjectiveType == QuestObjectiveType.Day5Survival)
+        {
+            return string.Concat(
+                $"Cá: {day5FishCount}/{Day5RequiredFish}\n",
+                $"Gỗ: {day5WoodCount}/{Day5RequiredWood}\n",
+                $"Món ăn: {day5CookedFoodCount}/{Day5RequiredCookedFood}\n",
+                $"Ăn: {day5EatenFoodCount}/{Day5RequiredEatenFood}");
+        }
+
         string label = activeQuest.ObjectiveType switch
         {
             QuestObjectiveType.InventoryItemCount when activeQuest.TargetItem != null => activeQuest.TargetItem.DisplayName,
@@ -880,6 +1851,19 @@ public class DailyQuestManager : MonoBehaviour
         if (activeQuest == null)
         {
             return string.Empty;
+        }
+
+        if (activeQuest.ObjectiveType == QuestObjectiveType.Day5Survival)
+        {
+            return day5Stage switch
+            {
+                Day5SurvivalStage.CatchFish => "Hướng dẫn: Chuẩn bị đủ 7 con cá và 5 khúc gỗ trong túi đồ.",
+                Day5SurvivalStage.GatherWood => "Hướng dẫn: Chuẩn bị đủ 7 con cá và 5 khúc gỗ trong túi đồ.",
+                Day5SurvivalStage.PlaceCampfire => "Hướng dẫn: Dùng gỗ trong túi đồ để đặt campfire.",
+                Day5SurvivalStage.CookFood => "Hướng dẫn: Nấu đủ 3 món ăn bằng campfire.",
+                Day5SurvivalStage.EatFood => "Hướng dẫn: Ăn 1 món đã nấu.",
+                _ => string.Empty
+            };
         }
 
         if (ShouldShowTurnInInstruction())
@@ -909,6 +1893,13 @@ public class DailyQuestManager : MonoBehaviour
 
     private string BuildStatusLabel()
     {
+        if (activeQuest != null &&
+            activeQuest.ObjectiveType == QuestObjectiveType.Day5Survival &&
+            day5Stage == Day5SurvivalStage.Completed)
+        {
+            return "Hoàn thành nhiệm vụ.";
+        }
+
         if (isWaitingForCompletionDialogue)
         {
             return "\u0110ang b\u00e1o c\u00e1o nhi\u1ec7m v\u1ee5...";

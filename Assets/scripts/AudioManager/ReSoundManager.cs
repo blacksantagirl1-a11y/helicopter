@@ -16,6 +16,7 @@ public static class SoundIds
     public const string Lose = "Lose";
     public const string Eat = "Eat";
     public const string OpenDoor = "OpenDoor";
+    public const string GunShot = "GunShot";
 }
 
 public class ReSoundManager : MonoBehaviour

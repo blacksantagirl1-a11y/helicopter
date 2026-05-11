@@ -136,6 +136,7 @@ public class FishingRob : MonoBehaviour
     private bool isInsideFishingTrigger;
 
     public bool ShouldOverrideDefaultInteraction => currentState != FishingState.Inactive || hasFishingCandidate;
+    public bool IsFishingActive => currentState != FishingState.Inactive;
 
     public string CurrentPrompt =>
         currentState == FishingState.Inactive && hasFishingCandidate
@@ -463,6 +464,7 @@ public class FishingRob : MonoBehaviour
     {
         transientStatus = string.Empty;
         CleanupFishingSession();
+        DailyQuestManager.NotifyFishingModeExited();
     }
 
     private void CleanupFishingSession()
