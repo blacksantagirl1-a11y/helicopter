@@ -1118,8 +1118,9 @@ public class DailyQuestManager : MonoBehaviour
         }
 
         bool isDay5 = currentDay == DialogueDay.Day5;
+        bool isDay5OrLater = (int)currentDay >= (int)DialogueDay.Day5;
         bool cubeAppeared = isDay5 && IsDay5DataCubeAppeared();
-        bool cubeOpened = isDay5 && IsDay5DataCubeOpened();
+        bool cubeOpened = isDay5OrLater && IsDay5DataCubeOpened();
 
         EnsureDay5DataCubeObject(cubeAppeared && !cubeOpened);
         EnsureDay5ComputerObject(cubeOpened);

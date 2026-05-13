@@ -89,6 +89,7 @@ public class PlayerMovement : MonoBehaviour
         animator = GetComponent<Animator>();
         rigidbodyComponent = GetComponent<Rigidbody>();
         actionScript = GetComponent<ActionScript>();
+        LockRigidbodyPhysicsRotation();
         originalConstraints = rigidbodyComponent != null
             ? rigidbodyComponent.constraints
             : RigidbodyConstraints.None;
@@ -158,6 +159,7 @@ public class PlayerMovement : MonoBehaviour
 
         rigidbodyComponent.linearVelocity =
             transform.rotation * new Vector3(targetVelocity.x, rigidbodyComponent.linearVelocity.y, targetVelocity.y);
+        rigidbodyComponent.angularVelocity = Vector3.zero;
 
         UpdateMovementAudio();
     }
@@ -318,6 +320,17 @@ public class PlayerMovement : MonoBehaviour
     private void StopMovementAudio()
     {
         ResolveSoundManager()?.StopLoop2D(MovementLoopKey);
+    }
+
+    private void LockRigidbodyPhysicsRotation()
+    {
+        if (rigidbodyComponent == null)
+        {
+            return;
+        }
+
+        rigidbodyComponent.constraints |= RigidbodyConstraints.FreezeRotation;
+        rigidbodyComponent.angularVelocity = Vector3.zero;
     }
 
     private ReSoundManager ResolveSoundManager()

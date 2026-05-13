@@ -24,6 +24,8 @@ public class PlayerLook : MonoBehaviour
         LockCursor();
         TryResolveCharacter();
         ApplySavedSensitivity();
+        SyncLookStateFromCurrentRotation();
+        Input.ResetInputAxes();
     }
 
     void Reset()
@@ -39,6 +41,7 @@ public class PlayerLook : MonoBehaviour
     void Start()
     {
         ApplySavedSensitivity();
+        SyncLookStateFromCurrentRotation();
         LockCursor();
     }
 
@@ -121,6 +124,18 @@ public class PlayerLook : MonoBehaviour
     void ApplySavedSensitivity()
     {
         sensitivity = MenuSettingsService.GetLookSensitivity();
+    }
+
+    private void SyncLookStateFromCurrentRotation()
+    {
+        if (character == null)
+        {
+            return;
+        }
+
+        velocity.x = NormalizeAngle(character.localEulerAngles.y);
+        velocity.y = Mathf.Clamp(-NormalizeAngle(transform.localEulerAngles.x), -60f, 90f);
+        frameVelocity = Vector2.zero;
     }
 
     private static float NormalizeAngle(float angle)

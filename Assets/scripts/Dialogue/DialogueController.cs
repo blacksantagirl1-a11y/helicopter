@@ -75,6 +75,7 @@ public class DialogueController : MonoBehaviour
     [SerializeField] private ActionScript actionScript;
     [SerializeField] private Rigidbody playerRigidbody;
     [SerializeField] private PlayerLook playerLook;
+    [SerializeField] private MouseMovement mouseMovement;
     [SerializeField] private Zoom zoom;
     [SerializeField] private PickUpScript pickUpScript;
 
@@ -631,6 +632,7 @@ public class DialogueController : MonoBehaviour
             CacheAndDisableControl(jump);
             CacheAndDisableControl(crouch);
             CacheAndDisableControl(playerLook);
+            CacheAndDisableControl(mouseMovement);
             CacheAndDisableControl(zoom);
             ClearPlayerMotion();
         }
@@ -777,6 +779,7 @@ public class DialogueController : MonoBehaviour
         if (referenceCamera != null)
         {
             playerLook ??= referenceCamera.GetComponent<PlayerLook>();
+            mouseMovement ??= referenceCamera.GetComponent<MouseMovement>();
             zoom ??= referenceCamera.GetComponent<Zoom>();
             pickUpScript ??= referenceCamera.GetComponent<PickUpScript>();
         }
@@ -786,6 +789,7 @@ public class DialogueController : MonoBehaviour
         actionScript ??= FindFirstObjectByType<ActionScript>();
         playerRigidbody ??= FindFirstObjectByType<Rigidbody>();
         playerLook ??= FindFirstObjectByType<PlayerLook>();
+        mouseMovement ??= FindFirstObjectByType<MouseMovement>();
         zoom ??= FindFirstObjectByType<Zoom>();
         pickUpScript ??= FindFirstObjectByType<PickUpScript>();
 

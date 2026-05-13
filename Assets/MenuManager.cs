@@ -22,6 +22,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private Color subMenuButtonHoverColor = Color.white;
 
     private readonly Dictionary<Button, SubMenuButtonVisual> subMenuButtons = new Dictionary<Button, SubMenuButtonVisual>();
+    private readonly Dictionary<Behaviour, bool> cachedControlStates = new Dictionary<Behaviour, bool>();
     private Button hoveredSubMenuButton;
 
     public bool isMenuOpen;
@@ -53,10 +54,7 @@ public class MenuManager : MonoBehaviour
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
 
-            SetBehaviourEnabled(FindFirstObjectByType<PickUpScript>(), false);
-            SetBehaviourEnabled(FindFirstObjectByType<PlayerLook>(), false);
-            SetBehaviourEnabled(FindFirstObjectByType<MouseMovement>(), false);
-            SetCameraLookScriptsEnabled(false);
+            CacheAndDisableMenuControls();
             Input.ResetInputAxes();
         }
         else if (Input.GetKeyDown(KeyCode.Z) && isMenuOpen)
@@ -74,14 +72,12 @@ public class MenuManager : MonoBehaviour
             InventoryUIController inventoryUIController = FindFirstObjectByType<InventoryUIController>();
             if (inventoryUIController == null || inventoryUIController.IsInventoryOpen == false)
             {
-                Cursor.lockState = CursorLockMode.None;
+                Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false; 
             }
 
-            SetBehaviourEnabled(FindFirstObjectByType<PickUpScript>(), true);
-            SetBehaviourEnabled(FindFirstObjectByType<PlayerLook>(), true);
-            SetBehaviourEnabled(FindFirstObjectByType<MouseMovement>(), true);
-            SetCameraLookScriptsEnabled(true);
+            Input.ResetInputAxes();
+            RestoreMenuControls();
         }
     }
 
@@ -105,36 +101,80 @@ public class MenuManager : MonoBehaviour
         InventoryUIController inventoryUIController = FindFirstObjectByType<InventoryUIController>();
         if (inventoryUIController == null || inventoryUIController.IsInventoryOpen == false)
         {
-            Cursor.lockState = CursorLockMode.None;
+            Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
 
-        SetBehaviourEnabled(FindFirstObjectByType<PickUpScript>(), true);
-        SetBehaviourEnabled(FindFirstObjectByType<PlayerLook>(), true);
-        SetBehaviourEnabled(FindFirstObjectByType<MouseMovement>(), true);
-        SetCameraLookScriptsEnabled(true);
+        Input.ResetInputAxes();
+        RestoreMenuControls();
     }
 
-    private void SetBehaviourEnabled(Behaviour behaviour, bool isEnabled)
+    private void CacheAndDisableMenuControls()
     {
-        if (behaviour != null)
-        {
-            behaviour.enabled = isEnabled;
-        }
-    }
+        cachedControlStates.Clear();
 
-    private void SetCameraLookScriptsEnabled(bool isEnabled)
-    {
+        CacheBehaviour(FindFirstObjectByType<PlayerMovement>());
+        CacheBehaviour(FindFirstObjectByType<Jump>());
+        CacheBehaviour(FindFirstObjectByType<Crouch>());
+        CacheBehaviour(FindFirstObjectByType<ActionScript>());
+        CacheBehaviour(FindFirstObjectByType<Zoom>());
+        CacheBehaviour(FindFirstObjectByType<PickUpScript>());
+        CacheBehaviour(FindFirstObjectByType<CuttingTreeSystem>());
+
         PlayerLook[] playerLooks = FindObjectsByType<PlayerLook>(FindObjectsSortMode.None);
         for (int i = 0; i < playerLooks.Length; i++)
         {
-            playerLooks[i].enabled = isEnabled;
+            CacheBehaviour(playerLooks[i]);
         }
 
         MouseMovement[] mouseMovements = FindObjectsByType<MouseMovement>(FindObjectsSortMode.None);
         for (int i = 0; i < mouseMovements.Length; i++)
         {
-            mouseMovements[i].enabled = isEnabled;
+            CacheBehaviour(mouseMovements[i]);
+        }
+
+        Rigidbody playerRigidbody = FindFirstObjectByType<Rigidbody>();
+        if (playerRigidbody != null)
+        {
+            playerRigidbody.linearVelocity = Vector3.zero;
+            playerRigidbody.angularVelocity = Vector3.zero;
+        }
+    }
+
+    private void RestoreMenuControls()
+    {
+        foreach (KeyValuePair<Behaviour, bool> state in cachedControlStates)
+        {
+            if (state.Key != null)
+            {
+                state.Key.enabled = state.Value;
+            }
+        }
+
+        cachedControlStates.Clear();
+    }
+
+    private void CacheBehaviour(Behaviour behaviour)
+    {
+        if (behaviour == null || cachedControlStates.ContainsKey(behaviour))
+        {
+            return;
+        }
+
+        cachedControlStates.Add(behaviour, behaviour.enabled);
+        behaviour.enabled = false;
+    }
+
+    private void OnDisable()
+    {
+        RestoreMenuControls();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
         }
     }
 
