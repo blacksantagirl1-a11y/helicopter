@@ -7,6 +7,12 @@ using UnityEngine.Video;
 [RequireComponent(typeof(BoxCollider))]
 public sealed class PCVideoInteractable : Interactable
 {
+    private enum VideoSourcePriority
+    {
+        VideoClipFirst,
+        StreamingAssetsFirst
+    }
+
     private static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
     private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
@@ -34,7 +40,11 @@ public sealed class PCVideoInteractable : Interactable
     [SerializeField] private Color idleScreenColor = Color.black;
 
     [Header("Video")]
+    [Tooltip("Chon nguon video duoc uu tien. Mac dinh la VideoClip truoc de de doi video ngay trong Inspector.")]
+    [SerializeField] private VideoSourcePriority videoSourcePriority = VideoSourcePriority.VideoClipFirst;
+    [Tooltip("Duong dan toi file video trong StreamingAssets. Chi duoc dung neu uu tien StreamingAssets hoac khi khong co VideoClip.")]
     [SerializeField] private string streamingVideoRelativePath = "Videos/PCScreen.mp4";
+    [Tooltip("VideoClip keo tha truc tiep trong Inspector. Mac dinh se duoc uu tien hon file StreamingAssets.")]
     [SerializeField] private VideoClip videoClip;
     [SerializeField] [Min(0.5f)] private float startTimeoutSeconds = 10f;
 
@@ -248,24 +258,22 @@ public sealed class PCVideoInteractable : Interactable
             return false;
         }
 
-        string streamingPath = ResolveStreamingVideoPath();
-        if (!string.IsNullOrWhiteSpace(streamingPath) && File.Exists(streamingPath))
+        if (videoSourcePriority == VideoSourcePriority.VideoClipFirst)
         {
-            videoPlayer.source = VideoSource.Url;
-            videoPlayer.url = streamingPath;
-            videoPlayer.clip = null;
+            if (TryAssignVideoClipSource())
+            {
+                return true;
+            }
+
+            return TryAssignStreamingSource();
+        }
+
+        if (TryAssignStreamingSource())
+        {
             return true;
         }
 
-        if (videoClip == null)
-        {
-            return false;
-        }
-
-        videoPlayer.source = VideoSource.VideoClip;
-        videoPlayer.clip = videoClip;
-        videoPlayer.url = string.Empty;
-        return true;
+        return TryAssignVideoClipSource();
     }
 
     private void AutoAssignReferences()
@@ -505,6 +513,38 @@ public sealed class PCVideoInteractable : Interactable
 
         string streamingPath = ResolveStreamingVideoPath();
         return !string.IsNullOrWhiteSpace(streamingPath) && File.Exists(streamingPath);
+    }
+
+    private bool TryAssignVideoClipSource()
+    {
+        if (videoPlayer == null || videoClip == null)
+        {
+            return false;
+        }
+
+        videoPlayer.source = VideoSource.VideoClip;
+        videoPlayer.clip = videoClip;
+        videoPlayer.url = string.Empty;
+        return true;
+    }
+
+    private bool TryAssignStreamingSource()
+    {
+        if (videoPlayer == null)
+        {
+            return false;
+        }
+
+        string streamingPath = ResolveStreamingVideoPath();
+        if (string.IsNullOrWhiteSpace(streamingPath) || !File.Exists(streamingPath))
+        {
+            return false;
+        }
+
+        videoPlayer.source = VideoSource.Url;
+        videoPlayer.url = streamingPath;
+        videoPlayer.clip = null;
+        return true;
     }
 
     private string ResolveStreamingVideoPath()
