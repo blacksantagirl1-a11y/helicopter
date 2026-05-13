@@ -89,7 +89,7 @@ MonoBehaviour:
     playerCanMove: 1
     timeScale: 1
     lines:
-    - speakerName: "Hi\u1EC3n"
+    - speakerName: "Tu\u1EA5n"
       text: "T\xF4i \u0111\xE3 ph\xE1 h\u1EE7y xong to\xE0n b\u1ED9 b\u1EABy."
       questAction: 0
       questId: 0
@@ -143,7 +143,7 @@ MonoBehaviour:
     playerCanMove: 0
     timeScale: 1
     lines:
-    - speakerName: "Hi\u1EC3n"
+    - speakerName: "Tu\u1EA5n"
       text: "T\xF4i \u0111\xE3 t\u1EDBi v\xF9ng ven h\u1ED3, kh\xF4ng ph\xE1t hi\u1EC7n
         g\xEC b\u1EA5t th\u01B0\u1EDDng."
       questAction: 0
@@ -247,29 +247,8 @@ MonoBehaviour:
       questAction: 0
       questId: 0
     - speakerName: Nhi
-      text: "\u0110\u1EC3 ch\u1EAFc ch\u1EAFn, anh c\xF3 th\u1EA5y g\xEC l\u1EA1
-        n\u1EEFa kh\xF4ng"
-      questAction: 0
-      questId: 0
-    - speakerName: "Tu\u1EA5n"
-      text: "T\xF4i th\u1EA5y m\u1ED9t t\u1EDD ghi s..."
-      questAction: 0
-      questId: 0
-    - speakerName: Nhi
       text: "T\u1ED1t l\u1EAFm, kh\xF4ng c\xF3 g\xEC b\u1EA5t th\u01B0\u1EDDng, c\u1EA3m
         \u01A1n v\u1EC1 s\u1EF1 c\u1ED1 g\u1EAFng c\u1EE7a anh."
-      questAction: 0
-      questId: 0
-    - speakerName: "Tu\u1EA5n"
-      text: "\u1EDD \u1EEBm,.. T\xF4i hi\u1EC3u r\u1ED3i."
-      questAction: 0
-      questId: 0
-    - speakerName: "Tu\u1EA5n"
-      text: .....
-      questAction: 0
-      questId: 0
-    - speakerName: "Tu\u1EA5n"
-      text: "C\xF4 \u1EA5y h\xE0nh x\u1EED l\u1EA1 th\u1EADt"
       questAction: 0
       questId: 0
     - speakerName: "Tu\u1EA5n"
@@ -301,7 +280,7 @@ MonoBehaviour:
       questId: 0
     - speakerName: Nhi
       text: "H\xF4m nay vi\u1EC7c \u0111\u01A1n gi\u1EA3n, h\xE3y \u0111i ch\u1EB7t
-        \"5\" kh\xFAc g\xF5 r\u1ED3i \u0111em ch\u1EA5t b\xEAn c\u1EA1nh c\u0103n
+        v\xE0i kh\xFAc g\xF5 r\u1ED3i \u0111em ch\u1EA5t b\xEAn c\u1EA1nh c\u0103n
         cabin"
       questAction: 0
       questId: 0
@@ -853,20 +832,6 @@ MonoBehaviour:
       text: "Y\xEAn b\xECnh."
       questAction: 0
       questId: 0
-    - speakerName: Nhi
-      text: "*ti\u1EBFng c\u01B0\u1EDDi* N\u1EBFu m\u1ECDi th\u1EE9 k\u1EBFt th\xFAc...
-        anh s\u1EBD l\xE0m g\xEC?"
-      questAction: 0
-      questId: 0
-    - speakerName: "Tu\u1EA5n"
-      text: "T\xF4i kh\xF4ng bi\u1EBFt."
-      questAction: 0
-      questId: 0
-    - speakerName: Nhi
-      text: "V\u1EADy h\xE3y s\u1ED1ng s\xF3t \u0111\u1EBFn l\xFAc \u0111\xF3 tr\u01B0\u1EDBc
-        \u0111i."
-      questAction: 0
-      questId: 0
   - day: 5
     eventId: 190
     playerCanMove: 1
@@ -878,11 +843,6 @@ MonoBehaviour:
       questId: 0
     - speakerName: Nhi
       text: "T\u1ED1t..."
-      questAction: 0
-      questId: 0
-    - speakerName: System
-      text: "\u0110\u1ED9t nhi\xEAn t\xEDn hi\u1EC7u b\u1ED9 \u0111\xE0m nhi\u1EC5u
-        m\u1EA1nh."
       questAction: 0
       questId: 0
     - speakerName: "Tu\u1EA5n"
@@ -898,10 +858,6 @@ MonoBehaviour:
     playerCanMove: 1
     timeScale: 1
     lines:
-    - speakerName: System
-      text: "\u0110O\xC0NG!"
-      questAction: 0
-      questId: 0
     - speakerName: "Tu\u1EA5n"
       text: NHI?!
       questAction: 0
@@ -930,10 +886,6 @@ MonoBehaviour:
       questId: 0
     - speakerName: "Tu\u1EA5n"
       text: "7 5 3 1. M\u1EADt kh\u1EA9u l\xE0 7 5 3 1."
-      questAction: 0
-      questId: 0
-    - speakerName: System
-      text: "H\u1EBFt ng\xE0y."
       questAction: 0
       questId: 0
   - day: 6
