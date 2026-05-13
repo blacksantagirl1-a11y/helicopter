@@ -609,7 +609,7 @@ MonoBehaviour:
         m\xE3 kh\xF3a l\xF5i"
       questAction: 0
       questId: 0
-    - speakerName: Nhi
+    - speakerName: "Tu\u1EA5n"
       text: "M\xE3 kh\xF3a n\xE0o?"
       questAction: 0
       questId: 0
@@ -619,7 +619,7 @@ MonoBehaviour:
         \u0111\u01B0\u1EE3c."
       questAction: 0
       questId: 0
-    - speakerName: Nhi
+    - speakerName: "Tu\u1EA5n"
       text: "V\u1EADy t\xF4i l\xE0 ng\u01B0\u1EDDi duy nh\u1EA5t t\u1EF1 m\u1EDF
         \u0111\u01B0\u1EE3c?"
       questAction: 0

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 0c969b53046d57546a693e0f04d14746
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 365718
+  packageName: Easy Censor - URP
+  packageVersion: 1.0.1
+  assetPath: Assets/Vefects/Easy Censor/VFX/Materials/M_VFX_Easy_Censor_01_Flat.mat
+  uploadId: 903384

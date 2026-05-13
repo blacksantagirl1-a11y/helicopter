@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 8872a7ed3e6ba6748981b237fca51dc7
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures:
+  - _Mask: {fileID: 2800000, guid: 8f4715af4337cb148bd1b5ac38e6cf61, type: 3}
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 365718
+  packageName: Easy Censor - URP
+  packageVersion: 1.0.1
+  assetPath: Assets/Vefects/Easy Censor/VFX/Shaders/SH_Vefects_URP_Easy_Censor_01.shader
+  uploadId: 903384
