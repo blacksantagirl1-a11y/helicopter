@@ -10,6 +10,12 @@ using UnityEngine.UI;
 
 public class MainMenuController : MonoBehaviour
 {
+    // File nay dieu khien toan bo man hinh menu chinh.
+    // Doc file theo 4 y de hieu:
+    // 1. Tim reference den button, panel, slider.
+    // 2. Gan su kien click / thay doi gia tri.
+    // 3. Mo dong panel Options / Credits bang tween.
+    // 4. Luu setting va load scene gameplay khi bam Play.
     enum MenuState
     {
         Idle,
@@ -118,6 +124,7 @@ public class MainMenuController : MonoBehaviour
     Vector2 creditsHiddenPosition;
     bool uiEventsBound;
 
+    // Awake la buoc "lap day day du": nap setting, tim reference va bind UI.
     void Awake()
     {
         currentSettings = MenuSettingsService.Load();
@@ -201,6 +208,7 @@ public class MainMenuController : MonoBehaviour
 
     void ResolveReferences()
     {
+        // Neu Inspector chua keo du component, script se thu tim theo ten object.
         uiCanvasGroup ??= GetComponentInChildren<CanvasGroup>(true);
 
         optionsPanelCanvasGroup ??= optionsPanel != null ? optionsPanel.GetComponent<CanvasGroup>() : null;
@@ -231,6 +239,8 @@ public class MainMenuController : MonoBehaviour
         qualityValueText ??= FindInPanel<TMP_Text>(optionsPanel, "QualityValue");
     }
 
+    // mainButtons la danh sach cac nut lon tren menu chinh,
+    // giup ta doi mau va scale dong bo khi hover / lock.
     void RegisterMainButtons()
     {
         mainButtons.Clear();
@@ -290,6 +300,7 @@ public class MainMenuController : MonoBehaviour
         RefreshMainButtons(true);
     }
 
+    // Fade nhe menu vao de mo man hinh trong "mem" hon, khong xuat hien dot ngot.
     void StartIntroFade()
     {
         if (uiCanvasGroup == null)
@@ -396,6 +407,8 @@ public class MainMenuController : MonoBehaviour
         RefreshMainButtons();
     }
 
+    // Hai ham ben duoi mo panel phu va khoa tam cac nut menu chinh
+    // de nguoi choi chi tap trung vao panel dang mo.
     void OpenOptionsPanel()
     {
         if (currentState != MenuState.Idle)
@@ -446,6 +459,7 @@ public class MainMenuController : MonoBehaviour
         });
     }
 
+    // Bam Play = luu setting hien tai, khoa UI, tat nhac menu va chuyen scene.
     void OnPlayPressed()
     {
         if (currentState != MenuState.Idle || LoadingManager.IsLoading)
@@ -506,6 +520,8 @@ public class MainMenuController : MonoBehaviour
 
     void RefreshSettingsUi()
     {
+        // Day la buoc "do du lieu len UI":
+        // setting hien tai trong bo nho se duoc day vao slider va text.
         if (volumeSlider != null && !Mathf.Approximately(volumeSlider.value, currentSettings.masterVolume))
         {
             volumeSlider.SetValueWithoutNotify(currentSettings.masterVolume);
@@ -537,6 +553,7 @@ public class MainMenuController : MonoBehaviour
         }
     }
 
+    // Vi tri shown / hidden giup panel truot ra vao man hinh thay vi bat/tat ngay lap tuc.
     void ConfigurePanel(RectTransform panel, CanvasGroup canvasGroup, out Vector2 shownPosition, out Vector2 hiddenPosition)
     {
         shownPosition = Vector2.zero;
@@ -566,6 +583,7 @@ public class MainMenuController : MonoBehaviour
         panel.gameObject.SetActive(false);
     }
 
+    // ShowPanel va HidePanel la phan animate chinh cho menu con.
     void ShowPanel(RectTransform panel, CanvasGroup canvasGroup, Vector2 shownPosition, Vector2 hiddenPosition)
     {
         if (panel == null)
