@@ -30,15 +30,15 @@ Lý do em chọn đề tài này là vì game 3D là một dạng sản phẩm c
 
 Với thể loại nhập vai, người chơi không chỉ di chuyển trong môi trường 3D mà còn phải quan sát, tìm manh mối, thu thập tài nguyên và hoàn thành nhiệm vụ. Điều này tạo ra một vòng lặp gameplay rõ ràng và phù hợp để thể hiện nhiều kỹ thuật khác nhau trong Unity.
 
-Ngoài ra, Unity là một nền tảng phù hợp cho đồ án vì hỗ trợ đầy đủ các thành phần cần thiết như scene, Đối tượng trò chơi, component, physics, UI Canvas, animation, terrain, NavMesh và âm thanh. Vì vậy, đề tài này không chỉ là một sản phẩm giải trí, mà còn là cơ hội để em vận dụng kiến thức lập trình và thiết kế hệ thống vào một project tương tác thời gian thực.
+Ngoài ra, Unity là một nền tảng phù hợp cho đồ án vì hỗ trợ đầy đủ các thành phần cần thiết như scene, Đối tượng trò chơi, Hệ thống vật lý, UI Canvas, animation và âm thanh. Vì vậy, đề tài này không chỉ là một sản phẩm giải trí, mà còn là cơ hội để em vận dụng kiến thức lập trình và thiết kế hệ thống vào một project tương tác thời gian thực.
 
 ## Slide 4: Mục tiêu và phạm vi (0:55)
 
-Về mục tiêu, đồ án hướng đến việc xây dựng một prototype game 3D góc nhìn thứ nhất trên nền tảng Unity. Người chơi có thể di chuyển, chạy, cúi, xoay camera, quan sát môi trường và tương tác với các object trong scene.
+Về mục tiêu, đồ án hướng đến việc xây dựng một thử nghiệm game 3D góc nhìn thứ nhất trên nền tảng Unity. Người chơi có thể di chuyển, chạy, cúi, xoay camera, quan sát môi trường và tương tác với các object trong scene.
 
-Bên cạnh phần điều khiển nhân vật, project cần cài đặt các hệ thống gameplay chính như tương tác bằng raycast, hiển thị prompt, nhặt vật phẩm, quản lý inventory, chặt cây, săn lợn rừng, câu cá, đặt campfire, nấu ăn, hội thoại và nhiệm vụ theo ngày.
+Bên cạnh phần điều khiển nhân vật, dự án cần cài đặt các hệ thống gameplay chính như tương tác bằng raycast, hiển thị prompt, nhặt vật phẩm, quản lý inventory, chặt cây, săn lợn rừng, câu cá, đặt campfire, nấu ăn, hội thoại và nhiệm vụ theo ngày.
 
-Về phạm vi, project tập trung vào bản demo phục vụ đồ án. Game có hai scene chính là MainMenu và InGame. Scene MainMenu dùng để bắt đầu game và thiết lập một số cài đặt cơ bản, còn scene InGame là màn chơi chính chứa môi trường rừng núi, hồ, nhân vật, vật phẩm, UI, nhiệm vụ, hội thoại và các hệ thống gameplay.
+Về phạm vi, dự án tập trung vào bản demo phục vụ đồ án. Game có hai scene chính là MainMenu và InGame. Scene MainMenu dùng để bắt đầu game và thiết lập một số cài đặt cơ bản, còn scene InGame là màn chơi chính chứa môi trường rừng núi, hồ, nhân vật, vật phẩm, UI, nhiệm vụ, hội thoại và các hệ thống gameplay.
 
 Trong phạm vi đồ án, hệ thống lưu trạng thái mới dừng ở mức đơn giản bằng PlayerPrefs, ví dụ lưu ngày hiện tại hoặc một số cài đặt. 
 
@@ -54,19 +54,18 @@ Ngoài ra, project còn sử dụng AI Navigation và NavMeshAgent cho hành vi 
 
 ## Slide 6: Thiết kế đồ họa và môi trường 3D (0:40)
 
-Bên cạnh phần lập trình gameplay, đồ án cũng chú trọng đến phần thiết kế đồ họa để tạo ra cảm giác nhập vai trong môi trường rừng núi. Trong scene gameplay, em xây dựng địa hình, cây cối, mặt nước, cabin, campfire và các vật thể tương tác sao cho vừa phục vụ thẩm mỹ, vừa hỗ trợ người chơi dễ nhận biết khu vực và mục tiêu cần tương tác.
+Bên cạnh phần lập trình gameplay, đồ án cũng chú trọng đến phần thiết kế đồ họa để tạo ra cảm giác nhập vai trong môi trường rừng núi. Trong scene gameplay, em xây dựng địa hình, cây cối, mặt nước, cabin và các vật thể tương tác sao cho vừa phục vụ thẩm mỹ, vừa hỗ trợ người chơi dễ nhận biết khu vực và mục tiêu cần tương tác.
 
-Đối với các tài sản 3D như rìu, gỗ, cá, thịt, máy tính, campfire và một số đạo cụ trong cabin, quy trình thực hiện gồm dựng khối cơ bản trong Blender, bổ sung chi tiết khi cần, tối ưu lưới, trải UV, sau đó tạo vật liệu và texture trước khi import vào Unity. Cách làm này giúp asset có hình dạng rõ ràng, đồng thời vẫn phù hợp với hiệu năng của một project Unity thời gian thực.
+Đối với các tài sản 3D như rìu, gỗ, cá, thịt, máy tính và một số đạo cụ trong cabin, quy trình thực hiện gồm dựng khối cơ bản trong Blender, bổ sung chi tiết, tối ưu lưới, trải UV, sau đó tạo vật liệu và texture trước khi cho vào vào Unity. Cách làm này giúp asset có hình dạng rõ ràng, đồng thời vẫn phù hợp với hiệu năng của một dự án Unity thời gian thực.
 
-Về tổng thể, phần thiết kế đồ họa không chỉ nhằm làm game đẹp hơn, mà còn gắn trực tiếp với gameplay. Ví dụ, vật phẩm phải đủ nổi bật để người chơi nhận ra, môi trường phải định hướng được đường đi, còn các đạo cụ như cabin, PC hay campfire phải vừa đúng bối cảnh, vừa hỗ trợ kể chuyện và dẫn dắt nhiệm vụ.
 
 ## Slide 7: Vòng lặp gameplay tổng quát (0:55)
 
-Vòng lặp gameplay của game bắt đầu từ Main Menu. Khi người chơi bấm New Game, game chuyển sang scene InGame, đây là scene gameplay chính.
+Vòng lặp gameplay của game bắt đầu từ Main Menu. Khi người chơi bấm New Game, game chuyển sang Màn chơi InGame, đây là Màn chơi gameplay chính.
 
-Trong scene Ingame, người chơi điều khiển nhân vật ở góc nhìn thứ nhất để khám phá môi trường. Camera được dùng để quan sát, đồng thời cũng là hướng raycast để phát hiện đối tượng có thể tương tác. Khi nhìn vào đối tượng của trò chơi hợp lệ, hệ thống hiển thị thông báo tương tác và người chơi có thể bấm phím E để thực hiện tương tác.
+Trong màn chơi Ingame, người chơi điều khiển nhân vật ở góc nhìn thứ nhất để khám phá môi trường. Camera được dùng để quan sát, đồng thời cũng là hướng raycast để phát hiện đối tượng có thể tương tác. Khi nhìn vào đối tượng của trò chơi hợp lệ, hệ thống hiển thị thông báo tương tác và người chơi có thể bấm phím E để thực hiện tương tác.
 
-Các tương tác trong game bao gồm mở cửa, nhặt vật phẩm, kích hoạt hội thoại, chặt cây, câu cá, đặt campfire hoặc xử lý các object nhiệm vụ. Sau khi tương tác, dữ liệu trong Túi đồ, nhiệm vụ hoặc hội thoại có thể được cập nhật.
+Các tương tác trong game bao gồm mở cửa, nhặt vật phẩm, kích hoạt hội thoại, chặt cây, câu cá, đặt bếp lửa hoặc xử lý các đối tượng nhiệm vụ. Sau khi tương tác, dữ liệu trong Túi đồ, nhiệm vụ hoặc hội thoại có thể được cập nhật.
 
 Vòng lặp chính của game là: khám phá môi trường, tương tác với đối tượng, thu thập tài nguyên, hoàn thành điều kiện nhiệm vụ, xem hội thoại và chuyển sang tiến trình ngày tiếp theo. Cách tổ chức này giúp game có mục tiêu rõ ràng thay vì chỉ là một scene để di chuyển tự do.
 
@@ -101,23 +100,13 @@ Hệ thống nhiệm vụ được thiết kế theo tiến trình từng ngày 
 
 Như vậy, mỗi ngày không chỉ là một nhiệm vụ riêng lẻ, mà còn giới thiệu hoặc kết hợp thêm một nhóm chức năng gameplay mới. Điều này giúp dự án thể hiện được cả phần kỹ thuật lẫn phần thiết kế trải nghiệm người chơi.
 
-## Slide 11: Kiểm thử và kết quả (0:50)
 
-Sau khi cài đặt, em tiến hành kiểm thử theo từng nhóm chức năng chính.
 
-Đầu tiên là kiểm thử Main Menu và chuyển scene. Khi bấm New Game, game cần chuyển đúng sang scene Suml. Tiếp theo là kiểm thử điều khiển nhân vật, bao gồm đi, chạy, cúi, xoay camera và cập nhật trạng thái animation.
+## Slide 11: Đánh giá (0:40)
 
-Đối với hệ thống tương tác, em kiểm thử việc nhìn vào object có Interactable, hiển thị prompt và bấm E để object xử lý đúng hành vi. Các trường hợp như mở cửa, nhặt vật phẩm và kích hoạt hội thoại đều được kiểm tra theo luồng sử dụng thực tế.
+Về kết quả đạt được, dự án đã xây dựng được một thử nghiệm game 3D có đầy đủ các hệ thống gameplay cốt lõi. Các module như Player, Interact, Inventory, Quest, Dialogue và Audio.
 
-Các chức năng gameplay như chặt cây, săn lợn rừng, câu cá và nấu ăn cũng được kiểm thử riêng. Ví dụ, khi chặt cây đủ số hit thì cây phải biến mất và sinh vật phẩm gỗ; khi săn lợn thành công thì lợn bị hạ và rơi thịt; khi câu cá thành công thì cá được thêm vào inventory.
-
-Ngoài ra, em kiểm thử quest HUD, dialogue, clue vision, âm thanh và stamina. Kết quả là các vòng lặp gameplay chính đã hoạt động và có thể kết hợp thành một bản demo chơi được, đáp ứng mục tiêu của đồ án.
-
-## Slide 12: Đánh giá (0:40)
-
-Về kết quả đạt được, project đã xây dựng được một prototype game 3D có đầy đủ các hệ thống gameplay cốt lõi. Các module như Player, Interact, Inventory, Quest, Dialogue và Audio được tách tương đối rõ theo chức năng.
-
-Một điểm mạnh của project là dữ liệu item, nhiệm vụ và hội thoại không bị hard-code hoàn toàn trong logic gameplay, mà được tách thành asset hoặc cấu hình riêng. Điều này giúp việc thêm item, nhiệm vụ hoặc đoạn hội thoại mới thuận tiện hơn.
+Một điểm mạnh của dự án là dữ liệu item, nhiệm vụ và hội thoại không bị code cứng hoàn toàn trong logic gameplay, mà được tách thành asset hoặc cấu hình riêng. Điều này giúp việc thêm item, nhiệm vụ hoặc đoạn hội thoại mới thuận tiện hơn.
 
 Tuy nhiên, project vẫn còn một số hạn chế. Hệ thống save/load hiện mới lưu các trạng thái nhẹ bằng PlayerPrefs, chưa lưu đầy đủ toàn bộ thế giới game. AI của lợn rừng và cân bằng gameplay còn đơn giản. Một số phần giao diện và hiệu ứng hình ảnh vẫn cần tiếp tục hoàn thiện nếu phát triển thành sản phẩm lớn hơn.
 
