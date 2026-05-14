@@ -21,13 +21,13 @@ MonoBehaviour:
     m_Value: 57
   colorFilter:
     m_OverrideState: 1
-    m_Value: {r: 0.740566, g: 1, b: 0.8134711, a: 1}
+    m_Value: {r: 0.8066038, g: 1, b: 0.8593482, a: 1}
   hueShift:
     m_OverrideState: 1
     m_Value: 8
   saturation:
     m_OverrideState: 1
-    m_Value: -5
+    m_Value: 5
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -261,8 +261,8 @@ MonoBehaviour:
           inWeight: 0
           outWeight: 0
         - serializedVersion: 3
-          time: 0.22606383
-          value: 0.48587573
+          time: 0.27586207
+          value: 0.5674157
           inSlope: 1.2314745
           outSlope: 1.2314745
           tangentMode: 0
@@ -270,8 +270,8 @@ MonoBehaviour:
           inWeight: 0
           outWeight: 0
         - serializedVersion: 3
-          time: 0.6781915
-          value: 0.49717516
+          time: 0.67639256
+          value: 0.5674157
           inSlope: -0.99133724
           outSlope: -0.99133724
           tangentMode: 0

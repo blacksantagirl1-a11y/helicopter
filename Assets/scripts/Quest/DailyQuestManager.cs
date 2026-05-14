@@ -1,6 +1,8 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,6 +19,15 @@ public class DailyQuestManager : MonoBehaviour
         PlaceCampfire,
         CookFood,
         EatFood,
+        Completed
+    }
+
+    private enum Day6EscapeStage
+    {
+        Inactive,
+        InspectPc,
+        PullToilet,
+        ExitCave,
         Completed
     }
 
@@ -48,6 +59,14 @@ public class DailyQuestManager : MonoBehaviour
     private const int Day5RequiredWood = 5;
     private const int Day5RequiredCookedFood = 3;
     private const int Day5RequiredEatenFood = 1;
+    private const string Day6ToiletBeforeObjectName = "ToiletBeforePullPosision";
+    private const string Day6ToiletAfterObjectName = "ToiletAfterPullPosison";
+    private const string Day6GetOutObjectName = "GetOut";
+    private const string Day6PcOpenedKey = "quest.day6.pcOpened";
+    private const string Day6ToiletPulledKey = "quest.day6.toiletPulled";
+    private const string Day6EndGameOverlayObjectName = "Day6EndGameOverlay";
+    private const string MainMenuSceneName = "MainMenu";
+    private const float Day6EndGameFadeDuration = 0.45f;
 
     public const string Day5CampfirePlacedInteractionKey = "day5_campfire_placed";
     public const string Day5CookedFoodInteractionKey = "day5_cooked_food";
@@ -99,6 +118,12 @@ public class DailyQuestManager : MonoBehaviour
     private bool hasPreparedDay5DataPackageThisSession;
     private Coroutine day5CookingCompleteDialogueRoutine;
     private Coroutine day5EatingInteractionRestoreRoutine;
+    private Day6EscapeStage day6Stage = Day6EscapeStage.Inactive;
+    private bool isDay6EndSequenceRunning;
+    private Coroutine day6EndSequenceRoutine;
+    private GameObject day6EndGameOverlayRoot;
+    private CanvasGroup day6EndGameOverlayCanvasGroup;
+    private Image day6EndGameOverlayImage;
 
     public static bool IsQuestSystemActive => TryGetInstance() != null;
 
@@ -130,6 +155,8 @@ public class DailyQuestManager : MonoBehaviour
     {
         CancelDay5CookingCompleteDialogueRoutine();
         CancelDay5EatingInteractionRestoreRoutine();
+        CancelDay6EndSequenceRoutine();
+        HideDay6EndGameOverlayImmediate();
         UnsubscribeInventory();
 
         if (instance == this)
@@ -244,6 +271,23 @@ public class DailyQuestManager : MonoBehaviour
         }
     }
 
+    public static void ResetDay6EscapeForReplay()
+    {
+        ClearDay6EscapeState();
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+
+        DailyQuestManager manager = TryGetInstance();
+        if (manager != null)
+        {
+            manager.ResetDay6EscapeStateRuntime();
+            manager.ApplyPersistentSceneState();
+            manager.RefreshHud();
+        }
+    }
+
     public static void NotifyFishingModeExited()
     {
         DailyQuestManager manager = TryGetInstance();
@@ -272,6 +316,53 @@ public class DailyQuestManager : MonoBehaviour
     {
         DailyQuestManager manager = TryGetInstance();
         return manager != null && manager.IsDay5EatingObjectiveActive();
+    }
+
+    public static bool CanInteractWithDay6PcVideo()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        return manager != null && manager.CanInteractWithDay6PcVideoInternal();
+    }
+
+    public static void NotifyDay6PcVideoFinished()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        if (manager != null)
+        {
+            manager.HandleDay6PcVideoFinished();
+        }
+    }
+
+    public static bool CanInteractWithDay6Toilet()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        return manager != null && manager.CanInteractWithDay6ToiletInternal();
+    }
+
+    public static bool TryHandleDay6ToiletInteraction()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        return manager != null && manager.TryHandleDay6ToiletInteractionInternal();
+    }
+
+    public static bool CanInteractWithDay6GetOut()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        return manager != null && manager.CanInteractWithDay6GetOutInternal();
+    }
+
+    public static bool TryHandleDay6GetOutInteraction()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        return manager != null && manager.TryHandleDay6GetOutInteractionInternal();
+    }
+
+    public static bool ShouldSuppressDay6LostSignal()
+    {
+        DailyQuestManager manager = TryGetInstance();
+        return DialogueSaveService.GetCurrentDay() == DialogueDay.Day6 &&
+            manager != null &&
+            manager.isDay6EndSequenceRunning;
     }
 
     public static bool CanInteractWithDay3BundOfWood()
@@ -354,13 +445,21 @@ public class DailyQuestManager : MonoBehaviour
         if (quest.ObjectiveType == QuestObjectiveType.Day5Survival)
         {
             BeginDay5SurvivalQuest();
+            ResetDay6EscapeStateRuntime();
+        }
+        else if (quest.ObjectiveType == QuestObjectiveType.Day6Escape)
+        {
+            ResetDay5SurvivalState();
+            BeginDay6EscapeQuest();
         }
         else
         {
             ResetDay5SurvivalState();
+            ResetDay6EscapeStateRuntime();
         }
 
         PrepareTurnInScene(quest);
+        ApplyPersistentSceneState();
 
         SetHudVisible(true);
         RefreshHud();
@@ -370,6 +469,7 @@ public class DailyQuestManager : MonoBehaviour
     private void HandleDialogueFinished(DialogueDay day, DialogueEventId eventId)
     {
         HandleDay5StoryDialogueFinished(day, eventId);
+        HandleDay6StoryDialogueFinished(day, eventId);
 
         if (!isQuestActive ||
             activeQuest == null ||
@@ -445,6 +545,12 @@ public class DailyQuestManager : MonoBehaviour
         if (activeQuest != null && activeQuest.ObjectiveType == QuestObjectiveType.Day5Survival)
         {
             TryCompleteDay5SurvivalQuest();
+            return;
+        }
+
+        if (activeQuest != null && activeQuest.ObjectiveType == QuestObjectiveType.Day6Escape)
+        {
+            TryCompleteDay6EscapeQuest();
             return;
         }
 
@@ -628,6 +734,191 @@ public class DailyQuestManager : MonoBehaviour
         hasPreparedDay5DataPackageThisSession = false;
         CancelDay5CookingCompleteDialogueRoutine();
         CancelDay5EatingInteractionRestoreRoutine();
+    }
+
+    private void BeginDay6EscapeQuest()
+    {
+        CancelDay6EndSequenceRoutine();
+        HideDay6EndGameOverlayImmediate();
+        isDay6EndSequenceRunning = false;
+        RefreshDay6EscapeStage();
+    }
+
+    private void ResetDay6EscapeStateRuntime()
+    {
+        day6Stage = Day6EscapeStage.Inactive;
+        isDay6EndSequenceRunning = false;
+        CancelDay6EndSequenceRoutine();
+        HideDay6EndGameOverlayImmediate();
+    }
+
+    private bool HasDay6EscapeQuestConfigured()
+    {
+        return database != null &&
+            database.TryGetQuest(DialogueDay.Day6, DailyQuestId.Day6Escape, out DailyQuestDefinition quest) &&
+            quest != null &&
+            quest.ObjectiveType == QuestObjectiveType.Day6Escape;
+    }
+
+    private bool IsDay6EscapeQuestActive()
+    {
+        return isQuestActive &&
+            activeQuest != null &&
+            activeQuest.ObjectiveType == QuestObjectiveType.Day6Escape;
+    }
+
+    private void RefreshDay6EscapeStage()
+    {
+        if (DialogueController.GetCurrentDay() != DialogueDay.Day6 && !IsDay6EscapeQuestActive())
+        {
+            day6Stage = Day6EscapeStage.Inactive;
+            return;
+        }
+
+        if (isDay6EndSequenceRunning)
+        {
+            day6Stage = Day6EscapeStage.Completed;
+        }
+        else if (IsDay6ToiletPulled())
+        {
+            day6Stage = Day6EscapeStage.ExitCave;
+        }
+        else if (IsDay6PcOpened())
+        {
+            day6Stage = Day6EscapeStage.PullToilet;
+        }
+        else
+        {
+            day6Stage = Day6EscapeStage.InspectPc;
+        }
+
+        if (IsDay6EscapeQuestActive())
+        {
+            currentProgress = Mathf.Min(activeQuest.RequiredCount, GetDay6EscapeProgressCount());
+        }
+    }
+
+    private int GetDay6EscapeProgressCount()
+    {
+        if (isDay6EndSequenceRunning || day6Stage == Day6EscapeStage.Completed)
+        {
+            return 3;
+        }
+
+        if (IsDay6ToiletPulled())
+        {
+            return 2;
+        }
+
+        if (IsDay6PcOpened())
+        {
+            return 1;
+        }
+
+        return 0;
+    }
+
+    private bool CanInteractWithDay6PcVideoInternal()
+    {
+        RefreshDay6EscapeStage();
+        return DialogueController.GetCurrentDay() == DialogueDay.Day6 &&
+            !DialogueController.IsDialogueActive &&
+            !isWaitingForCompletionDialogue &&
+            !isWaitingForTurnIn &&
+            !isReloadingScene &&
+            !isDay6EndSequenceRunning &&
+            day6Stage == Day6EscapeStage.InspectPc;
+    }
+
+    private void HandleDay6PcVideoFinished()
+    {
+        if (!CanInteractWithDay6PcVideoInternal())
+        {
+            return;
+        }
+
+        SetDay6PcOpened(true);
+        RefreshDay6EscapeStage();
+        ApplyPersistentSceneState();
+        RefreshHud();
+        DialogueController.RequestDialogue(DialogueEventId.Day6ClosePC);
+    }
+
+    private bool CanInteractWithDay6ToiletInternal()
+    {
+        RefreshDay6EscapeStage();
+        return DialogueController.GetCurrentDay() == DialogueDay.Day6 &&
+            !DialogueController.IsDialogueActive &&
+            !isWaitingForCompletionDialogue &&
+            !isWaitingForTurnIn &&
+            !isReloadingScene &&
+            !isDay6EndSequenceRunning &&
+            day6Stage == Day6EscapeStage.PullToilet;
+    }
+
+    private bool TryHandleDay6ToiletInteractionInternal()
+    {
+        if (!CanInteractWithDay6ToiletInternal())
+        {
+            return false;
+        }
+
+        SetDay6ToiletPulled(true);
+        RefreshDay6EscapeStage();
+        ApplyPersistentSceneState();
+        RefreshHud();
+        DialogueController.RequestDialogue(DialogueEventId.Day6EnterCave);
+        return true;
+    }
+
+    private bool CanInteractWithDay6GetOutInternal()
+    {
+        RefreshDay6EscapeStage();
+        return DialogueController.GetCurrentDay() == DialogueDay.Day6 &&
+            !DialogueController.IsDialogueActive &&
+            !isWaitingForCompletionDialogue &&
+            !isWaitingForTurnIn &&
+            !isReloadingScene &&
+            !isDay6EndSequenceRunning &&
+            day6Stage == Day6EscapeStage.ExitCave;
+    }
+
+    private bool TryHandleDay6GetOutInteractionInternal()
+    {
+        if (!CanInteractWithDay6GetOutInternal())
+        {
+            return false;
+        }
+
+        isDay6EndSequenceRunning = true;
+        RefreshDay6EscapeStage();
+        RefreshHud();
+        CancelDay6EndSequenceRoutine();
+        day6EndSequenceRoutine = StartCoroutine(RunDay6EndSequence());
+        return true;
+    }
+
+    private void TryCompleteDay6EscapeQuest()
+    {
+        if (!IsDay6EscapeQuestActive())
+        {
+            return;
+        }
+
+        RefreshDay6EscapeStage();
+        RefreshHud();
+    }
+
+    private void HandleDay6StoryDialogueFinished(DialogueDay day, DialogueEventId eventId)
+    {
+        if (!isDay6EndSequenceRunning ||
+            day != DialogueDay.Day6 ||
+            eventId != DialogueEventId.Day6EndGame)
+        {
+            return;
+        }
+
+        FinishDay6EndSequence();
     }
 
     private void HandleDay5InventoryItemAdded(InventoryItemDefinition itemDefinition, int amountAdded)
@@ -1025,6 +1316,7 @@ public class DailyQuestManager : MonoBehaviour
         ApplyDay3CarpetsState(currentDay);
         ApplyDay4TriggerState(currentDay);
         ApplyDay5DataPackageState(currentDay);
+        ApplyDay6EscapeSceneState(currentDay);
         EnsureDay3Interactables(currentDay);
     }
 
@@ -1124,6 +1416,43 @@ public class DailyQuestManager : MonoBehaviour
 
         EnsureDay5DataCubeObject(cubeAppeared && !cubeOpened);
         EnsureDay5ComputerObject(cubeOpened);
+    }
+
+    private void ApplyDay6EscapeSceneState(DialogueDay currentDay)
+    {
+        if ((int)currentDay < (int)DialogueDay.Day6 && (IsDay6PcOpened() || IsDay6ToiletPulled()))
+        {
+            ClearDay6EscapeState();
+        }
+
+        bool showToiletAfter = currentDay == DialogueDay.Day6 && IsDay6ToiletPulled();
+        SetSceneObjectActive(Day6ToiletBeforeObjectName, !showToiletAfter);
+        SetSceneObjectActive(Day6ToiletAfterObjectName, showToiletAfter);
+        EnsureDay6Interactables(currentDay);
+    }
+
+    private static void EnsureDay6Interactables(DialogueDay currentDay)
+    {
+        if (currentDay != DialogueDay.Day6)
+        {
+            return;
+        }
+
+        GameObject toiletBefore = FindSceneObjectByName(Day6ToiletBeforeObjectName, true);
+        if (toiletBefore != null)
+        {
+            EnsureCollider(toiletBefore);
+            Day6QuestInteractable interactable = EnsureComponent<Day6QuestInteractable>(toiletBefore);
+            interactable?.Configure(Day6QuestInteractable.InteractionKind.PullToilet, "Keo toilet", true);
+        }
+
+        GameObject getOut = FindSceneObjectByName(Day6GetOutObjectName, true);
+        if (getOut != null)
+        {
+            EnsureCollider(getOut);
+            Day6QuestInteractable interactable = EnsureComponent<Day6QuestInteractable>(getOut);
+            interactable?.Configure(Day6QuestInteractable.InteractionKind.GetOut, "Chui ra ngoai", false);
+        }
     }
 
     private bool OpenDay5DataCube()
@@ -1441,6 +1770,51 @@ public class DailyQuestManager : MonoBehaviour
         PlayerPrefs.Save();
     }
 
+    private static bool IsDay6PcOpened()
+    {
+        return PlayerPrefs.GetInt(Day6PcOpenedKey, 0) == 1;
+    }
+
+    private static void SetDay6PcOpened(bool isOpened)
+    {
+        if (isOpened)
+        {
+            PlayerPrefs.SetInt(Day6PcOpenedKey, 1);
+        }
+        else
+        {
+            PlayerPrefs.DeleteKey(Day6PcOpenedKey);
+        }
+
+        PlayerPrefs.Save();
+    }
+
+    private static bool IsDay6ToiletPulled()
+    {
+        return PlayerPrefs.GetInt(Day6ToiletPulledKey, 0) == 1;
+    }
+
+    private static void SetDay6ToiletPulled(bool isPulled)
+    {
+        if (isPulled)
+        {
+            PlayerPrefs.SetInt(Day6ToiletPulledKey, 1);
+        }
+        else
+        {
+            PlayerPrefs.DeleteKey(Day6ToiletPulledKey);
+        }
+
+        PlayerPrefs.Save();
+    }
+
+    private static void ClearDay6EscapeState()
+    {
+        PlayerPrefs.DeleteKey(Day6PcOpenedKey);
+        PlayerPrefs.DeleteKey(Day6ToiletPulledKey);
+        PlayerPrefs.Save();
+    }
+
     private void EnsureGatherWoodTurnInInteractable()
     {
         if (activeQuest == null ||
@@ -1602,6 +1976,162 @@ public class DailyQuestManager : MonoBehaviour
         }
     }
 
+    private IEnumerator RunDay6EndSequence()
+    {
+        yield return FadeDay6EndGameOverlay(1f, Day6EndGameFadeDuration);
+        EnsureDay6EndGameOverlayOrdering();
+
+        if (!DialogueController.RequestDialogue(DialogueEventId.Day6EndGame))
+        {
+            FinishDay6EndSequence();
+            yield break;
+        }
+
+        yield return null;
+        EnsureDay6EndGameOverlayOrdering();
+        day6EndSequenceRoutine = null;
+    }
+
+    private void FinishDay6EndSequence()
+    {
+        ClearDay6EscapeState();
+        SetHudVisible(false);
+
+        if (!LoadingManager.LoadScene(MainMenuSceneName))
+        {
+            SceneManager.LoadScene(MainMenuSceneName);
+        }
+    }
+
+    private void CancelDay6EndSequenceRoutine()
+    {
+        if (day6EndSequenceRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(day6EndSequenceRoutine);
+        day6EndSequenceRoutine = null;
+    }
+
+    private IEnumerator FadeDay6EndGameOverlay(float targetAlpha, float duration)
+    {
+        EnsureDay6EndGameOverlay();
+        if (day6EndGameOverlayCanvasGroup == null)
+        {
+            yield break;
+        }
+
+        day6EndGameOverlayRoot.SetActive(true);
+        day6EndGameOverlayCanvasGroup.alpha = Mathf.Clamp01(day6EndGameOverlayCanvasGroup.alpha);
+        float startAlpha = day6EndGameOverlayCanvasGroup.alpha;
+        float safeDuration = Mathf.Max(0.01f, duration);
+        float elapsed = 0f;
+
+        while (elapsed < safeDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / safeDuration);
+            day6EndGameOverlayCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
+            yield return null;
+        }
+
+        day6EndGameOverlayCanvasGroup.alpha = Mathf.Clamp01(targetAlpha);
+    }
+
+    private void EnsureDay6EndGameOverlay()
+    {
+        ResolveReferences();
+        Canvas canvas = questHudRoot != null
+            ? questHudRoot.GetComponentInParent<Canvas>()
+            : FindFirstObjectByType<Canvas>();
+
+        if (canvas == null)
+        {
+            return;
+        }
+
+        if (day6EndGameOverlayRoot == null)
+        {
+            Transform existingOverlay = canvas.transform.Find(Day6EndGameOverlayObjectName);
+            if (existingOverlay != null)
+            {
+                day6EndGameOverlayRoot = existingOverlay.gameObject;
+            }
+        }
+
+        if (day6EndGameOverlayRoot == null)
+        {
+            day6EndGameOverlayRoot = new GameObject(
+                Day6EndGameOverlayObjectName,
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image),
+                typeof(CanvasGroup));
+            day6EndGameOverlayRoot.transform.SetParent(canvas.transform, false);
+        }
+
+        day6EndGameOverlayImage ??= day6EndGameOverlayRoot.GetComponent<Image>();
+        day6EndGameOverlayCanvasGroup ??= day6EndGameOverlayRoot.GetComponent<CanvasGroup>();
+
+        RectTransform rectTransform = day6EndGameOverlayRoot.GetComponent<RectTransform>();
+        rectTransform.anchorMin = Vector2.zero;
+        rectTransform.anchorMax = Vector2.one;
+        rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        rectTransform.offsetMin = Vector2.zero;
+        rectTransform.offsetMax = Vector2.zero;
+
+        if (day6EndGameOverlayImage != null)
+        {
+            day6EndGameOverlayImage.color = Color.black;
+            day6EndGameOverlayImage.raycastTarget = false;
+        }
+
+        if (day6EndGameOverlayCanvasGroup != null)
+        {
+            day6EndGameOverlayCanvasGroup.interactable = false;
+            day6EndGameOverlayCanvasGroup.blocksRaycasts = false;
+        }
+    }
+
+    private void EnsureDay6EndGameOverlayOrdering()
+    {
+        if (day6EndGameOverlayRoot == null)
+        {
+            return;
+        }
+
+        Transform parent = day6EndGameOverlayRoot.transform.parent;
+        if (parent == null)
+        {
+            return;
+        }
+
+        Transform dialogueRoot = parent.Find("DialogueRoot");
+        if (dialogueRoot == null)
+        {
+            day6EndGameOverlayRoot.transform.SetAsLastSibling();
+            return;
+        }
+
+        dialogueRoot.SetAsLastSibling();
+        int overlayIndex = Mathf.Max(0, dialogueRoot.GetSiblingIndex() - 1);
+        day6EndGameOverlayRoot.transform.SetSiblingIndex(overlayIndex);
+    }
+
+    private void HideDay6EndGameOverlayImmediate()
+    {
+        if (day6EndGameOverlayCanvasGroup != null)
+        {
+            day6EndGameOverlayCanvasGroup.alpha = 0f;
+        }
+
+        if (day6EndGameOverlayRoot != null)
+        {
+            day6EndGameOverlayRoot.SetActive(false);
+        }
+    }
+
     private bool AdvanceDayFromBed()
     {
         if (isReloadingScene)
@@ -1656,6 +2186,7 @@ public class DailyQuestManager : MonoBehaviour
         pendingCompletionDialogueEvent = DialogueEventId.None;
         shouldAdvanceAfterPendingDialogue = false;
         ResetDay5SurvivalState();
+        ResetDay6EscapeStateRuntime();
         SetHudVisible(false);
     }
 
@@ -1735,8 +2266,18 @@ public class DailyQuestManager : MonoBehaviour
 
     private int GetInitialProgress(DailyQuestDefinition quest)
     {
-        if (quest == null ||
-            quest.ObjectiveType != QuestObjectiveType.InventoryItemCount ||
+        if (quest == null)
+        {
+            return 0;
+        }
+
+        if (quest.ObjectiveType == QuestObjectiveType.Day6Escape)
+        {
+            RefreshDay6EscapeStage();
+            return Mathf.Min(quest.RequiredCount, GetDay6EscapeProgressCount());
+        }
+
+        if (quest.ObjectiveType != QuestObjectiveType.InventoryItemCount ||
             quest.TargetItem == null)
         {
             return 0;
@@ -1766,6 +2307,10 @@ public class DailyQuestManager : MonoBehaviour
         {
             SyncDay5InventoryProgress(false, false);
             RefreshDay5Stage();
+        }
+        else if (activeQuest.ObjectiveType == QuestObjectiveType.Day6Escape)
+        {
+            RefreshDay6EscapeStage();
         }
 
         SetHudVisible(true);
@@ -1837,6 +2382,11 @@ public class DailyQuestManager : MonoBehaviour
                 $"Ăn: {day5EatenFoodCount}/{Day5RequiredEatenFood}");
         }
 
+        if (activeQuest.ObjectiveType == QuestObjectiveType.Day6Escape)
+        {
+            return $"Tien do: {Mathf.Min(3, currentProgress)}/3";
+        }
+
         string label = activeQuest.ObjectiveType switch
         {
             QuestObjectiveType.InventoryItemCount when activeQuest.TargetItem != null => activeQuest.TargetItem.DisplayName,
@@ -1863,6 +2413,18 @@ public class DailyQuestManager : MonoBehaviour
                 Day5SurvivalStage.PlaceCampfire => "Hướng dẫn: Dùng gỗ trong túi đồ để đặt campfire.",
                 Day5SurvivalStage.CookFood => "Hướng dẫn: Nấu đủ 3 món ăn bằng campfire.",
                 Day5SurvivalStage.EatFood => "Hướng dẫn: Ăn 1 món đã nấu.",
+                _ => string.Empty
+            };
+        }
+
+        if (activeQuest.ObjectiveType == QuestObjectiveType.Day6Escape)
+        {
+            return day6Stage switch
+            {
+                Day6EscapeStage.InspectPc => "H\u01b0\u1edbng d\u1eabn: T\u01b0\u01a1ng t\u00e1c v\u1edbi chiec PC trong cabin.",
+                Day6EscapeStage.PullToilet => "H\u01b0\u1edbng d\u1eabn: Kiem tra toilet de mo loi di bi mat.",
+                Day6EscapeStage.ExitCave => "H\u01b0\u1edbng d\u1eabn: Di den diem GetOut de thoat khoi hang.",
+                Day6EscapeStage.Completed => "H\u01b0\u1edbng d\u1eabn: Roi khoi khu rung cang nhanh cang tot.",
                 _ => string.Empty
             };
         }
@@ -1901,6 +2463,13 @@ public class DailyQuestManager : MonoBehaviour
             return "Hoàn thành nhiệm vụ.";
         }
 
+        if (activeQuest != null &&
+            activeQuest.ObjectiveType == QuestObjectiveType.Day6Escape &&
+            isDay6EndSequenceRunning)
+        {
+            return "Dang roi khoi khu rung...";
+        }
+
         if (isWaitingForCompletionDialogue)
         {
             return "\u0110ang b\u00e1o c\u00e1o nhi\u1ec7m v\u1ee5...";
@@ -1933,6 +2502,83 @@ public class DailyQuestManager : MonoBehaviour
             {
                 questProgressText.text = string.Empty;
             }
+        }
+    }
+}
+
+[DisallowMultipleComponent]
+public sealed class Day6QuestInteractable : Interactable
+{
+    public enum InteractionKind
+    {
+        PullToilet = 0,
+        GetOut = 1
+    }
+
+    [SerializeField] private InteractionKind interactionKind;
+    [SerializeField] private string promptText = "Tuong tac";
+    [SerializeField] private bool useInteractionFade = true;
+
+    private bool isProcessingInteraction;
+
+    public override bool CanInteract => !isProcessingInteraction && ResolveCanInteract();
+    public override bool HasPromptText => CanInteract && !string.IsNullOrWhiteSpace(promptText);
+    public override string PromptText => HasPromptText ? promptText : string.Empty;
+
+    public void Configure(InteractionKind kind, string prompt, bool shouldUseFade)
+    {
+        interactionKind = kind;
+        if (!string.IsNullOrWhiteSpace(prompt))
+        {
+            promptText = prompt;
+        }
+
+        useInteractionFade = shouldUseFade;
+    }
+
+    protected override void Interact()
+    {
+        if (!CanInteract)
+        {
+            return;
+        }
+
+        isProcessingInteraction = true;
+        if (useInteractionFade && DialogueController.PlayInteractionFade(CompleteInteraction))
+        {
+            return;
+        }
+
+        CompleteInteraction();
+    }
+
+    protected override void PresentInteraction(PlayerUI playerUI)
+    {
+        playerUI?.HideInteractionContent();
+    }
+
+    private bool ResolveCanInteract()
+    {
+        return interactionKind switch
+        {
+            InteractionKind.PullToilet => DailyQuestManager.CanInteractWithDay6Toilet(),
+            InteractionKind.GetOut => DailyQuestManager.CanInteractWithDay6GetOut(),
+            _ => false
+        };
+    }
+
+    private void CompleteInteraction()
+    {
+        bool succeeded = interactionKind switch
+        {
+            InteractionKind.PullToilet => DailyQuestManager.TryHandleDay6ToiletInteraction(),
+            InteractionKind.GetOut => DailyQuestManager.TryHandleDay6GetOutInteraction(),
+            _ => false
+        };
+
+        if (!succeeded)
+        {
+            isProcessingInteraction = false;
         }
     }
 }

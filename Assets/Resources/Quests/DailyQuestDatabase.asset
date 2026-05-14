@@ -84,14 +84,14 @@ MonoBehaviour:
     turnInCompletionDialogueEvent: 50
   - day: 6
     questId: 60
-    displayName: 
+    displayName: Thoat khoi khu rung
     turnInDisplayName: 
-    instructionText: 
+    instructionText: Giai ma chiec PC de tim loi thoat.
     turnInInstructionText: 
-    objectiveType: 20
+    objectiveType: 40
     interactionKey: 
-    targetItem: {fileID: 11400000, guid: d6703daa303c4804f8a696c663c8e51f, type: 2}
-    requiredCount: 1
-    completionDialogueEvent: 50
+    targetItem: {fileID: 0}
+    requiredCount: 3
+    completionDialogueEvent: 280
     requiresTurnInAfterCompletionDialogue: 0
-    turnInCompletionDialogueEvent: 50
+    turnInCompletionDialogueEvent: 280

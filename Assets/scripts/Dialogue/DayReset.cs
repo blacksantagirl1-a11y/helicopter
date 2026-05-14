@@ -38,17 +38,22 @@ public class DayResetDebug : MonoBehaviour
         }
     }
 
-    private static void SetDayInEditor(DialogueDay day)
+    public static void SetDayInEditor(DialogueDay day)
     {
         if (day == DialogueDay.Day1)
         {
-            SimplePickup.StartNewPersistentPickupCampaign(day);
+            DialogueNewGameResetService.ResetToDay1();
+            return;
         }
 
         DialogueSaveService.SetCurrentDay(day);
         if (day == DialogueDay.Day5)
         {
             DailyQuestManager.ResetDay5DataPackageForReplay();
+        }
+        else if (day == DialogueDay.Day6)
+        {
+            DailyQuestManager.ResetDay6EscapeForReplay();
         }
 
         Debug.Log($"Dialogue current day set to {day}.");

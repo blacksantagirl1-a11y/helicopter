@@ -12,6 +12,13 @@ using UnityEditor;
 #endif
 
 [DisallowMultipleComponent]
+// InventoryUIController la script dung giua du lieu inventory va phan UI.
+// Doc ngan gon theo cach de hieu:
+// 1. Mo / dong tui do khi nguoi choi bam phim.
+// 2. Tu tao UI inventory neu scene chua setup san.
+// 3. Dong bo item trong PlayerInventory len tung o slot.
+// 4. Xu ly click trai / phai vao item de dung hoac xem thong tin.
+// 5. Cho phep dat camping va nguyen lieu nau an ra the gioi 3D.
 public class InventoryUIController : MonoBehaviour
 {
     private const string DefaultFooterMessage = "Chuot trai de dung | Chuot phai de xem info";
@@ -36,45 +43,73 @@ public class InventoryUIController : MonoBehaviour
     }
 
     [Header("Input")]
+    [Tooltip("Phim mo / dong tui do trong luc choi.")]
     [SerializeField] private KeyCode toggleInventoryKey = KeyCode.B;
 
     [Header("References")]
+    [Tooltip("Nguon du lieu inventory ma UI se doc de hien item.")]
     [SerializeField] private PlayerInventory playerInventory;
+    [Tooltip("UI prompt ngoai gameplay. Script nay se tam an prompt khi mo inventory.")]
     [SerializeField] private PlayerUI playerUI;
+    [Tooltip("Canvas dung de tao va gan inventory UI vao dung man hinh.")]
     [SerializeField] private Canvas targetCanvas;
+    [Tooltip("Volume chua hieu ung blur khi mo inventory. Neu bo trong, script se tu tim.")]
     [SerializeField] private Volume blurVolume;
 
     [Header("Layout")]
+    [Tooltip("So cot hien thi trong luoi slot cua tui do.")]
     [SerializeField] [Min(1)] private int columns = 5;
+    [Tooltip("Kich thuoc moi o slot trong inventory UI.")]
     [SerializeField] private Vector2 slotSize = new Vector2(60f, 60f);
+    [Tooltip("Khoang cach giua cac slot theo truc X va Y.")]
     [SerializeField] private Vector2 slotSpacing = new Vector2(8f, 8f);
 
     [Header("Look")]
+    [Tooltip("Mau nen toi phu len man hinh khi mo inventory.")]
     [SerializeField] private Color backdropColor = new Color(0.02f, 0.17f, 0.20f, 0.58f);
+    [Tooltip("Mau cua khung chinh inventory.")]
     [SerializeField] private Color panelColor = new Color(0.03f, 0.14f, 0.18f, 0.80f);
+    [Tooltip("Mau cua slot rong, chua co item.")]
     [SerializeField] private Color slotEmptyColor = new Color(0.06f, 0.20f, 0.24f, 0.78f);
+    [Tooltip("Mau cua slot da co item.")]
     [SerializeField] private Color slotFilledColor = new Color(0.13f, 0.28f, 0.32f, 0.96f);
+    [Tooltip("Mau vien xung quanh tung slot.")]
     [SerializeField] private Color slotOutlineColor = new Color(0.21f, 0.68f, 0.77f, 0.56f);
+    [Tooltip("Mau text hien so luong item trong stack.")]
     [SerializeField] private Color amountColor = new Color(1f, 0.42f, 0.34f, 1f);
 
     [Header("Blur")]
+    [Tooltip("Diem bat dau blur Gaussian tren man hinh.")]
     [SerializeField] private float blurGaussianStart = 0.1f;
+    [Tooltip("Diem ket thuc blur Gaussian tren man hinh.")]
     [SerializeField] private float blurGaussianEnd = 4f;
+    [Tooltip("Do manh cua blur khi inventory dang mo.")]
     [SerializeField] private float blurRadius = 1f;
 
     [Header("Camping Placement")]
+    [Tooltip("ItemId cua vat pham duoc xem la camping de dat ra the gioi.")]
     [SerializeField] private string campingItemId = "wood_log";
+    [Tooltip("Prefab camping se duoc spawn khi nguoi choi dat vat pham.")]
     [SerializeField] private GameObject campingPrefab;
+    [Tooltip("Layer hop le de raycast tim vi tri dat camping.")]
     [SerializeField] private LayerMask campingPlacementLayers = Physics.DefaultRaycastLayers;
+    [Tooltip("Khoang cach raycast toi da khi tim diem dat camping.")]
     [SerializeField] private float campingPlacementDistance = 12f;
+    [Tooltip("Do bang toi thieu cua mat dat. Cang gan 1 thi cang phai phang va huong len tren.")]
     [SerializeField] [Range(0.1f, 1f)] private float campingSurfaceMinUpDot = 0.55f;
 
     [Header("Cooking Ingredient Placement")]
+    [Tooltip("ItemId cua ca song co the dua vao camping.")]
     [SerializeField] private string fishItemId = "river_fish";
+    [Tooltip("Prefab xem truoc khi dat ca vao camping.")]
     [SerializeField] private GameObject fishPlacementPrefab;
+    [Tooltip("ItemId cua thit heo rung co the dua vao camping.")]
     [SerializeField] private string meatItemId = "boar_meat";
+    [Tooltip("Prefab xem truoc khi dat thit vao camping.")]
     [SerializeField] private GameObject meatPlacementPrefab;
+    [Tooltip("Prefab mini game nau an se mo sau khi bo nguyen lieu vao camping.")]
     [SerializeField] private GameObject miniGameCookingPrefab;
+    [Tooltip("Khoang cach raycast toi da khi tim vi tri dat nguyen lieu.")]
     [SerializeField] private float ingredientPlacementDistance = 12f;
 
     private readonly List<SlotView> slotViews = new List<SlotView>();
@@ -119,6 +154,8 @@ public class InventoryUIController : MonoBehaviour
     public bool IsInventoryOpen => isInventoryOpen;
     public bool IsPlacementPreviewActive => placementState != PlacementState.Inactive;
 
+    // Reset va Awake cung chuan bi theo mot quy trinh giong nhau:
+    // auto gan reference -> auto gan prefab mac dinh -> dam bao UI ton tai -> refresh slot.
     private void Reset()
     {
         TryAutoAssignReferences();
@@ -184,6 +221,8 @@ public class InventoryUIController : MonoBehaviour
 
     private void Update()
     {
+        // Khi dang o che do xem truoc de dat object, inventory tam ngung logic mo / dong
+        // va chi tap trung xu ly preview placement.
         if (placementState != PlacementState.Inactive)
         {
             UpdatePlacementState();
@@ -281,6 +320,8 @@ public class InventoryUIController : MonoBehaviour
         Cursor.visible = false;
     }
 
+    // Thu tim reference tu object hien tai truoc, sau do moi quet trong scene.
+    // Muc tieu la nguoi setup scene co the de trong mot so o Inspector ma script van tu chay duoc.
     private void TryAutoAssignReferences()
     {
         playerInventory ??= GetComponent<PlayerInventory>();
@@ -359,6 +400,8 @@ public class InventoryUIController : MonoBehaviour
         CreateInventoryUI();
     }
 
+    // Toan bo inventory UI duoc tao bang code de scene co the chay duoc
+    // ngay ca khi chua keo tha panel thu cong trong Canvas.
     private void CreateInventoryUI()
     {
         slotViews.Clear();
@@ -509,6 +552,10 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
+    // Moi slot UI gom 3 phan:
+    // - Background: mau nen / vien
+    // - Icon: anh item
+    // - AmountLabel: so luong item trong stack
     private SlotView CreateSlotView(Transform parent, int slotIndex)
     {
         GameObject slotObject = new GameObject(
@@ -596,6 +643,7 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
+    // Bien du lieu inventory thanh hinh anh va text ma nguoi choi nhin thay.
     private void UpdateSlot(SlotView slotView, PlayerInventory.InventorySlot slot)
     {
         if (slotView == null || slot == null)
@@ -639,6 +687,8 @@ public class InventoryUIController : MonoBehaviour
         HandleSlotLeftClick(slotIndex);
     }
 
+    // Click trai = thuc hien hanh dong chinh cua item:
+    // dung item, dat camping, hoac dua nguyen lieu ra camping.
     private void HandleSlotLeftClick(int slotIndex)
     {
         PlayerInventory.InventorySlot slot = GetInventorySlot(slotIndex);
@@ -663,6 +713,7 @@ public class InventoryUIController : MonoBehaviour
         playerInventory.TryUseSlot(slotIndex);
     }
 
+    // Click phai = khong su dung item, chi hien thong tin de nguoi choi doc.
     private void HandleSlotRightClick(int slotIndex)
     {
         PlayerInventory.InventorySlot slot = GetInventorySlot(slotIndex);
@@ -703,6 +754,7 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
+    // Khi mo inventory, script can nho trang thai control cu de sau nay tra lai dung.
     private void RestoreControls()
     {
         RestoreCachedControls(cachedControlStates);
@@ -756,6 +808,7 @@ public class InventoryUIController : MonoBehaviour
         inventoryCanvasGroup.blocksRaycasts = isVisible;
     }
 
+    // Blur la hieu ung lam mo gameplay phia sau inventory de nguoi choi tap trung vao UI.
     private void SetBlurActive(bool shouldEnable)
     {
         if (!EnsureBlurEffect())
@@ -884,6 +937,7 @@ public class InventoryUIController : MonoBehaviour
                string.Equals(itemDefinition.ItemId, itemId, StringComparison.OrdinalIgnoreCase);
     }
 
+    // Day la diem vao khi nguoi choi click trai vao item camping trong inventory.
     private void TryBeginCampingPlacement(int slotIndex, InventoryItemDefinition itemDefinition)
     {
         if (itemDefinition == null)
@@ -901,6 +955,8 @@ public class InventoryUIController : MonoBehaviour
         BeginCampingPlacement(slotIndex, itemDefinition);
     }
 
+    // Nguyen lieu nau an chi duoc dua ra khi nguoi choi da vao cooking mode
+    // va dang co mot camping hop le de nhan nguyen lieu.
     private void TryBeginIngredientPlacement(int slotIndex, InventoryItemDefinition itemDefinition)
     {
         if (itemDefinition == null)
@@ -972,6 +1028,8 @@ public class InventoryUIController : MonoBehaviour
         return false;
     }
 
+    // Bat dau che do "preview" camping: spawn ban xem truoc, tat collider,
+    // roi cho nguoi choi di chuot den vi tri hop le.
     private void BeginCampingPlacement(int slotIndex, InventoryItemDefinition itemDefinition)
     {
         CleanupActivePlacement(false);
@@ -996,6 +1054,7 @@ public class InventoryUIController : MonoBehaviour
         UpdateCampingPreview();
     }
 
+    // Bat dau che do preview cho nguyen lieu nau an.
     private void BeginIngredientPlacement(
         int slotIndex,
         InventoryItemDefinition itemDefinition,
@@ -1023,6 +1082,7 @@ public class InventoryUIController : MonoBehaviour
         UpdateIngredientPreview();
     }
 
+    // Moi frame, script se cap nhat object preview theo trang thai hien tai.
     private void UpdatePlacementState()
     {
         switch (placementState)
@@ -1072,6 +1132,7 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
+    // Preview camping hop le khi raycast cham dat va mat dat du bang de dat.
     private void UpdateCampingPreview()
     {
         if (activeCampingInstance == null)
@@ -1098,6 +1159,7 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
+    // Preview nguyen lieu hop le khi object dang cham vao camping dang kich hoat.
     private void UpdateIngredientPreview()
     {
         if (activeIngredientInstance == null)
@@ -1128,6 +1190,11 @@ public class InventoryUIController : MonoBehaviour
         }
     }
 
+    // Ham nay tim vi tri dat camping bang cach ban ray tu vi tri chuot ra scene.
+    // No tra ve:
+    // - position: diem dat
+    // - rotation: huong quay cua camping
+    // - isValid: co duoc dat o day hay khong
     private bool TryGetCampingPlacementPose(out Vector3 position, out Quaternion rotation, out bool isValid)
     {
         position = Vector3.zero;
@@ -1192,6 +1259,11 @@ public class InventoryUIController : MonoBehaviour
         return true;
     }
 
+    // Khi xac nhan dat camping:
+    // - tru item khoi inventory
+    // - bat collider cua object that
+    // - them script tuong tac neu can
+    // - thoat khoi che do preview
     private void PlaceCamping()
     {
         if (placementState != PlacementState.CampingPreview ||
@@ -1235,6 +1307,8 @@ public class InventoryUIController : MonoBehaviour
         DailyQuestManager.ReportInteraction(DailyQuestManager.Day5CampfirePlacedInteractionKey);
     }
 
+    // Khi bo nguyen lieu vao camping thanh cong, inventory se tru item
+    // va mo mini game nau an.
     private void SubmitIngredientToCamping()
     {
         if (placementState != PlacementState.IngredientPreview ||
@@ -1267,6 +1341,8 @@ public class InventoryUIController : MonoBehaviour
         OpenCookingMiniGame(cookingTarget);
     }
 
+    // Cac ham cleanup ben duoi dung de huy object preview tam thoi
+    // va dua chuot / prompt ve dung trang thai sau cung.
     private void CleanupCampingPlacement(bool restoreCursorState)
     {
         if (activeCampingInstance != null)
@@ -1461,6 +1537,7 @@ public class InventoryUIController : MonoBehaviour
             return false;
         }
 
+        // Uu tien renderer bounds vi object preview co the chua collider hoan chinh.
         Renderer[] renderers = campingObject.GetComponentsInChildren<Renderer>(true);
         if (renderers.Length > 0)
         {
@@ -1476,6 +1553,7 @@ public class InventoryUIController : MonoBehaviour
             return true;
         }
 
+        // Neu khong co renderer thi moi lui xuong dung collider bounds.
         Collider[] colliders = campingObject.GetComponentsInChildren<Collider>(true);
         if (colliders.Length == 0)
         {

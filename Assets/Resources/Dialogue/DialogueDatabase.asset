@@ -425,8 +425,7 @@ MonoBehaviour:
     timeScale: 1
     lines:
     - speakerName: "Tu\u1EA5n"
-      text: "M\xECnh kh\xF4ng t\xE0i n\xE0o b\u1ECF qua \u0111\u01B0\u1EE3c nh\u1EEFng
-        hi\u1EC7n t\u01B0\u1EE3ng k\u1EF3 l\u1EA1 \u0111\xF3 ra kh\u1ECFi \u0111\u1EA7u..."
+      text: "\u0110i ngh\u1EC9 th\xF4i"
       questAction: 0
       questId: 0
   - day: 4
@@ -609,7 +608,7 @@ MonoBehaviour:
         m\xE3 kh\xF3a l\xF5i"
       questAction: 0
       questId: 0
-    - speakerName: Nhi
+    - speakerName: "Tu\u1EA5n"
       text: "M\xE3 kh\xF3a n\xE0o?"
       questAction: 0
       questId: 0
@@ -619,7 +618,7 @@ MonoBehaviour:
         \u0111\u01B0\u1EE3c."
       questAction: 0
       questId: 0
-    - speakerName: Nhi
+    - speakerName: "Tu\u1EA5n"
       text: "V\u1EADy t\xF4i l\xE0 ng\u01B0\u1EDDi duy nh\u1EA5t t\u1EF1 m\u1EDF
         \u0111\u01B0\u1EE3c?"
       questAction: 0
@@ -889,39 +888,69 @@ MonoBehaviour:
       questAction: 0
       questId: 0
   - day: 6
-    eventId: 30
+    eventId: 10
     playerCanMove: 1
     timeScale: 1
     lines:
-    - speakerName: Nhi
-      text: "H\xF4m nay l\xE0 ng\xE0y cu\u1ED1i trong \u0111\u1EE3t tr\u1EF1c n\xE0y."
+    - speakerName: "Tu\u1EA5n"
+      text: "C\xF3 l\u1EBD \u0111\xE2y l\xE0 th\u1EDDi \u0111i\u1EC3m m\xE0 nhi n\xF3i"
       questAction: 0
       questId: 0
-    - speakerName: "Hi\u1EC3n"
-      text: "T\xF4i c\u1EA7n l\xE0m g\xEC tr\u01B0\u1EDBc khi r\u1EDDi khu r\u1EEBng."
-      questAction: 0
-      questId: 0
-    - speakerName: Nhi
-      text: "C\xE2u th\xEAm 4 con c\xE1, r\u1ED3i ch\xFAng ta s\u1EBD k\u1EBFt th\xFAc
-        \u0111\u1EE3t c\xF4ng t\xE1c."
-      questAction: 0
-      questId: 0
-    - speakerName: "Hi\u1EC3n"
-      text: "\u0110\xE3 r\xF5. T\xF4i s\u1EBD ho\xE0n t\u1EA5t tr\u01B0\u1EDBc khi
-        tr\u1EDDi t\u1ED1i."
+    - speakerName: "Tu\u1EA5n"
+      text: "Chi\u1EBFc PC"
       questAction: 1
       questId: 60
   - day: 6
-    eventId: 50
+    eventId: 30
+    playerCanMove: 0
+    timeScale: 1
+    lines:
+    - speakerName: "Tu\u1EA5n"
+      text: "M\xECnh t\xECm th\u1EA5y t\xEDn hi\u1EC7u ph\xE1t ra \u1EDF \u0111\u1EB1ng
+        sau c\u0103n cabin"
+      questAction: 0
+      questId: 0
+  - day: 6
+    eventId: 220
+    playerCanMove: 0
+    timeScale: 1
+    lines:
+    - speakerName: "Tu\u1EA5n"
+      text: May tinh nay van con chay... minh phai xem trong do co gi.
+      questAction: 0
+      questId: 0
+  - day: 6
+    eventId: 230
+    playerCanMove: 0
+    timeScale: 1
+    lines:
+    - speakerName: "Tu\u1EA5n"
+      text: "ok xong r\u1ED3i mau ch\xF3ng r\u1EDDi kh\u1ECFi \u0111\xE2y th\xF4i"
+      questAction: 0
+      questId: 0
+    - speakerName: "Tu\u1EA5n"
+      text: "th\u1EBF gi\u1EDBi \u0111ang b\u1ECB s\u1EE5p \u0111\u1ED5 r\u1ED3i"
+      questAction: 0
+      questId: 0
+  - day: 6
+    eventId: 270
     playerCanMove: 1
     timeScale: 1
     lines:
-    - speakerName: "Hi\u1EC3n"
-      text: "T\xF4i \u0111\xE3 xong chuy\u1EBFn c\xE2u cu\u1ED1i c\xF9ng."
+    - speakerName: "Tu\u1EA5n"
+      text: "\u0110\xE2y r\u1ED3i"
       questAction: 0
       questId: 0
-    - speakerName: Nhi
-      text: "T\u1ED1t. Ch\xFAng ta k\u1EBFt th\xFAc \u0111\u1EE3t l\xE0m vi\u1EC7c
-        t\u1EA1i \u0111\xE2y."
+    - speakerName: "Tu\u1EA5n"
+      text: "m\xECnh ch\u1EC9 c\u1EA7n ti\u1EBFp t\u1EE5c \u0111i th\u1EB3ng th\xF4i"
+      questAction: 0
+      questId: 0
+  - day: 6
+    eventId: 280
+    playerCanMove: 1
+    timeScale: 1
+    lines:
+    - speakerName: "Tu\u1EA5n"
+      text: "tho\xE1t ra kh\u1ECFi n\u01A1i n\xE0y"
       questAction: 0
       questId: 0
