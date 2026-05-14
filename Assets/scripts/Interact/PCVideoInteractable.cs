@@ -81,10 +81,12 @@ public sealed class PCVideoInteractable : Interactable
     private Coroutine playbackSequenceRoutine;
     private Coroutine restoreViewRoutine;
     private Coroutine timerRoutine;
+    private Coroutine beginPlaybackAfterDialogueRoutine;
     private bool isStartingPlayback;
     private bool isPlaying;
     private bool hasPlayedOnce;
     private bool isViewingPc;
+    private bool pendingSuccessfulPlaybackCompletion;
     private bool hasCachedCameraPose;
     private bool hasCachedCursorState;
     private Vector3 cachedCameraLocalPosition;
@@ -109,6 +111,7 @@ public sealed class PCVideoInteractable : Interactable
 
     public override bool CanInteract =>
         IsAvailableForCurrentDay() &&
+        CanUseForCurrentQuestStep() &&
         screenRenderer != null &&
         !isStartingPlayback &&
         !isPlaying &&
@@ -157,6 +160,8 @@ public sealed class PCVideoInteractable : Interactable
     private void OnDisable()
     {
         DialogueSaveService.CurrentDayChanged -= HandleCurrentDayChanged;
+        pendingSuccessfulPlaybackCompletion = false;
+        StopBeginPlaybackAfterDialogueRoutine();
         StopPlaybackSequenceRoutine();
         StopRestoreViewRoutine();
         StopTimerRoutine(resetUi: true);
@@ -167,6 +172,7 @@ public sealed class PCVideoInteractable : Interactable
 
     private void OnDestroy()
     {
+        pendingSuccessfulPlaybackCompletion = false;
         StopTimerRoutine(resetUi: true);
         ExitPcViewMode(immediate: true);
         ReleaseScreenRenderTexture();
@@ -202,6 +208,41 @@ public sealed class PCVideoInteractable : Interactable
             return;
         }
 
+        StopBeginPlaybackAfterDialogueRoutine();
+        if (ShouldWaitForDay6OpenDialogue())
+        {
+            bool requestedDialogue = DialogueController.RequestDialogue(DialogueEventId.Day6OpenPC);
+            if (requestedDialogue || DialogueController.IsDialogueActive)
+            {
+                isStartingPlayback = true;
+                beginPlaybackAfterDialogueRoutine = StartCoroutine(WaitForDialogueThenBeginPlayback());
+                return;
+            }
+        }
+
+        BeginPlayback();
+    }
+
+    private IEnumerator WaitForDialogueThenBeginPlayback()
+    {
+        while (DialogueController.IsDialogueActive)
+        {
+            yield return null;
+        }
+
+        beginPlaybackAfterDialogueRoutine = null;
+        if (!isActiveAndEnabled)
+        {
+            isStartingPlayback = false;
+            yield break;
+        }
+
+        BeginPlayback();
+    }
+
+    private void BeginPlayback()
+    {
+        pendingSuccessfulPlaybackCompletion = false;
         EnsureRuntimeScreenMaterial();
         EnsureScreenRenderTexture();
         RecreateVideoPlayerHost();
@@ -271,6 +312,7 @@ public sealed class PCVideoInteractable : Interactable
         }
 
         isStartingPlayback = false;
+        pendingSuccessfulPlaybackCompletion = false;
         Debug.LogWarning($"PC video on '{name}' failed to play: {errorMessage}", this);
         StopTimerRoutine(resetUi: true);
         StopPlayback(resetScreen: true);
@@ -765,6 +807,13 @@ public sealed class PCVideoInteractable : Interactable
     {
         yield return RestoreCameraPose(returnFromPcViewDuration);
         ExitPcViewMode(immediate: true);
+
+        if (pendingSuccessfulPlaybackCompletion)
+        {
+            pendingSuccessfulPlaybackCompletion = false;
+            DailyQuestManager.NotifyDay6PcVideoFinished();
+        }
+
         restoreViewRoutine = null;
     }
 
@@ -798,6 +847,19 @@ public sealed class PCVideoInteractable : Interactable
     {
         DialogueDay currentDay = DialogueController.GetCurrentDay();
         return currentDay >= availableFromDay && currentDay <= availableToDay;
+    }
+
+    private bool CanUseForCurrentQuestStep()
+    {
+        DialogueDay currentDay = DialogueController.GetCurrentDay();
+        return currentDay != DialogueDay.Day6 || DailyQuestManager.CanInteractWithDay6PcVideo();
+    }
+
+    private bool ShouldWaitForDay6OpenDialogue()
+    {
+        return DialogueController.GetCurrentDay() == DialogueDay.Day6 &&
+            !hasPlayedOnce &&
+            DailyQuestManager.CanInteractWithDay6PcVideo();
     }
 
     private void RefreshAvailabilityState()
@@ -923,6 +985,18 @@ public sealed class PCVideoInteractable : Interactable
         waitForPlaybackStartRoutine = null;
     }
 
+    private void StopBeginPlaybackAfterDialogueRoutine()
+    {
+        if (beginPlaybackAfterDialogueRoutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(beginPlaybackAfterDialogueRoutine);
+        beginPlaybackAfterDialogueRoutine = null;
+        isStartingPlayback = false;
+    }
+
     private void StopPlaybackSequenceRoutine()
     {
         if (playbackSequenceRoutine == null)
@@ -983,6 +1057,7 @@ public sealed class PCVideoInteractable : Interactable
             return;
         }
 
+        pendingSuccessfulPlaybackCompletion = true;
         StopPlayback(resetScreen: true);
         BeginExitPcViewMode();
     }

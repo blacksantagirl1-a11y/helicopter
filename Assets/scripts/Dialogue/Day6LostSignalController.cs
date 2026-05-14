@@ -16,7 +16,7 @@ public sealed class Day6LostSignalController : MonoBehaviour
 
     [Header("Glitch")]
     [SerializeField] [Min(0.1f)] private float glitchRampDurationSeconds = 100f;
-    [SerializeField] [Range(0f, 1f)] private float maxGlitchAmount = 0.4f;
+    [SerializeField] [Range(0f, 1f)] private float maxGlitchAmount = 0.3f;
 
     [Header("Lost Signal")]
     [SerializeField] private string lostSignalMessage = "Lost Signal";
@@ -119,6 +119,11 @@ public sealed class Day6LostSignalController : MonoBehaviour
             return;
         }
 
+        if (DailyQuestManager.ShouldSuppressDay6LostSignal())
+        {
+            return;
+        }
+
         if (!HasGameplayMarkers())
         {
             return;
@@ -152,6 +157,11 @@ public sealed class Day6LostSignalController : MonoBehaviour
             hasTriggeredThisScene ||
             glitchRoutine != null ||
             reloadRoutine != null)
+        {
+            return;
+        }
+
+        if (DailyQuestManager.ShouldSuppressDay6LostSignal())
         {
             return;
         }
@@ -202,6 +212,7 @@ public sealed class Day6LostSignalController : MonoBehaviour
             yield return new WaitForSecondsRealtime(lostSignalHoldSeconds);
         }
 
+        DailyQuestManager.ResetDay6EscapeForReplay();
         string sceneName = SceneManager.GetActiveScene().name;
         if (!LoadingManager.LoadScene(sceneName))
         {

@@ -26,6 +26,12 @@ public enum DialogueEventId
     Day5CookingComplete = 190,
     Day5AfterGunshot = 200,
     Day5QuestComplete = 210,
-
+    Day6OpenPC = 220,
+    Day6ClosePC = 230,
+    Day6BlockedDoor = 240,
+    Day6BlockedRoad = 250,
+    Day6PullToilet = 260,
+    Day6EnterCave = 270,
+    Day6EndGame = 280,
   
 }

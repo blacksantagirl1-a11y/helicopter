@@ -50,6 +50,10 @@ public class DayResetDebug : MonoBehaviour
         {
             DailyQuestManager.ResetDay5DataPackageForReplay();
         }
+        else if (day == DialogueDay.Day6)
+        {
+            DailyQuestManager.ResetDay6EscapeForReplay();
+        }
 
         Debug.Log($"Dialogue current day set to {day}.");
     }
