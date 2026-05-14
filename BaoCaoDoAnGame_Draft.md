@@ -1,688 +1,1131 @@
 # BÁO CÁO ĐỒ ÁN TỐT NGHIỆP
-## Đề tài: Xây dựng game phiêu lưu sinh tồn 3D trên nền tảng Unity
 
-> Ghi chú sử dụng:
-> - Tài liệu này được viết lại theo cấu trúc của file mẫu `Assets/dath-do-an-tot-nghiep-game-bao-cao-tot-nghiep-chi-tiet.pdf`.
-> - Nội dung chỉ giữ những phần đã thấy rõ trong project hiện tại. Những tính năng còn dở, dữ liệu mẫu hoặc chưa khép kín không được xem là kết quả hoàn thiện.
-> - Ở nhiều mục mình đã thêm dòng `Gợi ý ảnh chèn` để bạn biết nên chụp ảnh gì và chèn vào đâu khi hoàn thiện báo cáo Word.
+## Đề tài: Xây dựng game điều tra - sinh tồn 3D trên nền tảng Unity
 
-## LỜI MỞ ĐẦU
+**Sinh viên thực hiện:** ........................................................  
+**Mã sinh viên:** ........................................................  
+**Lớp:** ........................................................  
+**Giảng viên hướng dẫn:** ........................................................  
+**Khoa:** Công nghệ thông tin  
+**Trường:** ........................................................  
 
-Trong giai đoạn hiện nay, game không chỉ là một sản phẩm giải trí mà còn là một lĩnh vực kết hợp nhiều mảng kiến thức như lập trình, thiết kế tương tác, đồ họa, âm thanh và tư duy xây dựng hệ thống. Với sự phát triển mạnh của các game engine hiện đại, việc xây dựng một sản phẩm game có thể chơi được đã trở nên khả thi hơn đối với sinh viên công nghệ thông tin, đặc biệt là khi sử dụng Unity và ngôn ngữ C#.
+---
 
-Đề tài này tập trung xây dựng một game 3D góc nhìn thứ nhất trên nền tảng Unity. Trong game, người chơi có thể di chuyển trong môi trường tự nhiên, tương tác với các đối tượng trong scene, thu thập tài nguyên, chặt cây, săn lợn rừng, câu cá và quản lý vật phẩm thông qua giao diện túi đồ. Bên cạnh đó, hệ thống còn có menu chính, phần cài đặt, loading scene và một số thành phần giao diện hỗ trợ trải nghiệm người chơi.
+## LỜI CAM ĐOAN
 
-Mục tiêu chính của đề tài là xây dựng một sản phẩm game mẫu có vòng lặp gameplay cơ bản nhưng rõ ràng, thể hiện được quy trình phát triển game từ khâu tìm hiểu công nghệ, phân tích yêu cầu, thiết kế hệ thống đến cài đặt và đánh giá kết quả. Đề tài cũng hướng tới việc rèn luyện khả năng tổ chức project Unity, tách các module gameplay và hiện thực hóa một sản phẩm có tính tương tác thời gian thực.
+Em xin cam đoan đồ án "Xây dựng game điều tra - sinh tồn 3D trên nền tảng Unity" là kết quả do em tự nghiên cứu, thiết kế và phát triển trong quá trình thực hiện đồ án. Các nội dung trình bày trong báo cáo được tổng hợp từ quá trình phân tích project Unity hiện tại, mã nguồn C#, tài nguyên scene, dữ liệu ScriptableObject và các chức năng đã được cài đặt trong game.
 
-Phạm vi của báo cáo chỉ tập trung vào những chức năng đã được thể hiện rõ trong mã nguồn, scene và cấu hình build hiện tại, bao gồm: menu chính, loading, điều khiển nhân vật, cơ chế tấn công, chặt cây, săn lợn rừng, câu cá, inventory và một số thành phần giao diện đi kèm. Các phần như dữ liệu hội thoại hoàn chỉnh, hệ thống lưu tiến trình đầy đủ hoặc cốt truyện hoàn chỉnh hiện chưa được xem là hạng mục đã hoàn thành.
-
-**Gợi ý ảnh chèn:**
-- Hình MĐ.1: Ảnh tổng quan scene gameplay trong lúc nhân vật đang đứng giữa môi trường rừng.
-- Hình MĐ.2: Ảnh menu chính của game.
+Những tài liệu, hình ảnh, package, model hoặc thư viện được sử dụng trong project đều được tham khảo và kế thừa trong phạm vi phục vụ học tập, nghiên cứu và phát triển sản phẩm đồ án. Các tài liệu tham khảo được liệt kê ở cuối báo cáo. Em xin chịu trách nhiệm về tính trung thực của nội dung báo cáo này.
 
 ## LỜI CẢM ƠN
 
-Em xin chân thành cảm ơn quý thầy cô trong khoa đã trang bị cho em những kiến thức nền tảng trong suốt quá trình học tập. Đặc biệt, em xin gửi lời cảm ơn đến giảng viên hướng dẫn đã hỗ trợ, góp ý và định hướng để em có thể hoàn thành đề tài này.
+Em xin gửi lời cảm ơn chân thành đến quý thầy cô trong khoa Công nghệ thông tin đã truyền đạt cho em những kiến thức nền tảng về lập trình, phân tích thiết kế hệ thống, cơ sở dữ liệu, đồ họa máy tính và quy trình phát triển phần mềm trong suốt thời gian học tập.
+
+Đặc biệt, em xin cảm ơn giảng viên hướng dẫn đã góp ý, định hướng và hỗ trợ em trong quá trình lựa chọn đề tài, xây dựng chức năng, hoàn thiện sản phẩm game và trình bày báo cáo. Những nhận xét của thầy cô giúp em nhìn rõ hơn cách tổ chức một project Unity, cách tách module chức năng và cách đánh giá một sản phẩm phần mềm có tương tác thời gian thực.
+
+Em cũng xin cảm ơn gia đình, bạn bè và những người đã động viên, hỗ trợ em trong quá trình thực hiện đồ án. Do thời gian và kinh nghiệm còn hạn chế, sản phẩm chắc chắn vẫn còn những điểm cần tiếp tục hoàn thiện. Em rất mong nhận được ý kiến đóng góp từ thầy cô để phát triển đề tài tốt hơn trong thời gian tới.
+
+## MỤC LỤC
+
+- DANH MỤC TỪ VIẾT TẮT
+- DANH MỤC BẢNG BIỂU
+- DANH MỤC HÌNH VẼ
+- LỜI NÓI ĐẦU
+- CHƯƠNG 1: TỔNG QUAN
+  - 1.1. Tổng quan đề tài
+  - 1.2. Khảo sát thực trạng
+  - 1.3. Đề xuất phương pháp giải quyết
+  - 1.4. Mô tả yêu cầu và mô hình bài toán
+- CHƯƠNG 2: MỘT SỐ KIẾN THỨC CƠ BẢN THỰC HIỆN ĐỀ TÀI
+  - 2.1. Ngôn ngữ lập trình C#
+  - 2.2. Công cụ hỗ trợ lập trình
+  - 2.3. Một số thành phần kỹ thuật nền tảng
+- CHƯƠNG 3: PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG
+  - 3.1. Use Case Diagram
+  - 3.2. Sequence Diagram
+  - 3.3. Activity Diagram
+  - 3.4. Component Diagram
+  - 3.5. Class Diagram
+- CHƯƠNG 4: CÀI ĐẶT, THỬ NGHIỆM VÀ ĐÁNH GIÁ
+  - 4.1. Môi trường cài đặt và tổ chức project
+  - 4.2. Cài đặt các module chính
+  - 4.3. Thử nghiệm và đánh giá
+  - 4.4. Minh họa sản phẩm thực tế
+- KẾT LUẬN
+- TÀI LIỆU THAM KHẢO
+- PHỤ LỤC
+
+## DANH MỤC TỪ VIẾT TẮT
+
+| Từ viết tắt | Ý nghĩa |
+| --- | --- |
+| AI | Artificial Intelligence - trí tuệ nhân tạo |
+| API | Application Programming Interface - giao diện lập trình ứng dụng |
+| FPS | First Person Shooter/First Person - góc nhìn thứ nhất |
+| HUD | Head-up Display - giao diện hiển thị trạng thái trong game |
+| SFX | Sound Effects - hiệu ứng âm thanh |
+| UI | User Interface - giao diện người dùng |
+| UX | User Experience - trải nghiệm người dùng |
+| URP | Universal Render Pipeline - pipeline render của Unity |
+| TMP | TextMeshPro - hệ thống hiển thị chữ trong Unity |
+| SO | ScriptableObject - đối tượng dữ liệu cấu hình trong Unity |
+
+## DANH MỤC BẢNG BIỂU
+
+| Ký hiệu | Tên bảng |
+| --- | --- |
+| Bảng 1-1 | Nội dung thực hiện trong 10 tuần |
+| Bảng 1-2 | Danh sách yêu cầu chức năng chính |
+| Bảng 1-3 | Danh sách yêu cầu phi chức năng |
+| Bảng 2-1 | Công nghệ và package sử dụng trong project |
+| Bảng 4-1 | Môi trường cài đặt |
+| Bảng 4-2 | Kịch bản thử nghiệm chức năng |
+
+## DANH MỤC HÌNH VẼ
+
+| Ký hiệu | Tên hình |
+| --- | --- |
+| Hình 1-1 | Mô hình hoạt động tổng quát của game |
+| Hình 3-1 | Use Case tổng quan |
+| Hình 3-2 | Sequence luồng tương tác và nhặt vật phẩm |
+| Hình 3-3 | Sequence luồng chặt cây |
+| Hình 3-4 | Sequence luồng câu cá |
+| Hình 3-5 | Activity vòng lặp gameplay theo ngày |
+| Hình 3-6 | Component Diagram tổng thể |
+| Hình 3-7 | Class Diagram nhóm inventory và tương tác |
+| Hình 3-8 | Class Diagram nhóm hội thoại và nhiệm vụ |
+| Hình 4-1 | Giao diện Main Menu |
+| Hình 4-2 | Toàn cảnh scene gameplay Suml |
+| Hình 4-3 | Giao diện HUD và prompt tương tác |
+| Hình 4-4 | Giao diện inventory |
+| Hình 4-5 | Cơ chế chặt cây và vật phẩm gỗ |
+| Hình 4-6 | Lợn rừng và vật phẩm thịt |
+| Hình 4-7 | Cơ chế câu cá |
+| Hình 4-8 | Giao diện hội thoại |
+| Hình 4-9 | HUD nhiệm vụ |
+| Hình 4-10 | Mini game nấu ăn |
+
+## LỜI NÓI ĐẦU
+
+Trong những năm gần đây, game không chỉ là một sản phẩm giải trí mà còn là một lĩnh vực tổng hợp nhiều kiến thức của ngành công nghệ thông tin như lập trình hướng đối tượng, thiết kế hệ thống, xử lý đồ họa, xây dựng giao diện, xử lý âm thanh và tối ưu trải nghiệm người dùng. Với sự phát triển của các game engine hiện đại, sinh viên có thể tự xây dựng một sản phẩm game hoàn chỉnh ở mức đồ án, có gameplay thực tế và thể hiện được tư duy phát triển phần mềm.
+
+Đề tài này tập trung xây dựng một game 3D góc nhìn thứ nhất trên nền tảng Unity. Người chơi vào vai nhân vật làm việc trong khu vực rừng, nhận liên lạc qua bộ đàm, thực hiện các nhiệm vụ điều tra và sinh tồn theo từng ngày. Trong quá trình chơi, người chơi có thể di chuyển, quan sát môi trường, mở cửa, tìm manh mối, phá bẫy, chặt cây, săn lợn rừng, câu cá, đặt campfire, nấu ăn, sử dụng inventory và theo dõi nhiệm vụ qua HUD.
+
+Project hiện tại được triển khai bằng Unity `6000.0.41f1`, sử dụng ngôn ngữ C# và tổ chức mã nguồn theo các nhóm chức năng như `Player`, `Interact`, `Inventory`, `Quest`, `Dialogue`, `Menu`, `AudioManager`, `Rendering` và `Walking Boar`. Game có hai scene chính đang được bật trong Build Settings là `MainMenu` và `Suml`. Scene `MainMenu` đóng vai trò màn hình khởi động, còn scene `Suml` là màn chơi chính chứa nhân vật, môi trường rừng, nhà/cabin, nước, lợn rừng, vật phẩm, UI, dialogue, quest và các hệ thống gameplay.
+
+Báo cáo được trình bày theo cấu trúc đồ án tốt nghiệp gồm bốn chương chính. Chương 1 trình bày tổng quan đề tài, lý do chọn đề tài, mục tiêu, phạm vi và yêu cầu hệ thống. Chương 2 trình bày cơ sở lý thuyết và công nghệ sử dụng. Chương 3 phân tích và thiết kế hệ thống bằng các sơ đồ use case, sequence, activity, component và class. Chương 4 mô tả quá trình cài đặt, thử nghiệm, đánh giá và minh họa sản phẩm thực tế.
+
+## CHƯƠNG 1: TỔNG QUAN
+
+### 1.1. Tổng quan đề tài
 
-Em cũng xin cảm ơn gia đình, bạn bè và những người đã động viên, hỗ trợ em trong quá trình thực hiện đồ án. Trong quá trình xây dựng sản phẩm và hoàn thiện báo cáo, mặc dù đã cố gắng rất nhiều, đề tài chắc chắn vẫn còn những hạn chế nhất định. Em rất mong nhận được những ý kiến đóng góp từ thầy cô để tiếp tục hoàn thiện sản phẩm trong thời gian tới.
+#### 1.1.1. Lý do chọn đề tài
 
-> Ghi chú:
-> - Bạn có thể thay đoạn này bằng lời cảm ơn cá nhân hóa hơn, bổ sung tên giảng viên hướng dẫn, tên khoa và trường.
+Game 3D sinh tồn và điều tra là một thể loại phù hợp để vận dụng kiến thức đã học vào một sản phẩm cụ thể. Đề tài yêu cầu kết hợp nhiều mảng kỹ thuật: điều khiển nhân vật trong không gian 3D, camera góc nhìn thứ nhất, tương tác bằng raycast, quản lý vật phẩm, trí tuệ nhân tạo đơn giản cho sinh vật, hệ thống nhiệm vụ, hội thoại theo tiến trình, âm thanh, giao diện và lưu trạng thái bằng `PlayerPrefs`.
 
-## CHƯƠNG 1: TỔNG QUAN VỀ UNITY
+Unity là công cụ phù hợp cho đề tài vì hỗ trợ đầy đủ editor trực quan, hệ thống scene, prefab, component, physics, animation, UI, audio, terrain, NavMesh và ScriptableObject. Ngoài ra, Unity sử dụng C#, một ngôn ngữ hướng đối tượng rõ ràng, giúp việc tách lớp, quản lý sự kiện và cài đặt gameplay thuận tiện hơn.
 
-### 1.1. Unity là gì?
+Đề tài được lựa chọn nhằm xây dựng một sản phẩm game có thể chơi được, không chỉ dừng ở mô phỏng giao diện. Sản phẩm thể hiện được vòng lặp gameplay cơ bản: nhận nhiệm vụ, khám phá môi trường, tương tác với đối tượng, thu thập tài nguyên, xử lý thử thách, cập nhật tiến độ và chuyển sang mốc ngày tiếp theo.
 
-Unity là một game engine đa nền tảng, hỗ trợ phát triển game 2D, 3D và các ứng dụng tương tác thời gian thực. Unity cung cấp môi trường làm việc trực quan, cho phép nhà phát triển tổ chức project theo scene, sử dụng hệ thống GameObject - Component để xây dựng logic, đồng thời tích hợp tốt với ngôn ngữ C# nhằm hiện thực hóa gameplay.
+#### 1.1.2. Mục tiêu nghiên cứu
 
-Trong phạm vi đề tài này, Unity đóng vai trò là nền tảng phát triển chính của toàn bộ sản phẩm. Các scene, đối tượng, vật lý, camera, UI, vật phẩm, ánh sáng và hệ thống loading đều được tổ chức và quản lý trong Unity. Nhờ đó, việc kết nối giữa phần lập trình gameplay và phần thiết kế trực quan trong editor được thực hiện thuận tiện hơn.
+Mục tiêu chính của đề tài là xây dựng một game 3D góc nhìn thứ nhất trên Unity với các chức năng cốt lõi sau:
 
-### 1.2. Quá trình phát triển game trên Unity
+- Xây dựng màn hình chính để vào game và thoát game.
+- Xây dựng scene gameplay 3D có môi trường rừng, nước, nhà/cabin và các đối tượng tương tác.
+- Cài đặt điều khiển nhân vật bằng bàn phím và chuột, gồm di chuyển, chạy, cúi, quan sát và khóa/mở input theo ngữ cảnh.
+- Xây dựng hệ thống tương tác bằng raycast từ camera, hiển thị prompt và xử lý thao tác bằng phím `E`.
+- Cài đặt cơ chế trang bị rìu bằng phím `F`, tấn công bằng chuột trái và phát sự kiện `AttackPerformed`.
+- Cài đặt cơ chế chặt cây, loại bỏ cây khỏi terrain và sinh vật phẩm gỗ.
+- Cài đặt lợn rừng di chuyển bằng NavMesh hoặc fallback transform movement, có máu, nhận sát thương và rơi thịt khi bị hạ.
+- Cài đặt cơ chế câu cá gồm trạng thái bắt đầu, chờ cá cắn, mini game móc cá và thêm cá vào inventory.
+- Xây dựng inventory có slot, stack item, icon, số lượng, thông tin vật phẩm, đặt campfire và dùng nguyên liệu để nấu ăn.
+- Xây dựng hệ thống nhiệm vụ theo ngày, HUD nhiệm vụ, điều kiện hoàn thành và chuyển ngày.
+- Xây dựng hệ thống hội thoại theo `DialogueDay` và `DialogueEventId`, có typewriter effect và khóa input khi cần.
+- Tích hợp âm thanh cho bước chân, chạy, chặt cây, cây đổ, nhặt đồ, câu cá, nấu ăn, ăn, mở cửa và các phản hồi thắng/thua.
 
-Một project game trên Unity thường được phát triển theo các bước cơ bản sau:
+#### 1.1.3. Phạm vi nghiên cứu
 
-1. Xác định ý tưởng và phạm vi gameplay.
-2. Tạo scene, tổ chức môi trường và nhân vật.
-3. Xây dựng cơ chế điều khiển và tương tác.
-4. Bổ sung các thành phần gameplay như vật phẩm, AI, UI và hiệu ứng.
-5. Kiểm thử, chỉnh sửa lỗi và cải thiện trải nghiệm người dùng.
-6. Build sản phẩm ra phiên bản chạy thử.
+Phạm vi của đồ án tập trung vào phiên bản game chạy trên PC trong môi trường Unity Editor hoặc bản build Windows. Đồ án không đi sâu vào multiplayer, hệ thống tài khoản trực tuyến, lưu game đầy đủ theo nhiều file save hoặc tối ưu hóa chuyên sâu cho nhiều nền tảng.
 
-Project hiện tại cũng được triển khai theo hướng như vậy. Trước tiên là tổ chức scene menu và scene gameplay, sau đó bổ sung hệ thống điều khiển nhân vật, tiếp theo là các cơ chế thu thập tài nguyên như chặt cây, săn lợn và câu cá. Sau khi có gameplay lõi, project tiếp tục được mở rộng bằng inventory, menu options và loading scene.
+Các chức năng được đưa vào báo cáo là những chức năng đã thể hiện rõ trong project hiện tại, gồm `MainMenu`, scene `Suml`, điều khiển người chơi, tương tác, inventory, chặt cây, lợn rừng, câu cá, nấu ăn, nhiệm vụ ngày, hội thoại, clue vision, mưa theo ngày, âm thanh và cài đặt cơ bản.
 
-### 1.3. Một số thống kê và vai trò của Unity trong phát triển game
+Một số phần vẫn có thể phát triển thêm trong tương lai như cốt truyện ngày 6 hoàn chỉnh, hệ thống save/load toàn bộ inventory và trạng thái môi trường, hệ thống combat mở rộng, nhiều loại sinh vật hơn, nhiều vật phẩm chế tạo hơn và giao diện cài đặt thống nhất hơn.
 
-Unity là một trong những game engine phổ biến nhất hiện nay trong phát triển game indie, game học thuật và các ứng dụng mô phỏng tương tác. Lý do Unity được sử dụng rộng rãi là vì:
+#### 1.1.4. Nội dung thực hiện
 
-1. Có giao diện trực quan, dễ tiếp cận cho người mới bắt đầu.
-2. Có kho tài liệu, cộng đồng và tài nguyên phong phú.
-3. Hỗ trợ nhiều nền tảng triển khai khác nhau.
-4. Có hệ thống package hỗ trợ mạnh như UI, navigation, render pipeline, animation và timeline.
+**Bảng 1-1. Nội dung thực hiện trong 10 tuần**
 
-Đối với sinh viên, Unity là một công cụ phù hợp để triển khai đồ án vì cho phép tạo ra sản phẩm có tính trực quan cao trong thời gian tương đối ngắn, đồng thời vẫn đủ chiều sâu để thể hiện tư duy thiết kế hệ thống và kỹ năng lập trình.
+| Tuần | Nội dung thực hiện | Kết quả |
+| --- | --- | --- |
+| Tuần 1 | Khảo sát đề tài, xác định thể loại game, lựa chọn Unity và C# | Có ý tưởng game điều tra - sinh tồn 3D |
+| Tuần 2 | Thiết lập project Unity, scene, terrain, camera, nhân vật | Có scene gameplay cơ bản |
+| Tuần 3 | Cài đặt điều khiển nhân vật, camera look, chạy, cúi, animation state | Nhân vật di chuyển được trong scene |
+| Tuần 4 | Xây dựng raycast interaction, prompt UI, cửa và object tương tác | Người chơi tương tác được với môi trường |
+| Tuần 5 | Cài đặt inventory, item definition, pickup gỗ/thịt/cá | Có túi đồ và dữ liệu vật phẩm |
+| Tuần 6 | Cài đặt chặt cây, lợn rừng, stamina và âm thanh gameplay | Có vòng lặp thu thập tài nguyên |
+| Tuần 7 | Cài đặt câu cá, line renderer, cá cắn câu và mini game | Có hoạt động câu cá hoàn chỉnh |
+| Tuần 8 | Cài đặt dialogue, quest theo ngày, HUD nhiệm vụ và chuyển ngày | Có tiến trình nhiệm vụ theo story |
+| Tuần 9 | Cài đặt clue vision, hint ngày 3, campfire, nấu ăn ngày 5 | Bổ sung yếu tố điều tra và sinh tồn |
+| Tuần 10 | Kiểm thử, chỉnh sửa lỗi, rà soát báo cáo và chuẩn bị hình minh họa | Hoàn thiện bản báo cáo và sản phẩm demo |
 
-### 1.4. Ưu điểm của Unity
+### 1.2. Khảo sát thực trạng
 
-Unity có nhiều ưu điểm phù hợp với đề tài phát triển game 3D:
+#### 1.2.1. Tổng quan dòng game điều tra - sinh tồn
 
-1. Hệ thống editor trực quan giúp thao tác với scene, camera, ánh sáng và vật thể nhanh chóng.
-2. Mô hình Component giúp tách chức năng thành các module nhỏ, dễ quản lý.
-3. Ngôn ngữ C# rõ ràng, mạnh về lập trình hướng đối tượng, phù hợp để xây dựng gameplay.
-4. Hệ sinh thái package phong phú giúp bổ sung các tính năng như navigation, render, UI và video.
-5. Thuận tiện cho việc kiểm thử nhanh vì có thể vừa chỉnh scene vừa chạy trực tiếp trong editor.
+Các game điều tra thường tập trung vào việc quan sát môi trường, tìm manh mối, đọc thông tin và kết nối các dữ kiện để mở tiến trình cốt truyện. Các game sinh tồn lại nhấn mạnh việc quản lý tài nguyên, săn bắt, chế tạo, ăn uống, theo dõi trạng thái và thích nghi với môi trường.
 
-Trong project này, các ưu điểm đó được thể hiện khá rõ qua việc chia script thành các nhóm như `Player`, `Interact`, `Inventory`, `Menu`, `Cutscene`, `Dialogue` và `Walking Boar`.
+Đề tài kết hợp hai hướng này ở quy mô vừa phải: người chơi không chỉ thu thập tài nguyên mà còn nhận thông tin qua hội thoại, quan sát các điểm nghi vấn, sử dụng clue vision và thực hiện nhiệm vụ theo từng ngày. Cách làm này phù hợp với đồ án vì không yêu cầu một hệ thống chiến đấu quá lớn nhưng vẫn đủ đa dạng để thể hiện nhiều kỹ thuật phát triển game.
 
-**Gợi ý ảnh chèn:**
-- Hình 1.1: Logo Unity hoặc ảnh chụp Unity Hub.
-- Hình 1.2: Ảnh màn hình project đang mở trong Unity Editor.
+#### 1.2.2. Phân tích một số cơ chế thường gặp
 
-## CHƯƠNG 2: TÌM HIỂU VỀ UNITY ENGINE
+Các cơ chế thường xuất hiện trong game cùng hướng gồm:
 
-### 2.1. Các thành phần trong Unity Editor
+- Góc nhìn thứ nhất để tăng cảm giác nhập vai.
+- Tương tác trực tiếp với vật thể bằng raycast từ camera.
+- Hội thoại hoặc radio để dẫn dắt nhiệm vụ.
+- Inventory để lưu vật phẩm thu thập.
+- Nhiệm vụ theo giai đoạn để định hướng người chơi.
+- Hiệu ứng highlight hoặc vision mode để hỗ trợ tìm manh mối.
+- Sinh vật hoặc mối nguy môi trường để tạo áp lực sinh tồn.
 
-Unity Editor là môi trường chính để xây dựng và kiểm thử game. Trong quá trình thực hiện đề tài, các cửa sổ làm việc quan trọng nhất bao gồm Scene, Hierarchy, Game, Project và Inspector.
+Project hiện tại đã triển khai được nhiều cơ chế trong số này. Cách triển khai còn ở mức đồ án, nhưng đã hình thành được một khung gameplay rõ ràng và có khả năng mở rộng.
 
-#### 2.1.1. Cửa sổ Scene
+#### 1.2.3. Đánh giá ưu điểm và hạn chế chung
 
-Cửa sổ Scene được dùng để quan sát và bố trí không gian làm việc trong editor. Tại đây, người phát triển có thể sắp xếp địa hình, đối tượng cây cối, nước, camera và các vật thể tương tác. Với project này, Scene View đặc biệt hữu ích khi thiết kế môi trường gameplay trong scene `Suml`.
+Ưu điểm của hướng đề tài là dễ minh họa bằng sản phẩm thật, có thể chia nhỏ thành các module độc lập và phù hợp với cách tổ chức component trong Unity. Mỗi chức năng như player, inventory, dialogue, quest hoặc fishing có thể được phát triển, kiểm thử và trình bày riêng.
 
-**Gợi ý ảnh chèn:**
-- Hình 2.1: Ảnh Scene View của scene `Suml`, nhìn thấy terrain, khu vực nước và một phần nhân vật.
+Hạn chế là game 3D dễ phát sinh nhiều vấn đề về asset, animation, collider, camera, UI, âm thanh và hiệu năng. Nếu phạm vi quá rộng, project có thể khó hoàn thiện. Vì vậy, đồ án tập trung vào các chức năng cốt lõi và tránh mở rộng sang multiplayer, thế giới mở lớn hoặc AI phức tạp.
 
-#### 2.1.2. Cửa sổ Hierarchy
+#### 1.2.4. Hướng đi của đề tài
 
-Hierarchy hiển thị toàn bộ GameObject đang tồn tại trong scene hiện tại. Thông qua Hierarchy, có thể dễ dàng quản lý các nhóm đối tượng như nhân vật, camera, canvas, vùng nước, AI lợn rừng, vật phẩm hoặc các object môi trường.
+Hướng đi của đề tài là xây dựng một bản game demo có vòng lặp chơi rõ ràng, gồm:
 
-Trong quá trình làm đề tài, Hierarchy giúp theo dõi cấu trúc scene rõ ràng hơn, nhất là khi scene có nhiều object như terrain, water volume, canvas, boar, door và các object dùng cho inventory UI.
+1. Người chơi vào game từ Main Menu.
+2. Nhân vật xuất hiện trong scene `Suml`.
+3. Hệ thống hội thoại mở đầu dẫn dắt bối cảnh.
+4. Người chơi nhận nhiệm vụ theo ngày.
+5. Người chơi khám phá môi trường, tương tác, thu thập tài nguyên.
+6. Hệ thống inventory và quest cập nhật tiến độ.
+7. Khi hoàn thành mục tiêu, game chuyển sang mốc ngày tiếp theo.
 
-**Gợi ý ảnh chèn:**
-- Hình 2.2: Ảnh Hierarchy khi mở scene `Suml`, ưu tiên nhìn thấy `Canvas`, `player`, `CameraForCutscene`, `WildBoar`, `WaterVolume`.
+### 1.3. Đề xuất phương pháp giải quyết
 
-#### 2.1.3. Cửa sổ Game
+#### 1.3.1. Giải pháp về công nghệ và nền tảng
 
-Game View là nơi hiển thị hình ảnh mà người chơi thực sự nhìn thấy khi chạy game. Đây là cửa sổ quan trọng để kiểm tra gameplay, prompt tương tác, giao diện inventory, hiệu ứng câu cá và loading scene.
+Đề tài sử dụng Unity `6000.0.41f1` làm nền tảng phát triển chính. Unity hỗ trợ đầy đủ các thành phần cần thiết cho game 3D như scene, prefab, GameObject, component, Animator, Rigidbody, Collider, Terrain, NavMesh, UI Canvas, TextMeshPro, AudioSource và ScriptableObject.
 
-Đối với project hiện tại, Game View là nơi kiểm tra trực tiếp tính đúng đắn của UI như menu chính, inventory, prompt giữa màn hình và giao diện mini game câu cá.
+Ngôn ngữ lập trình chính là C#. Các chức năng được chia thành nhiều script nhỏ theo nhóm thư mục. Ví dụ, nhóm `Player` phụ trách di chuyển và hành động, nhóm `Interact` phụ trách tương tác môi trường, nhóm `Inventory` phụ trách vật phẩm và túi đồ, nhóm `Dialogue` phụ trách hội thoại, nhóm `Quest` phụ trách nhiệm vụ theo ngày.
 
-**Gợi ý ảnh chèn:**
-- Hình 2.3: Ảnh Game View khi game đang chạy ở scene gameplay.
+#### 1.3.2. Giải pháp thiết kế gameplay
 
-#### 2.1.4. Cửa sổ Project
+Gameplay được thiết kế theo hướng dễ hiểu, thao tác cơ bản:
 
-Project Window chứa toàn bộ tài nguyên của game như scene, prefab, material, texture, animation, script và asset dữ liệu. Việc tổ chức tài nguyên hợp lý trong Project giúp giảm nhầm lẫn và hỗ trợ bảo trì project về sau.
+- `W`, `A`, `S`, `D` để di chuyển.
+- `Shift` để chạy.
+- `Ctrl` để cúi.
+- Chuột để quan sát.
+- `E` để tương tác.
+- `F` để trang bị hoặc cất rìu.
+- Chuột trái để tấn công, đặt vật phẩm hoặc xử lý mini game theo ngữ cảnh.
+- `B` để mở inventory.
+- `Q` để thoát chế độ câu cá/nấu ăn hoặc bật clue vision tùy trạng thái.
 
-Project này được tổ chức khá rõ theo các thư mục như `Assets/Scenes`, `Assets/scripts`, `Assets/Resources`, `Assets/model` và các package kèm theo. Cách tổ chức này giúp tách logic gameplay với tài nguyên trực quan.
+Thiết kế này giúp người chơi có thể nhanh chóng nắm được cách chơi, đồng thời vẫn tạo đủ điểm tương tác để báo cáo được nhiều module kỹ thuật.
 
-**Gợi ý ảnh chèn:**
-- Hình 2.4: Ảnh cửa sổ Project, ưu tiên nhìn thấy các thư mục `Scenes`, `scripts`, `Resources`, `model`.
+#### 1.3.3. Giải pháp kỹ thuật
 
-#### 2.1.5. Cửa sổ Inspector
+Project sử dụng mô hình component của Unity. Mỗi đối tượng trong scene được gắn các component phù hợp, ví dụ:
 
-Inspector hiển thị thuộc tính chi tiết của GameObject hoặc asset đang được chọn. Thông qua Inspector, người phát triển có thể gán reference, thay đổi thông số chạy, chỉnh collider, camera, tốc độ di chuyển hoặc cấu hình UI.
+- Player có `PlayerMovement`, `ActionScript`, `PlayerInventory`, `InventoryUIController`, `Stamina`, `FishingRob`.
+- Camera có `PlayerLook`, `PickUpScript`, `CuttingTreeSystem`, `CameraEffect`.
+- Vật phẩm trong scene kế thừa hoặc sử dụng `Interactable` để phản hồi khi người chơi nhìn vào và bấm `E`.
+- Lợn rừng dùng `Boar`, `NavMeshAgent`, Animator và collider.
+- Quest dùng `DailyQuestManager` kết hợp `DailyQuestDatabase`.
+- Dialogue dùng `DialogueController` kết hợp `DialogueDatabase`.
 
-Trong project này, Inspector đặc biệt quan trọng khi cấu hình các script như `PlayerMovement`, `FishingRob`, `InventoryUIController`, `CuttingTreeSystem` hoặc `Boar`.
+Các dữ liệu có khả năng thay đổi như vật phẩm, nhiệm vụ và hội thoại được tách thành asset trong `Resources`, giúp giảm hard-code và thuận tiện mở rộng.
 
-**Gợi ý ảnh chèn:**
-- Hình 2.5: Ảnh Inspector của object player hoặc camera, hiển thị các script chính đang gắn vào.
+### 1.4. Mô tả yêu cầu và mô hình bài toán
 
-### 2.2. Các khái niệm cơ bản trong Unity
+#### 1.4.1. Yêu cầu chức năng
 
-#### 2.2.1. GameObject
+**Bảng 1-2. Danh sách yêu cầu chức năng chính**
 
-GameObject là đơn vị cơ bản nhất trong Unity. Mọi thành phần trong scene như nhân vật, camera, cây, cửa, lợn rừng, vật phẩm hay canvas UI đều được tổ chức dưới dạng GameObject.
+| Mã | Chức năng | Mô tả |
+| --- | --- | --- |
+| F01 | Main Menu | Người chơi có thể bắt đầu game và thoát game |
+| F02 | Điều khiển nhân vật | Người chơi di chuyển, chạy, cúi và quan sát trong môi trường 3D |
+| F03 | Tương tác môi trường | Camera raycast phát hiện object tương tác và hiển thị prompt |
+| F04 | Cửa và trigger | Người chơi có thể mở cửa, kích hoạt hội thoại hoặc cutscene |
+| F05 | Trang bị rìu | Người chơi bấm `F` để trang bị/cất rìu, chuột trái để tấn công |
+| F06 | Chặt cây | Cây hợp lệ bị đếm hit, bị loại khỏi terrain và sinh vật phẩm gỗ |
+| F07 | Lợn rừng | Lợn rừng đi lang thang, nhận sát thương và rơi thịt khi bị hạ |
+| F08 | Câu cá | Người chơi vào chế độ câu cá, chờ cá cắn và chơi mini game |
+| F09 | Inventory | Lưu vật phẩm theo slot, stack, hiển thị icon, số lượng và thông tin |
+| F10 | Campfire và nấu ăn | Dùng gỗ đặt campfire, đưa cá/thịt vào campfire và chơi mini game nấu ăn |
+| F11 | Stamina | Thể lực giảm theo di chuyển, chặt cây, săn lợn, câu cá và hồi khi ăn |
+| F12 | Dialogue | Hội thoại theo ngày/sự kiện, typewriter effect và khóa input khi cần |
+| F13 | Quest | Nhiệm vụ theo ngày, HUD tiến độ, điều kiện hoàn thành và chuyển ngày |
+| F14 | Clue Vision | Bật/tắt chế độ phát hiện manh mối bằng highlight và hiệu ứng camera |
+| F15 | Âm thanh | Phát nhạc, SFX một lần và SFX dạng loop theo hành động |
+| F16 | Cài đặt | Lưu một số thông số âm lượng, độ nhạy chuột, fullscreen và quality |
 
-Trong game này, `player`, `WildBoar`, `Canvas`, `WaterVolume`, `CameraForCutscene` và các panel inventory đều là các GameObject cụ thể trong scene.
+#### 1.4.2. Yêu cầu phi chức năng
 
-#### 2.2.2. Component
+**Bảng 1-3. Danh sách yêu cầu phi chức năng**
 
-Component là phần chức năng được gắn lên GameObject để định nghĩa hành vi hoặc dữ liệu. Ví dụ, một GameObject có thể có `Transform`, `Camera`, `Rigidbody`, `Collider` hoặc một script C# riêng.
+| Nhóm | Yêu cầu |
+| --- | --- |
+| Tính dễ dùng | Prompt cần ngắn gọn, rõ thao tác; inventory và quest HUD phải dễ đọc |
+| Tính mở rộng | Module gameplay cần tách theo chức năng để thêm item, quest, dialogue mới |
+| Tính ổn định | Khi mở dialogue, inventory, fishing hoặc cooking, input phải được khóa/mở đúng trạng thái |
+| Tính bảo trì | Dữ liệu item, quest, dialogue nên nằm trong ScriptableObject hoặc asset cấu hình |
+| Hiệu năng | Không tạo/destroy UI liên tục nếu không cần; các loop âm thanh phải được dừng đúng lúc |
+| Tính nhất quán | Các phím thao tác và phản hồi âm thanh/hình ảnh phải thống nhất theo ngữ cảnh |
 
-Điểm mạnh của Unity là cho phép ghép nhiều component để tạo thành một đối tượng hoàn chỉnh. Player trong project là ví dụ rõ nhất khi đồng thời có movement, look, crouch, action, inventory và UI.
+#### 1.4.3. Mô hình bài toán tổng quát
 
-#### 2.2.3. Prefab
-
-Prefab là mẫu đối tượng có thể tái sử dụng nhiều lần trong project. Prefab giúp tiết kiệm thời gian, giữ đồng nhất cấu hình và thuận tiện khi cần chỉnh sửa hàng loạt.
-
-Trong project hiện tại, prefab được dùng cho một số vật phẩm và tài nguyên runtime như vật phẩm thịt, mô hình cá preview hoặc các object khác gắn vào gameplay.
-
-#### 2.2.4. Animation
-
-Animation là thành phần giúp đối tượng có chuyển động hoặc trạng thái trực quan hơn. Trong game, animation được dùng cho nhân vật khi di chuyển, cầm rìu, tấn công và một số cutscene hoặc trạng thái chuyển đổi đặc biệt.
-
-Các script như `PlayerMovement` và `ActionScript` đều có liên hệ trực tiếp với Animator để chuyển đổi state.
-
-#### 2.2.5. Sounds
-
-Âm thanh giúp tăng cảm giác phản hồi và chiều sâu cho trải nghiệm. Dù chưa phải là phần được đầu tư mạnh nhất trong project, scene hiện tại vẫn đã xuất hiện một số object âm thanh như bước chân, đáp đất hoặc âm thanh môi trường.
-
-Điều này cho thấy game đã bước đầu kết hợp giữa gameplay và phản hồi cảm giác, không chỉ dừng ở logic tương tác.
-
-#### 2.2.6. Script
-
-Script là nơi triển khai logic gameplay bằng ngôn ngữ C#. Trong project này, script là phần cốt lõi giúp game hoạt động, từ điều khiển nhân vật, raycast tương tác, inventory, menu đến AI lợn rừng và câu cá.
-
-Đây cũng là phần phản ánh rõ nhất năng lực lập trình và tổ chức hệ thống trong đồ án.
-
-#### 2.2.7. Scenes
-
-Scene là một màn hoặc không gian làm việc trong Unity. Build Settings hiện tại của project đang bật hai scene chính là `MainMenu` và `Suml`. Điều này cho thấy game đã có luồng vào game rõ ràng từ menu sang gameplay.
-
-#### 2.2.8. Assets
-
-Assets là toàn bộ tài nguyên dùng trong game, bao gồm script, ảnh, prefab, scene, âm thanh, material, animation và dữ liệu ScriptableObject. Các asset như `WoodLog.asset`, `Meat.asset`, `Fish.asset` cho thấy project đã có bước tổ chức dữ liệu vật phẩm tương đối rõ ràng.
-
-#### 2.2.9. Camera
-
-Camera quyết định góc nhìn hiển thị của người chơi. Project có camera gameplay chính và camera riêng cho cutscene. Ngoài ra, camera còn được dùng trong hệ thống câu cá để thay đổi điểm nhìn cho phù hợp với trạng thái gameplay.
-
-#### 2.2.10. Transform
-
-Transform là component tồn tại trên mọi GameObject, dùng để quản lý vị trí, góc xoay và tỉ lệ. Đây là nền tảng cho toàn bộ thao tác di chuyển nhân vật, xoay cửa, đặt vị trí câu cá, spawn vật phẩm hoặc điều khiển camera trong game.
-
-**Gợi ý ảnh chèn:**
-- Hình 2.6: Ảnh một GameObject trong Inspector với nhiều component.
-- Hình 2.7: Ảnh prefab hoặc asset vật phẩm trong Project.
-- Hình 2.8: Ảnh camera gameplay và camera cutscene trong scene.
-
-## CHƯƠNG 3: TỔNG QUAN ĐỀ TÀI
-
-### 3.1. Giới thiệu ý tưởng và nội dung game
-
-#### 3.1.1. Giới thiệu ý tưởng
-
-Ý tưởng của đề tài là xây dựng một game 3D góc nhìn thứ nhất có yếu tố phiêu lưu và sinh tồn nhẹ. Người chơi được đặt trong một môi trường tự nhiên, có thể khám phá, tương tác với các đối tượng trong scene và thực hiện các hành động thu thập tài nguyên để tạo thành vòng lặp gameplay cơ bản.
-
-Khác với các bài toán game chỉ dừng ở mức di chuyển thử nghiệm, đề tài hướng tới việc tạo ra một sản phẩm có đủ các vòng tương tác cốt lõi: di chuyển, quan sát, tác động vào môi trường, nhận vật phẩm và phản hồi qua giao diện. Điều này giúp project có tính thực tiễn hơn và thể hiện rõ tiến trình phát triển một game mẫu hoàn chỉnh.
-
-#### 3.1.2. Nội dung game
-
-Nội dung hiện tại của game tập trung vào các hoạt động chính sau:
-
-1. Người chơi bắt đầu từ menu chính và vào scene gameplay.
-2. Nhân vật điều khiển theo góc nhìn thứ nhất, có thể đi, chạy và cúi người.
-3. Người chơi có thể trang bị rìu và thực hiện tấn công.
-4. Từ hành động tấn công, người chơi có thể chặt cây để lấy gỗ.
-5. Người chơi có thể đánh lợn rừng để lấy thịt.
-6. Người chơi có thể tiếp cận vùng nước và tham gia hoạt động câu cá.
-7. Các vật phẩm như gỗ, thịt và cá được lưu vào inventory.
-8. Inventory có thể mở ra để quan sát số lượng vật phẩm đã thu thập.
-9. Menu options cho phép tùy chỉnh âm lượng, độ nhạy chuột, display mode và chất lượng đồ họa.
-
-Về bản chất, gameplay hiện tại tạo nên một vòng lặp khá rõ: khám phá môi trường -> tương tác -> nhận tài nguyên -> quan sát kết quả thông qua UI.
-
-**Gợi ý ảnh chèn:**
-- Hình 3.1: Ảnh tổng quan nhân vật đang đứng trong scene gameplay.
-- Hình 3.2: Ảnh sơ đồ luồng game: `MainMenu -> Loading -> Suml`.
-- Hình 3.3: Ảnh minh họa vòng lặp gameplay: di chuyển -> tương tác -> nhận vật phẩm -> mở inventory.
-
-## CHƯƠNG 4: CƠ SỞ LÝ THUYẾT VÀ PHÂN TÍCH THIẾT KẾ
-
-### 4.1. Giới thiệu về ngôn ngữ C#
-
-C# là ngôn ngữ lập trình hướng đối tượng được Unity sử dụng để xây dựng logic gameplay. Ngôn ngữ này hỗ trợ tốt cho việc tổ chức lớp, đối tượng, event, collection và coroutine. Nhờ đó, C# rất phù hợp với bài toán game, nơi nhiều hệ thống phải hoạt động song song như nhân vật, UI, inventory, AI và scene management.
-
-Trong project này, C# được dùng để triển khai gần như toàn bộ hệ thống lõi:
-
-1. `PlayerMovement` điều khiển chuyển động nhân vật.
-2. `PlayerLook` điều khiển góc nhìn chuột.
-3. `ActionScript` điều khiển trạng thái cầm rìu và đánh.
-4. `CuttingTreeSystem` xử lý chặt cây.
-5. `Boar` xử lý AI lợn rừng và rơi vật phẩm.
-6. `FishingRob` xử lý cơ chế câu cá.
-7. `PlayerInventory` và `InventoryUIController` quản lý túi đồ.
-8. `MainMenuController` và `LoadingManager` quản lý luồng giao diện.
-
-**Gợi ý ảnh chèn:**
-- Hình 4.1: Ảnh chụp code C# trong IDE, ưu tiên file `PlayerMovement.cs` hoặc `FishingRob.cs`.
-
-### 4.2. Các công cụ sử dụng
-
-#### 4.2.1. Unity 6.0.41f1
-
-Theo thông tin từ `ProjectSettings/ProjectVersion.txt`, project đang sử dụng Unity phiên bản `6000.0.41f1`. Đây là công cụ chính dùng để tổ chức scene, gắn script, cấu hình UI, làm việc với terrain, lighting, navigation và build game.
-
-Build Settings hiện tại cho thấy hai scene chính đang được bật là `MainMenu` và `Suml`, điều này phản ánh rõ cấu trúc vào game và gameplay của project.
-
-#### 4.2.2. Môi trường lập trình C#
-
-Project được phát triển với hệ sinh thái lập trình C# của Unity. Mặc dù trong repo không có tài liệu mô tả chi tiết IDE sử dụng xuyên suốt, các package tích hợp như Rider và Visual Studio đều có mặt trong project. Điều đó cho thấy quá trình code được hỗ trợ bởi các môi trường phát triển phổ biến dành cho Unity.
-
-#### 4.2.3. Các package và thư viện hỗ trợ
-
-Một số package đáng chú ý đang xuất hiện trong `Packages/manifest.json` gồm:
-
-1. Universal Render Pipeline.
-2. AI Navigation.
-3. Cinemachine.
-4. DOTween.
-5. Input System.
-6. Timeline.
-7. UGUI.
-8. Post Processing.
-
-Trong thực tế project hiện tại, gameplay scripts chủ yếu vẫn đang dùng cách nhận input truyền thống qua `Input.GetKey` và `Input.GetAxis`, nhưng việc có sẵn các package hỗ trợ giúp project thuận tiện hơn nếu cần mở rộng về sau.
-
-#### 4.2.4. Một số script sử dụng trong game
-
-##### 4.2.4.1. Hệ thống điều khiển nhân vật
-
-Nhóm script điều khiển nhân vật bao gồm `PlayerMovement`, `PlayerLook`, `Crouch`, `MouseMovement` và `ActionScript`. Trong đó:
-
-1. `PlayerMovement` xử lý đi, chạy, trạng thái cutscene và animation di chuyển.
-2. `PlayerLook` xử lý góc nhìn chuột và đọc độ nhạy đã lưu từ menu.
-3. `Crouch` xử lý hạ đầu và collider khi nhân vật cúi người.
-4. `ActionScript` xử lý cầm rìu, bỏ rìu và đánh.
-
-Nhóm script này là nền tảng cho toàn bộ gameplay vì mọi hoạt động sau đó như chặt cây, đánh lợn hay câu cá đều phụ thuộc vào điều khiển nhân vật.
-
-**Gợi ý ảnh chèn:**
-- Hình 4.2: Ảnh Inspector của player với các script điều khiển chính.
-- Hình 4.3: Ảnh code hoặc sơ đồ mô tả input `WASD`, `Shift`, `Ctrl`, `F`, `E`, `B`, `Q`.
-
-##### 4.2.4.2. Hệ thống tương tác
-
-`PickUpScript` triển khai raycast từ tâm màn hình để kiểm tra object mà người chơi đang nhìn vào. Nếu object đó là `Interactable`, game sẽ hiển thị prompt tương ứng. Khi người chơi nhấn `E`, đối tượng được kích hoạt tương tác.
-
-Thiết kế này cho phép tái sử dụng chung cho nhiều loại object khác nhau như cửa, vật phẩm nhặt được hoặc điểm hiển thị nội dung tương tác.
-
-**Gợi ý ảnh chèn:**
-- Hình 4.4: Ảnh gameplay có prompt giữa màn hình khi người chơi nhìn vào vật thể.
-
-##### 4.2.4.3. Hệ thống chặt cây
-
-`CuttingTreeSystem` lắng nghe sự kiện đánh từ `ActionScript`, sau đó kiểm tra xem người chơi có đang nhắm đúng cây hay không. Nếu cây hợp lệ và đủ số lần tác động, hệ thống sẽ xóa cây khỏi Terrain và sinh ra vật phẩm gỗ.
-
-Đây là một phần thể hiện tương đối rõ việc phối hợp giữa raycast, terrain data và spawn object trong Unity.
-
-**Gợi ý ảnh chèn:**
-- Hình 4.5: Ảnh người chơi đang chặt cây.
-- Hình 4.6: Ảnh khúc gỗ sinh ra sau khi chặt xong.
-
-##### 4.2.4.4. Hệ thống lợn rừng
-
-`Boar` là script xử lý sinh vật AI đi lang thang trong scene. Đối tượng này có máu, nhận sát thương khi bị đánh đúng mục tiêu và sẽ rơi vật phẩm thịt khi bị tiêu diệt. Script cũng cho thấy khả năng dùng NavMesh nếu có dữ liệu dẫn đường hợp lệ, đồng thời có nhánh dự phòng khi không dùng được NavMesh.
-
-**Gợi ý ảnh chèn:**
-- Hình 4.7: Ảnh lợn rừng trong scene.
-- Hình 4.8: Ảnh vật phẩm thịt rơi ra sau khi tiêu diệt lợn.
-
-##### 4.2.4.5. Hệ thống câu cá
-
-`FishingRob` là một trong những script phức tạp nhất trong project. Script này quản lý toàn bộ chu trình câu cá:
-
-1. Xác định vùng nước hợp lệ.
-2. Đưa người chơi vào trạng thái câu.
-3. Chờ cá cắn câu với thời gian ngẫu nhiên.
-4. Mở mini game móc cá.
-5. Cộng vật phẩm cá vào inventory nếu thành công.
-
-Ngoài logic gameplay, script còn tự dựng một số UI runtime và điều chỉnh camera khi câu cá. Điều này cho thấy mức độ hoàn thiện khá cao của module này so với nhiều phần khác trong project.
-
-**Gợi ý ảnh chèn:**
-- Hình 4.9: Ảnh người chơi bắt đầu câu cá tại vùng nước.
-- Hình 4.10: Ảnh giao diện mini game câu cá.
-- Hình 4.11: Ảnh vật phẩm cá trong inventory sau khi câu thành công.
-
-##### 4.2.4.6. Hệ thống inventory
-
-`PlayerInventory` quản lý dữ liệu các slot vật phẩm. `InventoryUIController` hiển thị inventory dưới dạng lưới, xử lý mở/tắt bằng phím `B`, khóa một số thao tác gameplay khi inventory mở và hiển thị hiệu ứng blur nền.
-
-Các asset `WoodLog`, `Meat` và `Fish` trong `Assets/Resources/Inventory` cho thấy dữ liệu vật phẩm đã được tách khỏi script bằng ScriptableObject, đây là một hướng tổ chức hợp lý và dễ mở rộng.
-
-**Gợi ý ảnh chèn:**
-- Hình 4.12: Ảnh inventory đang mở.
-- Hình 4.13: Ảnh asset vật phẩm trong Project Window.
-
-##### 4.2.4.7. Hệ thống menu và loading
-
-`MainMenuController` quản lý menu chính với các nút Play, Credits, Options và Quit. `MenuSettingsService` chịu trách nhiệm lưu các tùy chọn như âm lượng, độ nhạy chuột, chế độ hiển thị và chất lượng đồ họa. `LoadingManager` thực hiện nạp scene bất đồng bộ kèm overlay loading.
-
-Ba thành phần này giúp sản phẩm có một luồng vào game hoàn chỉnh hơn, thay vì chỉ là một scene gameplay chạy thử.
-
-**Gợi ý ảnh chèn:**
-- Hình 4.14: Ảnh Main Menu.
-- Hình 4.15: Ảnh panel Options.
-- Hình 4.16: Ảnh loading overlay khi chuyển scene.
-
-##### 4.2.4.8. Hệ thống hội thoại
-
-`DialogueController` là script trung tâm quản lý toàn bộ hệ thống hội thoại trong game. Hệ thống này sử dụng mô hình dựa trên ngày (DialogueDay) và sự kiện (DialogueEventId) để tìm và hiển thị đoạn hội thoại phù hợp từ DialogueDatabase.
-
-Các thành phần chính:
-
-1. `DialogueController`: Điều khiển UI, khóa controls, hiển thị text typewriter, quản lý hàng đợi hội thoại.
-2. `DialogueDatabase`: ScriptableObject chứa tất cả dữ liệu hội thoại, được tổ chức theo ngày và event.
-3. `DialogueEntry`: Mỗi entry chứa danh sách dòng thoại, settings như playerCanMove, timeScale.
-4. `DialogueLineData`: Dữ liệu từng dòng với speakerName và text.
-5. `DialogueSaveService`: Lưu ngày hiện tại vào PlayerPrefs.
-6. `MamboSixDayStoryPlan.md`: Kịch bản 6 ngày với các events như IntroWakeUp, DayStart, InvestigationComplete, EndingStart.
-
-Hệ thống hỗ trợ typewriter effect, khóa controls khi hội thoại chạy, và có thể điều chỉnh timeScale để tạo hiệu ứng chậm lại hoặc dừng game.
-
-**Gợi ý ảnh chèn:**
-- Hình 4.17: Ảnh UI hội thoại đang hiển thị.
-- Hình 4.18: Ảnh DialogueDatabase trong Project Window.
-- Hình 4.19: Sơ đồ kiến trúc hệ thống hội thoại.
-
-### 4.3. Phân tích thiết kế hệ thống
-
-#### 4.3.1. Thiết kế luồng vào game
-
-Luồng tổng quát của game hiện tại có thể mô tả như sau:
-
-1. Người chơi mở game tại scene `MainMenu`.
-2. Chọn `Play`.
-3. `LoadingManager` hiển thị overlay loading và tải scene `Suml`.
-4. Sau khi scene gameplay được nạp, người chơi bắt đầu điều khiển nhân vật.
-
-Thiết kế này phù hợp với cấu trúc build hiện tại và tạo cảm giác sản phẩm có tổ chức thay vì chỉ là một bản demo trong editor.
-
-#### 4.3.2. Thiết kế vòng lặp gameplay
-
-Vòng lặp gameplay cơ bản hiện có thể mô tả theo chuỗi:
-
-1. Di chuyển khám phá môi trường.
-2. Nhìn vào đối tượng và nhận prompt.
-3. Tương tác hoặc tấn công.
-4. Nhận vật phẩm từ môi trường.
-5. Mở inventory để kiểm tra kết quả.
-
-Tùy theo mục tiêu của người chơi, vòng lặp này có thể diễn ra theo nhánh chặt cây, săn lợn hoặc câu cá.
-
-#### 4.3.3. Thiết kế dữ liệu vật phẩm
-
-Vật phẩm được tách thành ScriptableObject riêng, gồm thông tin mã định danh, tên hiển thị, mô tả, icon, số lượng stack tối đa và khả năng sử dụng. Cách tách dữ liệu này giúp:
-
-1. Giảm việc hard-code trực tiếp trong script gameplay.
-2. Dễ thêm vật phẩm mới.
-3. Giúp inventory và pickup dùng chung một định dạng dữ liệu.
-
-#### 4.3.4. Thiết kế giao diện và phản hồi người dùng
-
-Game hiện có bốn lớp phản hồi quan trọng:
-
-1. Prompt giữa màn hình khi nhìn vào object có thể tương tác.
-2. Giao diện inventory khi người chơi mở túi đồ.
-3. Giao diện câu cá và mini game.
-4. Menu và loading ở giai đoạn bắt đầu game.
-
-Những lớp giao diện này giúp người chơi luôn biết mình đang ở trạng thái nào và nên làm gì tiếp theo.
-
-**Gợi ý ảnh chèn:**
-- Hình 4.17: Sơ đồ luồng vào game.
-- Hình 4.18: Sơ đồ vòng lặp gameplay.
-- Hình 4.19: Sơ đồ mối quan hệ giữa `InventoryPickup`, `PlayerInventory`, `InventoryUIController`.
-- Hình 4.20: Sơ đồ kiến trúc hệ thống hội thoại.
-
-##### Hình 4.17. Sơ đồ luồng vào game
+**Hình 1-1. Mô hình hoạt động tổng quát của game**
 
 ```mermaid
 flowchart TD
-    A["Main Menu"] -->|"Chọn Play"| B["Loading Overlay"]
-    B -->|"Tải scene"| C["Scene Suml"]
-    C -->|"Bắt đầu"| D["Gameplay"]
+    A["MainMenu"] -->|"New Game"| B["Scene Suml"]
+    B --> C["Dialogue mở đầu"]
+    C --> D["Nhận nhiệm vụ theo ngày"]
+    D --> E["Khám phá môi trường"]
+    E --> F{"Tương tác gì?"}
+    F -->|"Tìm manh mối"| G["Clue Vision / Dialogue"]
+    F -->|"Thu tài nguyên"| H["Chặt cây / Săn lợn / Câu cá"]
+    F -->|"Quản lý vật phẩm"| I["Inventory"]
+    F -->|"Sinh tồn"| J["Campfire / Nấu ăn / Ăn"]
+    G --> K["Cập nhật nhiệm vụ"]
+    H --> K
+    I --> K
+    J --> K
+    K --> L{"Hoàn thành nhiệm vụ?"}
+    L -->|"Chưa"| E
+    L -->|"Rồi"| M["Dialogue hoàn thành"]
+    M --> N["Chuyển ngày / reload scene"]
+    N --> D
 ```
 
-##### Hình 4.18. Sơ đồ vòng lặp gameplay
+#### 1.4.4. Mô tả hoạt động của hệ thống
 
-```mermaid
-flowchart TD
-    A["Di chuyển khám phá môi trường"] --> B["Nhìn vào object"]
-    B --> C["Tương tác hoặc tấn công"]
-    C --> D["Nhận vật phẩm"]
-    D --> E["Mở inventory kiểm tra"]
-    E --> A
-```
+Khi người chơi bấm `NewGame` trong scene `MainMenu`, game chuyển sang scene `Suml`. Tại đây, các script khởi tạo dữ liệu, tìm reference cần thiết và chuẩn bị UI. `PlayerMovement` khởi tạo trạng thái di chuyển, `PlayerLook` khóa con trỏ và áp dụng độ nhạy chuột đã lưu, `DialogueController` tải `DialogueDatabase`, `DailyQuestManager` tải `DailyQuestDatabase`.
 
-##### Hình 4.19. Sơ đồ mối quan hệ giữa `InventoryPickup`, `PlayerInventory`, `InventoryUIController`
+Trong gameplay, camera dùng `PickUpScript` để raycast về phía trước. Nếu nhìn vào object có `Interactable`, UI sẽ hiển thị prompt. Khi người chơi bấm `E`, object tương tác thực thi logic riêng như mở cửa, nhặt vật phẩm, kích hoạt dialogue, đặt gỗ, mở gói dữ liệu hoặc vào chế độ nấu ăn.
+
+Tiến trình nhiệm vụ được điều phối bởi `DailyQuestManager`. Tùy ngày hiện tại, nhiệm vụ có thể yêu cầu đếm số lần tương tác, đếm vật phẩm trong inventory hoặc xử lý chuỗi sinh tồn ngày 5. Khi hoàn thành, hệ thống gọi hội thoại hoàn thành, tăng ngày thông qua `DialogueSaveService` và có thể reload scene bằng `LoadingManager`.
+
+## CHƯƠNG 2: MỘT SỐ KIẾN THỨC CƠ BẢN THỰC HIỆN ĐỀ TÀI
+
+### 2.1. Ngôn ngữ lập trình C#
+
+#### 2.1.1. Tổng quan về C#
+
+C# là ngôn ngữ lập trình hướng đối tượng do Microsoft phát triển, được sử dụng rộng rãi trong phát triển phần mềm desktop, web, mobile và game. Trong Unity, C# là ngôn ngữ chính để xây dựng các script điều khiển hành vi của GameObject.
+
+C# hỗ trợ các khái niệm quan trọng như class, object, property, event, enum, interface, generic collection, coroutine và delegate. Những thành phần này rất phù hợp để tổ chức logic gameplay theo module.
+
+#### 2.1.2. Ứng dụng C# trong đề tài
+
+Trong project, C# được dùng để cài đặt toàn bộ logic gameplay. Mỗi script thường kế thừa `MonoBehaviour` để có thể gắn vào GameObject và tham gia vòng đời của Unity như `Awake`, `Start`, `Update`, `FixedUpdate`, `OnEnable`, `OnDisable`, `OnTriggerEnter` hoặc `OnValidate`.
+
+Một số ví dụ trong project:
+
+- `PlayerMovement` xử lý di chuyển bằng Rigidbody, animation state và cutscene.
+- `ActionScript` xử lý trạng thái tay, trang bị rìu, đánh và phát event `AttackPerformed`.
+- `PickUpScript` xử lý raycast tương tác.
+- `PlayerInventory` quản lý slot, stack, thêm/xóa/dùng item.
+- `InventoryUIController` xây dựng UI inventory và xử lý đặt campfire/nguyên liệu.
+- `DialogueController` quản lý hàng đợi hội thoại, typewriter effect và khóa input.
+- `DailyQuestManager` quản lý nhiệm vụ theo ngày và HUD tiến độ.
+
+#### 2.1.3. Lập trình hướng đối tượng trong project
+
+Project sử dụng lập trình hướng đối tượng ở nhiều vị trí. `Interactable` đóng vai trò lớp cơ sở cho các object có thể tương tác. Các lớp con như `Door`, `InventoryPickup`, `DialogueTrigger`, `CampingCookingInteractable`, `Day5DataCubeInteractable`, `GatherWoodTurnInInteractable` ghi đè hành vi `Interact()` hoặc các thuộc tính như `CanInteract`, `PromptText`.
+
+Hệ thống inventory sử dụng `InventoryItemDefinition` làm lớp dữ liệu vật phẩm, kết hợp `PlayerInventory.InventorySlot` để lưu item và số lượng. Cách tổ chức này giúp cùng một logic inventory có thể làm việc với nhiều loại vật phẩm khác nhau như gỗ, thịt, cá.
+
+Hệ thống dialogue dùng các lớp dữ liệu `DialogueEntry`, `DialogueLineData`, `DialogueDatabase`, kết hợp enum `DialogueDay` và `DialogueEventId`. Cách tách này giúp mỗi đoạn hội thoại được xác định bằng cặp ngày - sự kiện thay vì hard-code trực tiếp trong script gameplay.
+
+#### 2.1.4. Coroutine, Event và xử lý thời gian thực
+
+Game hoạt động theo thời gian thực nên nhiều hành động cần diễn ra theo chuỗi thời gian. Project sử dụng coroutine cho các tình huống như:
+
+- Chờ animation tấn công rồi mới phát event hit trong `ActionScript`.
+- Chạy cutscene, khóa input và đổi camera trong `PlayerMovement`.
+- Hiển thị dialogue typewriter trong `DialogueController`.
+- Chờ cá cắn, mở mini game và đóng UI câu cá trong `FishingRob`.
+- Fade loading overlay trong `LoadingManager`.
+- Đóng mini game nấu ăn sau khi hiển thị kết quả trong `MiniGameCookingController`.
+
+Event cũng được sử dụng để giảm phụ thuộc trực tiếp giữa các module. Ví dụ, `ActionScript` phát `AttackPerformed`, sau đó `CuttingTreeSystem`, `Boar` và `Stamina` cùng nghe event này để xử lý chặt cây, gây sát thương lên lợn rừng và trừ stamina. `PlayerInventory` phát `InventoryChanged`, `FeedbackRequested`, `ItemAdded` để UI và quest cập nhật.
+
+### 2.2. Công cụ hỗ trợ lập trình
+
+#### 2.2.1. Unity Engine
+
+Unity là engine chính của project. Project đang dùng Unity `6000.0.41f1`. Các scene, prefab, model, texture, material, animation, UI, audio và script đều được tổ chức trong thư mục `Assets`.
+
+Unity cung cấp các hệ thống quan trọng được dùng trong đề tài:
+
+- Scene Management để chuyển giữa `MainMenu` và `Suml`.
+- Physics để raycast, trigger, collider và xử lý Rigidbody.
+- Terrain để dựng môi trường rừng và cây.
+- NavMesh để hỗ trợ lợn rừng đi lang thang.
+- Animator để điều khiển animation nhân vật, tay, rìu, câu cá và lợn rừng.
+- UI Canvas, UGUI và TextMeshPro để hiển thị prompt, inventory, quest HUD, dialogue và mini game.
+- AudioSource để phát nhạc và hiệu ứng âm thanh.
+- ScriptableObject để cấu hình item, quest và dialogue.
+
+#### 2.2.2. Visual Studio và môi trường lập trình C#
+
+Visual Studio hoặc IDE tương thích được sử dụng để viết, kiểm tra và chỉnh sửa mã C#. Unity tự tạo các file `.csproj` giúp IDE nhận diện class, namespace, package và API của Unity.
+
+Trong quá trình phát triển, việc tách script theo thư mục giúp quản lý mã nguồn rõ ràng hơn. Các nhóm script chính trong project gồm:
+
+- `Assets/scripts/Player`
+- `Assets/scripts/Interact`
+- `Assets/scripts/Inventory`
+- `Assets/scripts/Quest`
+- `Assets/scripts/Dialogue`
+- `Assets/scripts/Menu`
+- `Assets/scripts/AudioManager`
+- `Assets/scripts/Rendering`
+- `Assets/scripts/Walking Boar`
+
+#### 2.2.3. Công nghệ và package sử dụng
+
+**Bảng 2-1. Công nghệ và package sử dụng trong project**
+
+| Thành phần | Vai trò |
+| --- | --- |
+| Unity 6000.0.41f1 | Nền tảng phát triển game |
+| C# | Ngôn ngữ lập trình gameplay |
+| Universal Render Pipeline 17.0.4 | Render pipeline cho scene 3D |
+| TextMeshPro | Hiển thị chữ trong UI |
+| Unity UI/UGUI | Button, Slider, Canvas, Image, panel |
+| Unity AI Navigation 2.0.6 | Hỗ trợ NavMesh cho lợn rừng |
+| Cinemachine 2.10.3 | Hỗ trợ camera nếu cần mở rộng |
+| Timeline 1.8.7 | Hỗ trợ cutscene/animation sequence |
+| DOTween | Fade overlay loading |
+| Shader Graph | Tạo shader/hiệu ứng hình ảnh |
+| Terrain Tools/Worldbuilding | Hỗ trợ dựng môi trường tự nhiên |
+
+### 2.3. Một số thành phần kỹ thuật nền tảng
+
+#### 2.3.1. GameObject và Component
+
+Trong Unity, GameObject là đơn vị cơ bản của scene. Mỗi GameObject có thể gắn nhiều component để tạo ra hành vi. Ví dụ, nhân vật player có các component về chuyển động, animation, inventory, stamina và hành động tay. Camera có component nhìn, raycast tương tác và hiệu ứng clue vision.
+
+Mô hình component giúp project dễ mở rộng. Khi cần thêm chức năng cho một object, chỉ cần gắn thêm script hoặc component tương ứng mà không cần viết lại toàn bộ class.
+
+#### 2.3.2. ScriptableObject trong quản lý cấu hình
+
+Project sử dụng ScriptableObject cho các dữ liệu cần chỉnh trong editor:
+
+- `InventoryItemDefinition` cho vật phẩm như `Fish`, `Meat`, `WoodLog`.
+- `DialogueDatabase` cho danh sách đoạn hội thoại theo ngày và sự kiện.
+- `DailyQuestDatabase` cho danh sách nhiệm vụ theo ngày.
+
+Cách tổ chức này giúp dữ liệu tách khỏi logic xử lý. Khi muốn thêm vật phẩm hoặc nhiệm vụ mới, người phát triển có thể thêm asset hoặc chỉnh database thay vì sửa nhiều script.
+
+#### 2.3.3. Raycast và Collider trong tương tác
+
+Hệ thống tương tác sử dụng raycast từ camera. Khi raycast chạm vào object có `Interactable`, prompt được hiển thị. Khi người chơi bấm `E`, object xử lý logic riêng.
+
+Raycast cũng được dùng trong chặt cây, săn lợn và đặt campfire. Với chặt cây, camera kiểm tra cây trong terrain theo khoảng cách và góc ngắm. Với lợn rừng, ray từ giữa màn hình được kiểm tra với bounds/collider của lợn. Với đặt campfire, ray từ vị trí chuột xuống mặt đất để xác định điểm đặt hợp lệ.
+
+#### 2.3.4. PlayerPrefs trong lưu trạng thái đơn giản
+
+Project dùng `PlayerPrefs` để lưu một số trạng thái nhẹ:
+
+- Ngày hiện tại của dialogue qua `dialogue.currentDay`.
+- Cài đặt âm lượng, độ nhạy chuột, fullscreen và quality.
+- Trạng thái một số sự kiện nhiệm vụ như gói dữ liệu ngày 5, bó gỗ ngày 3.
+
+`PlayerPrefs` phù hợp với dữ liệu nhỏ và dễ dùng trong đồ án. Tuy nhiên, nếu mở rộng game thành sản phẩm lớn hơn, cần một hệ thống save/load riêng cho inventory, vị trí nhân vật, trạng thái scene và tiến trình nhiệm vụ.
+
+## CHƯƠNG 3: PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG
+
+### 3.1. Use Case Diagram
+
+#### 3.1.1. Use Case tổng quan
+
+Tác nhân chính của hệ thống là người chơi. Người chơi thao tác qua bàn phím và chuột để điều khiển nhân vật, tương tác với môi trường, quản lý vật phẩm và hoàn thành nhiệm vụ.
+
+**Hình 3-1. Use Case tổng quan**
 
 ```mermaid
 flowchart LR
-    A["InventoryPickup<br/>Vật thể nhặt được trong scene"] -->|"Interact()<br/>FindFirstObjectByType&lt;PlayerInventory&gt;()<br/>TryAddItem(itemDefinition, amount, out remainingAmount)"| B["PlayerInventory<br/>Trung tâm lưu dữ liệu slot và số lượng vật phẩm"]
-    B -->|"InventoryChanged<br/>FeedbackRequested"| C["InventoryUIController<br/>Hiển thị lưới inventory và thông báo phản hồi"]
-    C -->|"RefreshSlots()<br/>đọc Slots, SlotCount"| B
-    C -->|"HandleSlotClicked()<br/>TryUseSlot(slotIndex)"| B
+    Player["Người chơi"]
+    UC1["Bắt đầu game"]
+    UC2["Điều khiển nhân vật"]
+    UC3["Tương tác môi trường"]
+    UC4["Xem hội thoại"]
+    UC5["Theo dõi nhiệm vụ"]
+    UC6["Thu thập vật phẩm"]
+    UC7["Quản lý inventory"]
+    UC8["Chặt cây"]
+    UC9["Săn lợn rừng"]
+    UC10["Câu cá"]
+    UC11["Đặt campfire và nấu ăn"]
+    UC12["Bật clue vision"]
+    UC13["Điều chỉnh cài đặt"]
+    UC14["Thoát game"]
+
+    Player --> UC1
+    Player --> UC2
+    Player --> UC3
+    Player --> UC4
+    Player --> UC5
+    Player --> UC6
+    Player --> UC7
+    Player --> UC8
+    Player --> UC9
+    Player --> UC10
+    Player --> UC11
+    Player --> UC12
+    Player --> UC13
+    Player --> UC14
 ```
 
-Sơ đồ trên cho thấy `PlayerInventory` là thành phần trung tâm của hệ thống inventory. `InventoryPickup` chỉ chịu trách nhiệm phát sinh hành động nhặt vật phẩm trong scene và chuyển yêu cầu thêm item vào `PlayerInventory`. Sau khi dữ liệu inventory thay đổi, `PlayerInventory` phát event `InventoryChanged` và `FeedbackRequested` để `InventoryUIController` cập nhật lại giao diện, đồng thời khi người chơi bấm vào một ô vật phẩm trên UI thì `InventoryUIController` sẽ gọi ngược `TryUseSlot()` để yêu cầu inventory xử lý logic sử dụng vật phẩm.
+#### 3.1.2. Use Case chi tiết
 
-##### Hình 4.20. Sơ đồ kiến trúc hệ thống hội thoại
+Use case "Thu thập tài nguyên" gồm ba nhánh chính. Người chơi có thể chặt cây để lấy `WoodLog`, săn lợn rừng để lấy `Meat`, hoặc câu cá để lấy `Fish`. Cả ba loại vật phẩm đều được thêm vào `PlayerInventory`, sau đó UI inventory cập nhật thông qua event `InventoryChanged`.
+
+Use case "Hoàn thành nhiệm vụ" phụ thuộc vào `DailyQuestManager`. Tùy loại objective, hệ thống có thể đếm interaction key, đếm số lượng item trong inventory hoặc kiểm tra chuỗi sinh tồn ngày 5. Khi đạt yêu cầu, hệ thống gọi dialogue hoàn thành và chuyển ngày.
+
+### 3.2. Sequence Diagram
+
+#### 3.2.1. Luồng tương tác và nhặt vật phẩm
+
+**Hình 3-2. Sequence luồng tương tác và nhặt vật phẩm**
+
+```mermaid
+sequenceDiagram
+    actor Player as Người chơi
+    participant Camera as PickUpScript
+    participant Obj as InventoryPickup
+    participant Inv as PlayerInventory
+    participant UI as InventoryUIController
+
+    Player->>Camera: Nhìn vào vật phẩm
+    Camera->>Obj: Raycast tìm Interactable
+    Obj-->>Camera: PromptText
+    Camera-->>Player: Hiển thị prompt
+    Player->>Camera: Nhấn E
+    Camera->>Obj: BaseInteract(playerUI)
+    Obj->>Inv: TryAddItem(itemDefinition, amount)
+    Inv-->>UI: InventoryChanged
+    Inv-->>UI: FeedbackRequested
+    Obj->>Obj: Giảm số lượng hoặc Destroy
+```
+
+#### 3.2.2. Luồng chặt cây
+
+**Hình 3-3. Sequence luồng chặt cây**
+
+```mermaid
+sequenceDiagram
+    actor Player as Người chơi
+    participant Action as ActionScript
+    participant Tree as CuttingTreeSystem
+    participant Stamina as Stamina
+    participant InvPick as TreeLogPickup
+
+    Player->>Action: Nhấn F trang bị rìu
+    Player->>Action: Chuột trái tấn công
+    Action->>Action: Chờ attackImpactDelay
+    Action-->>Tree: AttackPerformed
+    Action-->>Stamina: AttackPerformed
+    Tree->>Tree: Kiểm tra cây trong range/góc nhìn
+    Tree->>Tree: Tăng số hit của cây
+    Stamina->>Stamina: Trừ stamina nếu đang nhìn cây
+    Tree->>Tree: Đủ hit thì xóa TreeInstance
+    Tree->>InvPick: Spawn pickup gỗ
+```
+
+#### 3.2.3. Luồng câu cá
+
+**Hình 3-4. Sequence luồng câu cá**
+
+```mermaid
+sequenceDiagram
+    actor Player as Người chơi
+    participant Pick as PickUpScript
+    participant Fish as FishingRob
+    participant Inv as PlayerInventory
+    participant Quest as DailyQuestManager
+    participant UI as PlayerUI
+
+    Player->>Pick: Đứng gần vùng nước và nhấn E
+    Pick->>Fish: TryConsumeInteractInput()
+    Fish->>Fish: Vào fishing mode, khóa control
+    Fish->>Fish: Gắn cần câu, vẽ line
+    Fish->>Fish: Chờ biteDelayRange
+    Fish-->>UI: Hiển thị trạng thái cá cắn
+    Player->>Fish: Nhấn E/chuột để móc cá
+    Fish->>Fish: Kiểm tra cá nằm trong target zone
+    Fish->>Inv: TryAddItem(Fish, 1)
+    Inv-->>Quest: ItemAdded
+    Fish->>Fish: Thoát fishing mode hoặc tiếp tục
+```
+
+#### 3.2.4. Luồng hội thoại và nhiệm vụ
+
+Hệ thống hội thoại không hard-code trực tiếp nội dung trong script. Script gameplay chỉ gọi `DialogueController.RequestDialogue(eventId)`. Controller tự lấy ngày hiện tại từ `DialogueSaveService`, tìm entry trong `DialogueDatabase`, hiển thị từng dòng và thông báo hoàn thành qua event `DialogueFinished`. `DailyQuestManager` nghe sự kiện này để kích hoạt hoặc hoàn tất nhiệm vụ.
+
+### 3.3. Activity Diagram
+
+**Hình 3-5. Activity vòng lặp gameplay theo ngày**
 
 ```mermaid
 flowchart TD
-    A["Script Gameplay<br/>(e.g., Boar.cs, CuttingTreeSystem.cs)"] -->|"DialogueController.RequestDialogue(EventId)"| B["DialogueController<br/>Quản lý UI, khóa controls, typewriter"]
-    B -->|"GetCurrentDay()"| C["DialogueSaveService<br/>Lưu ngày vào PlayerPrefs"]
-    B -->|"TryGetEntry(Day, EventId)"| D["DialogueDatabase<br/>ScriptableObject chứa entries"]
-    D -->|"DialogueEntry<br/>Lines, PlayerCanMove, TimeScale"| E["DialogueLineData<br/>SpeakerName, Text"]
-    B -->|"Hiển thị UI<br/>Typewriter effect"| F["Canvas UI<br/>SpeakerText, BodyText"]
+    A["Bắt đầu ngày"] --> B["Dialogue mở đầu / DayStart"]
+    B --> C["DailyQuestManager kích hoạt nhiệm vụ"]
+    C --> D["HUD hiển thị mục tiêu"]
+    D --> E["Người chơi khám phá scene"]
+    E --> F{"Mục tiêu nhiệm vụ"}
+    F -->|"InteractionKeyCount"| G["Tương tác object đặc biệt"]
+    F -->|"InventoryItemCount"| H["Thu thập item yêu cầu"]
+    F -->|"Day5Survival"| I["Bắt cá, gom gỗ, đặt campfire, nấu, ăn"]
+    G --> J["Cập nhật tiến độ"]
+    H --> J
+    I --> J
+    J --> K{"Đủ yêu cầu?"}
+    K -->|"Không"| E
+    K -->|"Có"| L["Dialogue hoàn thành"]
+    L --> M{"Cần turn-in?"}
+    M -->|"Có"| N["Mang vật phẩm đến điểm bàn giao"]
+    M -->|"Không"| O["AdvanceDay"]
+    N --> O
+    O --> P["Reload scene / bắt đầu ngày mới"]
 ```
 
-Sơ đồ trên minh họa kiến trúc hệ thống hội thoại. Các script gameplay gọi `RequestDialogue` với EventId, DialogueController lấy ngày hiện tại từ SaveService, tìm entry phù hợp trong Database, sau đó hiển thị từng dòng với hiệu ứng typewriter trên UI.
+### 3.4. Component Diagram
 
-## CHƯƠNG 5: THIẾT KẾ GIAO DIỆN ĐỒ HỌA GAME
+**Hình 3-6. Component Diagram tổng thể**
 
-### 5.1. Tổng quan đồ họa màn chơi
+```mermaid
+flowchart LR
+    subgraph PlayerModule["Player Module"]
+        PM["PlayerMovement"]
+        PL["PlayerLook"]
+        AS["ActionScript"]
+        ST["Stamina"]
+    end
 
-#### 5.1.1. Menu Game
+    subgraph InteractionModule["Interaction Module"]
+        PU["PickUpScript"]
+        IT["Interactable"]
+        CT["CuttingTreeSystem"]
+        BO["Boar"]
+        FR["FishingRob"]
+    end
 
-Menu chính là điểm vào đầu tiên của người chơi. Giao diện hiện có các chức năng cơ bản như bắt đầu game, mở phần cài đặt, xem credits và thoát game. Script menu còn bổ sung tween và hiệu ứng fade để phần hiển thị mượt hơn.
+    subgraph InventoryModule["Inventory Module"]
+        PI["PlayerInventory"]
+        IU["InventoryUIController"]
+        ID["InventoryItemDefinition"]
+        CK["CampingCookingInteractable"]
+        MG["MiniGameCookingController"]
+    end
 
-**Gợi ý ảnh chèn:**
-- Hình 5.1: Màn hình Main Menu toàn cảnh.
+    subgraph StoryModule["Story Module"]
+        DC["DialogueController"]
+        DD["DialogueDatabase"]
+        QM["DailyQuestManager"]
+        QD["DailyQuestDatabase"]
+    end
 
-#### 5.1.2. Màn gameplay chính
+    subgraph SupportModule["Support Module"]
+        AU["ReSoundManager / MusicManager"]
+        LM["LoadingManager"]
+        MS["MenuSettingsService"]
+        CV["Clue Vision / Rendering"]
+    end
 
-Scene gameplay `Suml` là không gian chính của trò chơi. Tại đây người chơi quan sát môi trường tự nhiên, di chuyển trong địa hình, tiếp cận vùng nước, khu vực có cây và lợn rừng để thực hiện các hoạt động gameplay.
+    PM --> AS
+    PL --> PU
+    AS --> CT
+    AS --> BO
+    AS --> ST
+    PU --> IT
+    FR --> PI
+    CT --> PI
+    BO --> PI
+    PI --> IU
+    IU --> CK
+    CK --> MG
+    PI --> QM
+    DC --> DD
+    QM --> QD
+    QM --> DC
+    QM --> LM
+    AS --> AU
+    FR --> AU
+    MG --> AU
+    PL --> MS
+    CV --> PU
+```
 
-**Gợi ý ảnh chèn:**
-- Hình 5.2: Ảnh toàn cảnh scene gameplay.
+### 3.5. Class Diagram
 
-#### 5.1.3. Options
+#### 3.5.1. Nhóm inventory và tương tác
 
-Màn hình Options cho phép người chơi chỉnh các thông số quan trọng như âm lượng tổng, độ nhạy chuột, display mode và chất lượng đồ họa. Đây là phần tạo cảm giác chuyên nghiệp hơn cho sản phẩm, đồng thời cải thiện khả năng cá nhân hóa trải nghiệm.
+**Hình 3-7. Class Diagram nhóm inventory và tương tác**
 
-**Gợi ý ảnh chèn:**
-- Hình 5.3: Ảnh panel Options.
+```mermaid
+classDiagram
+    class Interactable {
+        +CanInteract
+        +PromptText
+        +BaseInteract(PlayerUI)
+        #Interact()
+        #PresentInteraction(PlayerUI)
+    }
 
-#### 5.1.4. Inventory
+    class InventoryPickup {
+        -InventoryItemDefinition itemDefinition
+        -int amount
+        #Interact()
+    }
 
-Inventory được thiết kế dưới dạng panel trung tâm với nhiều slot, hiển thị icon và số lượng vật phẩm. Khi inventory mở, chuột được mở khóa và một số thao tác gameplay bị tạm khóa để người chơi dễ thao tác hơn.
+    class TreeLogPickup
+    class MeatPickup
+    class Door
+    class CampingCookingInteractable
 
-**Gợi ý ảnh chèn:**
-- Hình 5.4: Ảnh inventory đang mở, nhìn rõ các ô vật phẩm.
+    class InventoryItemDefinition {
+        +ItemId
+        +DisplayName
+        +Description
+        +Icon
+        +MaxStack
+        +TryUse(...)
+    }
 
-#### 5.1.5. Giao diện câu cá
+    class PlayerInventory {
+        +SlotCount
+        +Slots
+        +InventoryChanged
+        +FeedbackRequested
+        +ItemAdded
+        +TryAddItem(...)
+        +TryConsumeSlot(...)
+        +TryUseSlot(...)
+        +GetItemCount(...)
+    }
 
-Khi chuyển sang trạng thái câu cá, game hiển thị một lớp UI riêng gồm nhãn hướng dẫn và mini game. Giao diện này đóng vai trò dẫn dắt người chơi theo từng bước của cơ chế câu cá.
+    class InventoryUIController {
+        +IsInventoryOpen
+        +ToggleInventory()
+        +SetInventoryOpen(bool)
+    }
 
-**Gợi ý ảnh chèn:**
-- Hình 5.5: Ảnh giao diện chờ cá cắn câu.
-- Hình 5.6: Ảnh mini game khi cá đã cắn câu.
+    Interactable <|-- InventoryPickup
+    InventoryPickup <|-- TreeLogPickup
+    InventoryPickup <|-- MeatPickup
+    Interactable <|-- Door
+    Interactable <|-- CampingCookingInteractable
+    PlayerInventory --> InventoryItemDefinition
+    InventoryPickup --> PlayerInventory
+    InventoryUIController --> PlayerInventory
+```
 
-#### 5.1.6. Hộp tương tác và prompt
+#### 3.5.2. Nhóm hội thoại và nhiệm vụ
 
-Prompt giữa màn hình và panel thông tin tương tác là lớp UI quan trọng giúp game truyền đạt ngắn gọn cho người chơi nên làm gì. Đây là một điểm tốt của project vì giao diện không quá phức tạp nhưng vẫn đủ vai trò hướng dẫn.
+**Hình 3-8. Class Diagram nhóm hội thoại và nhiệm vụ**
 
-**Gợi ý ảnh chèn:**
-- Hình 5.7: Ảnh prompt tương tác giữa màn hình.
-- Hình 5.8: Ảnh panel hiển thị nội dung tương tác hoặc hình minh họa.
+```mermaid
+classDiagram
+    class DialogueController {
+        +RequestDialogue(DialogueEventId)
+        +GetCurrentDay()
+        +AdvanceDay()
+        +DialogueFinished
+    }
 
-#### 5.1.7. Đối tượng đồ họa môi trường
+    class DialogueDatabase {
+        +TryGetEntry(day, eventId, out entry)
+    }
 
-Đồ họa môi trường trong game hiện tập trung vào các thành phần:
+    class DialogueEntry {
+        +Day
+        +EventId
+        +PlayerCanMove
+        +TimeScale
+        +Lines
+    }
 
-1. Terrain và cây cối.
-2. Vùng nước dùng cho câu cá.
-3. Lợn rừng đi lang thang.
-4. Cửa và các vật thể tương tác.
-5. Một số hiệu ứng ánh sáng, volume và object trang trí.
+    class DialogueLineData {
+        +SpeakerName
+        +Text
+        +QuestAction
+        +QuestId
+    }
 
-Đây là nền tảng để tạo cảm giác khám phá trong gameplay và cũng là nơi diễn ra hầu hết hành động thu thập tài nguyên.
+    class DialogueSaveService {
+        +GetCurrentDay()
+        +SetCurrentDay(day)
+        +AdvanceDay()
+    }
 
-**Gợi ý ảnh chèn:**
-- Hình 5.9: Ảnh khu vực cây cối.
-- Hình 5.10: Ảnh khu vực nước.
-- Hình 5.11: Ảnh lợn rừng trong môi trường.
+    class DailyQuestManager {
+        +TryActivateQuest(day, questId)
+        +ReportInteraction(key, amount)
+        +TryCompleteTurnIn(...)
+        +NotifyDialogueFinished(...)
+    }
 
-### 5.2. Chi tiết màn hình
+    class DailyQuestDatabase {
+        +TryGetQuest(day, questId, out quest)
+    }
 
-#### 5.2.1. Màn hình Main Menu
+    class DailyQuestDefinition {
+        +Day
+        +QuestId
+        +DisplayName
+        +ObjectiveType
+        +TargetItem
+        +RequiredCount
+    }
 
-Main Menu nên được trình bày như màn hình đầu tiên của sản phẩm. Khi mô tả trong báo cáo, cần nêu rõ:
+    DialogueController --> DialogueDatabase
+    DialogueController --> DialogueSaveService
+    DialogueDatabase --> DialogueEntry
+    DialogueEntry --> DialogueLineData
+    DailyQuestManager --> DailyQuestDatabase
+    DailyQuestDatabase --> DailyQuestDefinition
+    DailyQuestManager --> DialogueController
+```
 
-1. Có các nút Play, Options, Credits, Quit.
-2. Có hiệu ứng chuyển động giao diện.
-3. Có khả năng điều hướng sang gameplay thông qua loading scene.
+#### 3.5.3. Nhóm player, sinh vật và tài nguyên
 
-**Gợi ý ảnh chèn:**
-- Hình 5.12: Ảnh chụp riêng màn hình Main Menu.
+Nhóm player gồm `PlayerMovement`, `PlayerLook`, `MouseMovement`, `Crouch`, `ActionScript` và `Stamina`. `PlayerMovement` xử lý vận tốc Rigidbody, trạng thái chạy, animation di chuyển và một số cutscene. `PlayerLook` xử lý xoay camera và thân nhân vật theo chuột, đồng thời đọc độ nhạy chuột từ `MenuSettingsService`. `ActionScript` quản lý trạng thái tay, rìu và phát event tấn công. `Stamina` trừ thể lực theo di chuyển và hành động.
 
-#### 5.2.2. Màn hình Loading
+Nhóm tài nguyên gồm `CuttingTreeSystem`, `Boar`, `FishingRob`, `InventoryPickup`, `TreeLogPickup`, `MeatPickup`. Các module này không trực tiếp chỉnh UI inventory mà thông qua `PlayerInventory`, giúp dữ liệu vật phẩm được quản lý tập trung.
 
-Màn hình loading được hiển thị dưới dạng overlay với dòng chữ loading khi chuyển từ menu sang gameplay. Dù đơn giản, đây là thành phần rất cần thiết để tránh việc chuyển scene quá đột ngột.
+## CHƯƠNG 4: CÀI ĐẶT, THỬ NGHIỆM VÀ ĐÁNH GIÁ
 
-**Gợi ý ảnh chèn:**
-- Hình 5.13: Ảnh loading overlay.
+### 4.1. Môi trường cài đặt và tổ chức project
 
-#### 5.2.3. Màn hình gameplay HUD
+**Bảng 4-1. Môi trường cài đặt**
 
-HUD gameplay hiện chủ yếu tập trung vào prompt giữa màn hình và các panel tương tác khi cần. Cách thiết kế này phù hợp với game góc nhìn thứ nhất vì không che khuất quá nhiều tầm nhìn của người chơi.
+| Thành phần | Giá trị |
+| --- | --- |
+| Game engine | Unity 6000.0.41f1 |
+| Ngôn ngữ | C# |
+| Render pipeline | Universal Render Pipeline |
+| Scene build chính | `Assets/Scenes/MainMenu.unity`, `Assets/Scenes/Suml.unity` |
+| Hệ điều hành phát triển | Windows |
+| IDE | Visual Studio hoặc IDE tương thích C# |
+| Package nổi bật | URP, TextMeshPro, AI Navigation, Cinemachine, Timeline, DOTween |
 
-**Gợi ý ảnh chèn:**
-- Hình 5.14: Ảnh gameplay thường khi nhân vật đang di chuyển.
-- Hình 5.15: Ảnh gameplay khi đang nhắm vào đối tượng tương tác.
+Project được tổ chức theo thư mục chức năng. Mã nguồn chính nằm trong `Assets/scripts`, dữ liệu item nằm trong `Assets/Resources/Inventory`, dữ liệu quest nằm trong `Assets/Resources/Quests`, dữ liệu dialogue nằm trong `Assets/Resources/Dialogue`, scene nằm trong `Assets/Scenes`, model và prefab nằm trong `Assets/model` và các thư mục asset đi kèm.
 
-#### 5.2.4. Màn hình Inventory
+Build Settings hiện bật hai scene:
 
-Inventory là màn hình thể hiện rõ nhất kết quả của quá trình thu thập tài nguyên. Trong báo cáo, nên mô tả:
+1. `MainMenu` - scene menu chính.
+2. `Suml` - scene gameplay chính.
 
-1. Số slot.
-2. Kiểu hiển thị icon vật phẩm.
-3. Cơ chế stack.
-4. Hiệu ứng nền blur và khóa điều khiển khi mở.
+`SampleScene` vẫn tồn tại nhưng đang bị tắt trong Build Settings, do đó không được xem là luồng chính của sản phẩm.
 
-**Gợi ý ảnh chèn:**
-- Hình 5.16: Ảnh inventory với ít nhất 2 đến 3 vật phẩm đang có trong túi.
+### 4.2. Cài đặt các module chính
 
-#### 5.2.5. Màn hình câu cá
+#### 4.2.1. Module Main Menu và Settings
 
-Màn hình câu cá nên được mô tả ở hai trạng thái:
+Scene `MainMenu` có các button chính như `NewGameButton`, `ExitButton` và khu vực settings. Script `MainMenu` xử lý:
 
-1. Trạng thái chờ và hướng dẫn câu.
-2. Trạng thái mini game móc cá.
+- `NewGame()` chuyển sang scene `Suml`.
+- `ExitGame()` thoát ứng dụng.
 
-Đây là phần giao diện đặc trưng nhất của project vì nó gắn với một gameplay riêng, có trạng thái chuyển đổi rõ ràng.
+`SettingsManager` và `MainMenuSaveManager` hỗ trợ lưu/đọc âm lượng bằng `PlayerPrefs`. Ngoài ra, `MenuSettingsService` cung cấp một lớp cài đặt tổng quát hơn cho master volume, độ nhạy chuột, fullscreen và quality preset. `PlayerLook` đọc độ nhạy chuột thông qua service này.
 
-**Gợi ý ảnh chèn:**
-- Hình 5.17: Ảnh UI câu cá khi chờ.
-- Hình 5.18: Ảnh UI câu cá khi vào mini game.
+#### 4.2.2. Module điều khiển người chơi
 
-## CHƯƠNG 6: KẾT LUẬN
+`PlayerMovement` dùng Rigidbody để di chuyển nhân vật theo input `Horizontal` và `Vertical`. Khi giữ `LeftShift`, nhân vật chạy với `runSpeed`. Script cũng cập nhật trạng thái Animator bằng tham số `MoveState`, giúp chuyển các animation idle, đi, chạy theo hướng.
 
-### 6.1. Kết quả
+`PlayerLook` xử lý camera look bằng chuột, giới hạn góc nhìn dọc từ -60 đến 90 độ, đồng thời xoay thân nhân vật theo trục ngang. Khi vào gameplay, cursor được khóa để phù hợp với góc nhìn thứ nhất.
 
-Sau quá trình thực hiện, đề tài đã xây dựng được một mẫu game 3D góc nhìn thứ nhất trên Unity với nhiều thành phần có thể hoạt động thành một luồng cơ bản. Kết quả đạt được nổi bật gồm:
+`Crouch` cho phép nhân vật cúi bằng `LeftControl`, giảm tốc độ và thay đổi vị trí đầu/collider. `Stamina` hiển thị thể lực bằng slider, giảm theo thời gian di chuyển hoặc đứng yên, đồng thời trừ thêm khi chặt cây, săn lợn và câu cá.
 
-1. Có menu chính, options và loading scene.
-2. Có scene gameplay riêng trong build.
-3. Có điều khiển nhân vật góc nhìn thứ nhất.
-4. Có cơ chế trang bị rìu và tấn công.
-5. Có cơ chế chặt cây lấy gỗ.
-6. Có AI lợn rừng và cơ chế rơi vật phẩm thịt.
-7. Có cơ chế câu cá với mini game.
-8. Có hệ thống inventory hiển thị vật phẩm và số lượng.
-9. Có hệ thống lưu cài đặt người dùng qua PlayerPrefs.
-10. Có hệ thống hội thoại với typewriter effect và quản lý theo ngày/sự kiện.
+#### 4.2.3. Module hành động và chặt cây
 
-### 6.2. Đánh giá
+`ActionScript` điều khiển trạng thái tay của player. Khi bấm `F`, script chuyển giữa trạng thái cầm và cất rìu. Khi bấm chuột trái trong trạng thái cầm rìu, script chạy animation attack, phát âm thanh chém rìu và sau `attackImpactDelay` phát event `AttackPerformed`.
 
-#### 6.2.1. Những điểm làm được
+`CuttingTreeSystem` nghe event này. Khi event xảy ra, script kiểm tra camera có đang nhắm vào cây hợp lệ trên terrain hay không. Cây hợp lệ được xác định bằng khoảng cách, góc nhìn, vật cản và từ khóa prototype như `pine` hoặc `tree`. Sau số hit yêu cầu, cây bị xóa khỏi `TerrainData.treeInstances`, sau đó sinh pickup gỗ tại vị trí cây.
 
-Project có một số điểm mạnh đáng ghi nhận:
+#### 4.2.4. Module lợn rừng
 
-1. Đã hình thành một vòng lặp gameplay tương đối rõ.
-2. Script được chia nhóm theo chức năng, thuận tiện cho bảo trì và mở rộng.
-3. Module câu cá và inventory có mức hoàn thiện khá tốt.
-4. Luồng từ menu đến gameplay tạo cảm giác sản phẩm hoàn chỉnh hơn.
-5. Dữ liệu vật phẩm đã được tách riêng bằng ScriptableObject.
-6. Hệ thống hội thoại đã được triển khai với kiến trúc rõ ràng.
+Lợn rừng sử dụng script `Boar`. Script này có các thành phần chính:
 
-#### 6.2.2. Những điểm chưa làm được
+- `NavMeshAgent` để di chuyển nếu object đang ở vùng NavMesh hợp lệ.
+- Fallback movement bằng transform nếu NavMesh không khả dụng.
+- Vùng roam ngẫu nhiên quanh vị trí xuất phát.
+- Số hit để hạ lợn rừng.
+- Kiểm tra ray từ giữa camera để xác nhận đòn đánh trúng mục tiêu.
+- Rơi prefab `MeatPickup` khi chết.
 
-Bên cạnh các kết quả đã đạt được, project vẫn còn một số hạn chế:
+Khi lợn bị hạ, game phát âm thanh, trừ stamina, phát event `BoarKilled`, spawn thịt và destroy object lợn.
 
-1. Dữ liệu hội thoại đã có framework hoàn chỉnh, nội dung còn ở mức mẫu thử.
-2. Một số trigger hội thoại chưa được tích hợp đầy đủ vào gameplay.
-3. Hệ thống clue vision vẫn còn xung đột phím với trang bị rìu trong scene hiện tại.
-4. Chưa có cơ chế lưu tiến trình tổng thể như vị trí nhân vật, trạng thái môi trường hoặc inventory qua nhiều phiên chơi.
-5. Chưa có hệ thống nhiệm vụ, cốt truyện hoàn chỉnh hoặc màn chơi phân chương rõ ràng.
+#### 4.2.5. Module câu cá
 
-### 6.3. Hướng phát triển
+`FishingRob` là module có nhiều trạng thái nhất trong project. Script xác định vùng nước bằng tên object hoặc renderer bounds, kiểm tra người chơi đứng đủ gần và nhìn đúng hướng. Khi bắt đầu câu cá, script khóa các điều khiển gameplay, gắn cần câu vào tay, ẩn vật phẩm đang cầm, tạo line renderer và hiển thị UI câu cá.
 
-Trong thời gian tới, đề tài có thể được phát triển tiếp theo các hướng sau:
+Chu trình câu cá gồm:
 
-1. Hoàn thiện nội dung hội thoại và tích hợp trigger vào gameplay.
-2. Bổ sung hệ thống nhiệm vụ để dẫn dắt người chơi.
-3. Bổ sung cơ chế save/load đầy đủ.
-4. Mở rộng số lượng vật phẩm và hoạt động tương tác.
-5. Bổ sung hệ thống chế tạo hoặc nấu ăn từ các nguyên liệu thu thập được.
-6. Cải thiện AI sinh vật, âm thanh, hiệu ứng hình ảnh và độ ổn định gameplay.
+1. Người chơi đứng gần nước và bấm `E`.
+2. Hệ thống tính vị trí đứng câu và điểm thả câu.
+3. Cần câu được gắn vào tay, dây câu được vẽ bằng `LineRenderer`.
+4. Game chờ ngẫu nhiên trong khoảng `biteDelayRange`.
+5. Khi cá cắn, UI chuyển sang mini game.
+6. Người chơi canh cá nằm trong vùng mục tiêu.
+7. Nếu thành công, `Fish` được thêm vào `PlayerInventory`, stamina bị trừ và âm thanh thắng phát ra.
+8. Nếu thất bại, game phát âm thanh thua và cho phép thử lại.
+
+#### 4.2.6. Module inventory và vật phẩm
+
+`PlayerInventory` quản lý danh sách slot. Mỗi slot gồm item và số lượng. Khi thêm item, hệ thống ưu tiên cộng vào stack còn trống trước, sau đó mới dùng slot rỗng. Các item chính hiện có:
+
+- `WoodLog` với `itemId = wood_log`, stack tối đa 20.
+- `Meat` với `itemId = boar_meat`, stack tối đa 10.
+- `Fish` với `itemId = river_fish`, stack tối đa 10.
+
+`InventoryUIController` tạo UI inventory runtime nếu scene chưa có đủ object. UI gồm backdrop, panel, slot grid, title, footer và icon/số lượng từng slot. Người chơi bấm `B` để mở/tắt inventory. Khi inventory mở, các control gameplay được khóa, cursor được mở và hiệu ứng blur có thể được bật qua Volume/DepthOfField.
+
+Chuột trái trên slot có thể dùng vật phẩm, đặt campfire nếu là gỗ, hoặc đưa nguyên liệu vào campfire nếu đang ở chế độ nấu ăn. Chuột phải hiển thị thông tin vật phẩm, mô tả và gợi ý thao tác.
+
+#### 4.2.7. Module campfire và nấu ăn
+
+Khi người chơi chọn gỗ trong inventory, `InventoryUIController` tạo preview campfire. Người chơi đặt campfire lên mặt đất hợp lệ bằng chuột trái. Sau khi đặt, object được gắn `CampingCookingInteractable` và hệ thống báo `DailyQuestManager.ReportInteraction("day5_campfire_placed")`.
+
+Khi tương tác với campfire, `CampingCookingModeController` vào chế độ nấu ăn, khóa input gameplay và mở inventory. Người chơi chọn cá hoặc thịt, đưa nguyên liệu chạm vào campfire để mở `MiniGameCookingController`.
+
+Mini game nấu ăn gồm một thanh trượt di chuyển và vùng mục tiêu. Nếu người chơi bấm chuột khi slider chạm vùng mục tiêu, kết quả thắng được hiển thị, campfire cộng số món đã nấu và quest ngày 5 cập nhật tiến độ. Sau khi có món nấu, người chơi có thể ăn để hồi stamina và báo quest đã ăn.
+
+#### 4.2.8. Module hội thoại
+
+`DialogueController` là trung tâm điều phối hội thoại. Controller có thể tự load `DialogueDatabase` từ `Resources/Dialogue/DialogueDatabase`. Mỗi đoạn hội thoại được xác định bằng:
+
+- `DialogueDay`: ngày hiện tại từ Day1 đến Day6.
+- `DialogueEventId`: sự kiện như `IntroWakeUp`, `DayStart`, `Water`, `BearTrap`, `InvestigationStart`, `Day5FishComplete`, `Day5QuestComplete`.
+
+Khi một script gọi `DialogueController.RequestDialogue(eventId)`, controller lấy ngày hiện tại, tìm entry phù hợp, đưa vào hàng đợi và hiển thị từng dòng lên UI. Trong lúc dialogue chạy, controller có thể khóa movement, jump, crouch, action, look, zoom, pickup và inventory theo cấu hình. UI có speaker, body text, day badge và hiệu ứng typewriter.
+
+#### 4.2.9. Module nhiệm vụ theo ngày
+
+`DailyQuestManager` quản lý nhiệm vụ theo ngày dựa trên `DailyQuestDatabase`. Các nhiệm vụ hiện có trong database gồm:
+
+- Day1: tìm và phá hủy bẫy, yêu cầu interaction key `trap`, số lượng 3.
+- Day2: săn thịt lợn rừng, yêu cầu item `boar_meat`, số lượng 2.
+- Day3: gom gỗ, yêu cầu item `wood_log`, số lượng 5, có bước bàn giao gỗ.
+- Day4: câu thêm cá, yêu cầu item `river_fish`, số lượng 3.
+- Day5: sinh tồn ngày 5, yêu cầu bắt 7 cá, gom 5 gỗ, đặt campfire, nấu 3 món và ăn 1 lần.
+- Day6: nhiệm vụ cuối liên quan đến câu cá hoặc tiến trình kết thúc, hiện ở mức cấu hình cơ bản.
+
+HUD nhiệm vụ hiển thị tên nhiệm vụ, tiến độ và hướng dẫn. Với Day5, HUD hiển thị riêng từng chỉ số: cá, gỗ, món ăn và lượt ăn.
+
+#### 4.2.10. Module clue vision, hint và môi trường theo ngày
+
+`EchoVision` cho phép bật chế độ clue vision bằng phím `Q`. Script tìm các object có tag `Clue`, bật trạng thái `isActive` cho `EchoObject` và gọi `CameraEffect.SetEchoMode(true)` để làm tối màn hình. `EchoObject` đổi shader sang highlight và tạo hiệu ứng phát sáng nhấp nháy.
+
+Ngày 3 có thêm `Day3HintSequenceController` và `HintDay3Interactable`. Sau dialogue mở khóa, hint được hiển thị trong scene, có hiệu ứng glitch theo khoảng cách và khi tương tác sẽ gọi dialogue tương ứng rồi đánh dấu hoàn thành bằng `PlayerPrefs`.
+
+`RainDayController` bật/tắt object mưa theo ngày hiện tại, giúp môi trường thay đổi theo tiến trình story.
+
+#### 4.2.11. Module âm thanh
+
+Project có `ReSoundManager`, `SoundLibrary`, `MusicManager` và `MusicLibrary`. `ReSoundManager` hỗ trợ phát SFX một lần bằng `PlaySound2D`, phát SFX 3D bằng `PlaySound3D` và phát loop 2D bằng `PlayLoop2D`. Các sound id chính gồm `Fishing`, `SwingAxe`, `KillBoar`, `ChopTree`, `TreeFall`, `PickUp`, `Cooking`, `Walking`, `Running`, `Win`, `Lose`, `Eat`, `OpenDoor`, `GunShot`.
+
+Các module gameplay gọi âm thanh theo ngữ cảnh. Ví dụ, `ActionScript` phát `SwingAxe`, `CuttingTreeSystem` phát `ChopTree` và `TreeFall`, `Boar` phát `KillBoar`, `MiniGameCookingController` phát `Cooking`, `Win`, `Lose`, `CampingCookingInteractable` phát `Eat`.
+
+### 4.3. Thử nghiệm và đánh giá
+
+#### 4.3.1. Kịch bản thử nghiệm
+
+**Bảng 4-2. Kịch bản thử nghiệm chức năng**
+
+| STT | Chức năng | Cách kiểm thử | Kết quả mong đợi |
+| --- | --- | --- | --- |
+| 1 | Main Menu | Bấm `NewGameButton` | Game chuyển sang scene `Suml` |
+| 2 | Di chuyển | Dùng `WASD`, `Shift`, `Ctrl` | Nhân vật đi, chạy, cúi và animation đổi trạng thái |
+| 3 | Tương tác | Nhìn object có `Interactable`, bấm `E` | Prompt hiện đúng, object xử lý tương tác |
+| 4 | Mở cửa | Nhìn cửa, bấm `E` | Cửa xoay mở/đóng, phát âm thanh, có thể gọi dialogue DayStart |
+| 5 | Chặt cây | Bấm `F`, nhìn cây, đánh đủ hit | Cây bị xóa, vật phẩm gỗ xuất hiện |
+| 6 | Săn lợn | Bấm `F`, đánh trúng lợn đủ hit | Lợn biến mất, rơi thịt, stamina giảm |
+| 7 | Câu cá | Đứng gần nước, bấm `E`, hoàn thành mini game | Cá được thêm vào inventory |
+| 8 | Inventory | Bấm `B`, nhặt nhiều item | UI hiển thị slot, icon, số lượng stack |
+| 9 | Đặt campfire | Chọn gỗ trong inventory, đặt xuống đất | Campfire xuất hiện và có thể tương tác |
+| 10 | Nấu ăn | Vào campfire, đưa cá/thịt vào, chơi mini game | Win/Lose hiện đúng, quest cập nhật nếu thắng |
+| 11 | Dialogue | Kích hoạt event story | UI dialogue hiển thị từng dòng, khóa input đúng |
+| 12 | Quest HUD | Hoàn thành điều kiện nhiệm vụ | Tiến độ tăng, dialogue hoàn thành được gọi |
+| 13 | Clue Vision | Bấm `Q` khi có object tag `Clue` | Object clue phát sáng, camera tối |
+| 14 | Âm thanh | Thực hiện từng hành động | SFX tương ứng được phát và loop dừng đúng lúc |
+
+#### 4.3.2. Đánh giá kết quả đạt được
+
+Project đã hoàn thành được một khung game 3D có thể chơi thử với nhiều hệ thống kết nối với nhau. Người chơi có thể đi từ menu vào gameplay, nhận hội thoại mở đầu, tương tác với môi trường, thu thập tài nguyên, mở inventory, hoàn thành nhiệm vụ và trải nghiệm các hoạt động như chặt cây, săn lợn, câu cá, đặt campfire và nấu ăn.
+
+Điểm mạnh của project là các module quan trọng đã được tách tương đối rõ. Dữ liệu item, quest và dialogue không bị hard-code hoàn toàn mà được đưa vào asset trong `Resources`. Các module giao tiếp với nhau qua event hoặc API tĩnh có phạm vi rõ, ví dụ `ActionScript.AttackPerformed`, `PlayerInventory.ItemAdded`, `DailyQuestManager.ReportInteraction`, `DialogueController.RequestDialogue`.
+
+Giao diện gameplay đã có nhiều lớp phản hồi: prompt giữa màn hình, panel tương tác, inventory, quest HUD, dialogue UI, mini game câu cá, mini game nấu ăn và loading overlay. Âm thanh cũng được gắn vào nhiều hành động chính, giúp game có phản hồi tốt hơn.
+
+#### 4.3.3. Hạn chế
+
+Một số hạn chế còn tồn tại:
+
+- `MainMenu` hiện chuyển scene trực tiếp bằng `SceneManager.LoadScene("Suml")`; `LoadingManager` đã có nhưng chưa phải luồng chính của nút NewGame.
+- Hệ thống save/load mới lưu một số trạng thái bằng `PlayerPrefs`, chưa lưu đầy đủ inventory, vị trí người chơi và trạng thái toàn bộ scene.
+- Cốt truyện ngày 6 và ending đã có khung dữ liệu nhưng cần hoàn thiện thêm nội dung, trigger và cảnh kết thúc.
+- Một số UI được tạo runtime nên thuận tiện cho demo, nhưng nếu làm sản phẩm hoàn chỉnh nên chuẩn hóa prefab UI để dễ chỉnh giao diện.
+- Quest, dialogue và object scene còn phụ thuộc tên object ở một số vị trí, cần giảm phụ thuộc bằng reference hoặc cấu hình rõ hơn.
+- Chưa có bộ test tự động; việc kiểm thử chủ yếu là playtest trong Unity Editor.
+
+### 4.4. Minh họa sản phẩm thực tế
+
+#### 4.4.1. Giao diện Main Menu
+
+Main Menu là màn hình đầu tiên của game. Giao diện có nút bắt đầu, nút thoát và khu vực cài đặt. Khi bấm New Game, game chuyển sang scene `Suml`.
+
+**Hình 4-1. Giao diện Main Menu**  
+*(Chèn ảnh chụp scene MainMenu, thấy rõ nút New Game, Settings và Exit.)*
+
+#### 4.4.2. Toàn cảnh scene gameplay
+
+Scene `Suml` là màn chơi chính, gồm terrain, cây, nước, nhà/cabin, object trang trí, lợn rừng, campfire, UI và các trigger nhiệm vụ. Đây là nơi diễn ra phần lớn gameplay.
+
+**Hình 4-2. Toàn cảnh scene gameplay Suml**  
+*(Chèn ảnh Game View hoặc Scene View của scene Suml.)*
+
+#### 4.4.3. HUD và prompt tương tác
+
+Khi người chơi nhìn vào object có thể tương tác, prompt hiện ở giữa màn hình. Quest HUD hiển thị tên nhiệm vụ, tiến độ và hướng dẫn.
+
+**Hình 4-3. Giao diện HUD và prompt tương tác**  
+*(Chèn ảnh người chơi đang nhìn vào cửa, vật phẩm hoặc campfire.)*
+
+#### 4.4.4. Inventory
+
+Inventory hiển thị dạng panel với nhiều slot. Mỗi slot có icon và số lượng nếu vật phẩm có stack lớn hơn 1. Người chơi bấm chuột trái để dùng/đặt, chuột phải để xem mô tả.
+
+**Hình 4-4. Giao diện inventory**  
+*(Chèn ảnh inventory đang có gỗ, thịt và cá.)*
+
+#### 4.4.5. Chặt cây và vật phẩm gỗ
+
+Khi người chơi cầm rìu, nhìn vào cây hợp lệ và đánh đủ số hit, cây bị xóa khỏi terrain và pickup gỗ được sinh ra. Pickup này có thể được nhặt vào inventory.
+
+**Hình 4-5. Cơ chế chặt cây và vật phẩm gỗ**  
+*(Chèn ảnh trước/sau khi chặt cây và ảnh khúc gỗ trên mặt đất.)*
+
+#### 4.4.6. Lợn rừng và vật phẩm thịt
+
+Lợn rừng di chuyển trong vùng roam. Khi bị người chơi đánh trúng đủ hit, lợn bị hạ và rơi vật phẩm thịt.
+
+**Hình 4-6. Lợn rừng và vật phẩm thịt**  
+*(Chèn ảnh lợn rừng trong scene và vật phẩm thịt sau khi hạ lợn.)*
+
+#### 4.4.7. Câu cá
+
+Câu cá là hoạt động riêng ở gần vùng nước. Game hiển thị dây câu, trạng thái chờ cá cắn và mini game canh vùng mục tiêu để bắt cá.
+
+**Hình 4-7. Cơ chế câu cá**  
+*(Chèn ảnh chế độ câu cá và mini game khi cá cắn.)*
+
+#### 4.4.8. Hội thoại
+
+Dialogue UI hiển thị người nói, nội dung câu thoại và tiến trình theo ngày. Hệ thống có typewriter effect và có thể khóa input khi đoạn thoại yêu cầu.
+
+**Hình 4-8. Giao diện hội thoại**  
+*(Chèn ảnh đoạn hội thoại giữa Tuấn và Nhi hoặc tiếng bộ đàm.)*
+
+#### 4.4.9. Nhiệm vụ theo ngày
+
+Quest HUD hiển thị nhiệm vụ hiện tại. Với ngày 5, HUD hiển thị tiến độ cá, gỗ, món ăn và số lần ăn.
+
+**Hình 4-9. HUD nhiệm vụ**  
+*(Chèn ảnh HUD nhiệm vụ Day1, Day3 hoặc Day5.)*
+
+#### 4.4.10. Mini game nấu ăn
+
+Mini game nấu ăn yêu cầu người chơi bấm chuột đúng lúc slider chạm vùng mục tiêu. Nếu thắng, campfire cộng món ăn và quest ngày 5 cập nhật.
+
+**Hình 4-10. Mini game nấu ăn**  
+*(Chèn ảnh giao diện MiniGameCooking với slider, rectangle, Win/Lose.)*
+
+## KẾT LUẬN
+
+### Kết quả đạt được
+
+Sau quá trình thực hiện, đồ án đã xây dựng được một game 3D góc nhìn thứ nhất trên Unity với nhiều hệ thống gameplay liên kết thành một vòng lặp cơ bản. Sản phẩm có menu, scene gameplay, điều khiển nhân vật, tương tác môi trường, inventory, chặt cây, săn lợn rừng, câu cá, campfire, nấu ăn, stamina, hội thoại, nhiệm vụ theo ngày, clue vision, âm thanh và một số cài đặt người dùng.
+
+Về mặt kỹ thuật, project thể hiện được cách tổ chức hệ thống theo module, sử dụng C# hướng đối tượng, event, coroutine, ScriptableObject, PlayerPrefs, Animator, Rigidbody, Collider, Terrain, NavMesh, UI Canvas và audio trong Unity. Báo cáo cũng đã phân tích hệ thống bằng các sơ đồ use case, sequence, activity, component và class để làm rõ cách các module phối hợp.
+
+### Những điểm còn hạn chế
+
+Project vẫn còn một số điểm cần cải thiện. Hệ thống lưu tiến trình chưa đầy đủ, cốt truyện và ending chưa hoàn thiện hoàn toàn, giao diện settings còn có nhiều lớp cũ/mới, một số logic phụ thuộc tên object trong scene, và chưa có test tự động. Ngoài ra, các hình ảnh minh họa cần được chụp lại từ Unity Editor hoặc bản build để đưa vào báo cáo Word hoàn chỉnh.
+
+### Hướng phát triển
+
+Trong thời gian tới, đề tài có thể được phát triển theo các hướng sau:
+
+1. Hoàn thiện nội dung ngày 6 và ending của game.
+2. Xây dựng hệ thống save/load đầy đủ cho inventory, vị trí người chơi, ngày hiện tại và trạng thái môi trường.
+3. Chuẩn hóa UI thành prefab để dễ chỉnh sửa và tái sử dụng.
+4. Mở rộng số lượng vật phẩm, công thức nấu ăn và hoạt động sinh tồn.
+5. Bổ sung thêm sinh vật, sự kiện ngẫu nhiên và tương tác môi trường.
+6. Tối ưu hóa scene, collider, audio loop và runtime UI.
+7. Tạo bản build Windows ổn định và thực hiện playtest với người dùng thật.
 
 ## TÀI LIỆU THAM KHẢO
 
-[1] Unity Technologies, Unity Manual 6000.0, https://docs.unity3d.com/6000.0/Documentation/Manual/
+[1] Unity Technologies, Unity Manual, https://docs.unity3d.com/Manual/
 
 [2] Unity Technologies, Unity Scripting API, https://docs.unity3d.com/ScriptReference/
 
-[3] Unity Technologies, Scene Management in Unity, https://docs.unity3d.com/Manual/CreatingScenes.html
+[3] Unity Technologies, Universal Render Pipeline Documentation, https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest
 
-[4] Demigiant, DOTween Documentation, http://dotween.demigiant.com/documentation.php
+[4] Microsoft, C# Documentation, https://learn.microsoft.com/dotnet/csharp/
 
-[5] File mẫu báo cáo: `Assets/dath-do-an-tot-nghiep-game-bao-cao-tot-nghiep-chi-tiet.pdf`.
+[5] Demigiant, DOTween Documentation, http://dotween.demigiant.com/documentation.php
 
-[6] File hướng dẫn quy cách đồ án: `Assets/03_Huong-dan-viet-DATN_2022.docx`.
+[6] Tài liệu mẫu báo cáo đồ án tốt nghiệp và báo cáo chuyên ngành do giảng viên/sinh viên cung cấp.
 
-## PHỤ LỤC: DANH SÁCH ẢNH CẦN CHÈN
+## PHỤ LỤC
 
-Bạn có thể chụp và đặt tên ảnh theo danh sách sau để lúc đưa vào Word dễ quản lý:
+### Phụ lục A. Danh sách script chính
 
-1. `Hinh_1_1_Unity_Editor.png`: ảnh Unity Editor hoặc Unity Hub.
-2. `Hinh_2_1_Scene_Suml.png`: Scene View của scene gameplay.
-3. `Hinh_2_2_Hierarchy_Suml.png`: Hierarchy của scene gameplay.
-4. `Hinh_2_3_GameView_Gameplay.png`: Game View khi đang chơi.
-5. `Hinh_2_4_Project_Window.png`: cửa sổ Project.
-6. `Hinh_2_5_Inspector_Player.png`: Inspector của player.
-7. `Hinh_3_1_Gameplay_Overview.png`: ảnh tổng quan gameplay.
-8. `Hinh_3_2_Game_Flow.png`: sơ đồ luồng `MainMenu -> Loading -> Suml`.
-9. `Hinh_3_3_Gameplay_Loop.png`: sơ đồ vòng lặp gameplay.
-10. `Hinh_4_1_Code_CSharp.png`: ảnh code C# trong IDE.
-11. `Hinh_4_2_Player_Scripts.png`: script điều khiển player.
-12. `Hinh_4_4_Prompt_Interact.png`: prompt giữa màn hình.
-13. `Hinh_4_5_Chop_Tree.png`: chặt cây.
-14. `Hinh_4_6_Wood_Drop.png`: khúc gỗ sau khi chặt.
-15. `Hinh_4_7_Boar.png`: lợn rừng trong scene.
-16. `Hinh_4_8_Meat_Drop.png`: thịt rơi ra sau khi hạ lợn.
-17. `Hinh_4_9_Fishing_Start.png`: bắt đầu câu cá.
-18. `Hinh_4_10_Fishing_Minigame.png`: mini game câu cá.
-19. `Hinh_4_12_Inventory_Open.png`: inventory đang mở.
-20. `Hinh_4_13_Item_Assets.png`: asset vật phẩm trong Project.
-21. `Hinh_4_14_MainMenu.png`: Main Menu.
-22. `Hinh_4_15_Options.png`: panel Options.
-23. `Hinh_4_16_Loading.png`: overlay loading.
-24. `Hinh_5_2_Gameplay_Scene.png`: toàn cảnh scene gameplay.
-25. `Hinh_5_4_Inventory_UI.png`: UI inventory.
-26. `Hinh_5_5_Fishing_Waiting.png`: UI câu cá trạng thái chờ.
-27. `Hinh_5_6_Fishing_Hook.png`: UI câu cá trạng thái móc cá.
-28. `Hinh_5_7_Interaction_Prompt.png`: prompt tương tác.
-29. `Hinh_5_8_Interaction_Panel.png`: panel thông tin tương tác.
-30. `Hinh_5_9_Tree_Area.png`: khu vực cây cối.
-31. `Hinh_5_10_Water_Area.png`: khu vực nước.
-32. `Hinh_5_11_Boar_Area.png`: khu vực lợn rừng.
-33. `Hinh_4_17_Dialogue_UI.png`: UI hội thoại đang hiển thị.
-34. `Hinh_4_18_Dialogue_Database.png`: DialogueDatabase trong Project Window.
-35. `Hinh_4_20_Dialogue_Architecture.png`: sơ đồ kiến trúc hệ thống hội thoại.
+| Nhóm | Script |
+| --- | --- |
+| Player | `PlayerMovement.cs`, `PlayerLook.cs`, `MouseMovement.cs`, `Crouch.cs`, `ActionScript.cs` |
+| Interaction | `Interactable.cs`, `PickUpScript.cs`, `PlayerUI.cs`, `Door.cs`, `CuttingTreeSystem.cs`, `InteractableOnce.cs` |
+| Inventory | `PlayerInventory.cs`, `InventoryItemDefinition.cs`, `InventoryPickup.cs`, `InventoryUIController.cs`, `CampingCookingInteractable.cs`, `MiniGameCookingController.cs` |
+| Dialogue | `DialogueController.cs`, `DialogueDatabase.cs`, `DialogueEntry.cs`, `DialogueLineData.cs`, `DialogueTrigger.cs`, `DialogueSaveService.cs` |
+| Quest | `DailyQuestManager.cs`, `DailyQuestDatabase.cs`, `DailyQuestDefinition.cs`, `GatherWoodTurnInInteractable.cs`, `Day5DataCubeInteractable.cs` |
+| Gameplay | `FishingRob.cs`, `FishingRodReferences.cs`, `Boar.cs`, `Stamina.cs`, `RainDayController.cs` |
+| UI/Menu | `MainMenu.cs`, `SettingsManager.cs`, `MenuSettingsService.cs`, `InGameMenu.cs`, `LoadingManager.cs` |
+| Audio | `ReSoundManager.cs`, `SoundLibrary.cs`, `MusicManager.cs`, `MusicLibrary.cs` |
+| Rendering/Clue | `Clue.cs`, `ClueVision.cs`, `ClueVisionCamera.cs`, `HintDay3KinoGlitchRendererFeature.cs` |
 
-> Gợi ý:
-> - Với ảnh giao diện, nên chụp ở độ phân giải giống nhau để báo cáo đồng bộ hơn.
-> - Với ảnh sơ đồ luồng và vòng lặp gameplay, bạn có thể tự vẽ bằng draw.io hoặc PowerPoint để báo cáo trông chuyên nghiệp hơn.
+### Phụ lục B. Danh sách ảnh cần chèn khi chuyển sang Word
+
+| File gợi ý | Nội dung |
+| --- | --- |
+| `Hinh_4_1_MainMenu.png` | Giao diện Main Menu |
+| `Hinh_4_2_Suml_Overview.png` | Toàn cảnh scene Suml |
+| `Hinh_4_3_HUD_Prompt.png` | HUD và prompt tương tác |
+| `Hinh_4_4_Inventory.png` | Inventory có gỗ, thịt, cá |
+| `Hinh_4_5_Chop_Tree.png` | Chặt cây và khúc gỗ |
+| `Hinh_4_6_Boar_Meat.png` | Lợn rừng và thịt rơi |
+| `Hinh_4_7_Fishing.png` | UI câu cá |
+| `Hinh_4_8_Dialogue.png` | UI hội thoại |
+| `Hinh_4_9_QuestHUD.png` | HUD nhiệm vụ |
+| `Hinh_4_10_Cooking.png` | Mini game nấu ăn |
+| `Hinh_3_1_UseCase.png` | Use Case tổng quan |
+| `Hinh_3_6_Component.png` | Component Diagram tổng thể |
+| `Hinh_3_7_ClassInventory.png` | Class Diagram inventory/tương tác |
+| `Hinh_3_8_ClassDialogueQuest.png` | Class Diagram dialogue/quest |

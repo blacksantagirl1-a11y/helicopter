@@ -280,4 +280,9 @@ public class MenuManager : MonoBehaviour
         public TMP_Text label;
         public RectTransform rect;
     }
+
+    public void TempSaveGame()
+    {
+        SaveManager.Instance.SaveGame();
+    }
 }

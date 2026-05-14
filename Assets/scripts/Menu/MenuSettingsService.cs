@@ -10,21 +10,21 @@ public struct MenuSettingsData
 
 public static class MenuSettingsService
 {
-    const string MasterVolumeKey = "menu.masterVolume";
-    const string LookSensitivityKey = "menu.lookSensitivity";
-    const string FullscreenKey = "menu.fullscreen";
-    const string QualityPresetKey = "menu.qualityPreset";
+    private const string MasterVolumeKey = "menu.masterVolume";
+    private const string LookSensitivityKey = "menu.lookSensitivity";
+    private const string FullscreenKey = "menu.fullscreen";
+    private const string QualityPresetKey = "menu.qualityPreset";
 
-    const float DefaultMasterVolume = 1f;
-    const float DefaultLookSensitivity = 2f;
-    const float MinLookSensitivity = 0.5f;
-    const float MaxLookSensitivity = 8f;
+    private const float DefaultMasterVolume = 1f;
+    private const float DefaultLookSensitivity = 2f;
+    private const float MinLookSensitivity = 0.5f;
+    private const float MaxLookSensitivity = 8f;
 
-    static bool hasLoadedCache;
-    static MenuSettingsData cachedSettings;
+    private static bool hasLoadedCache;
+    private static MenuSettingsData cachedSettings;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void Bootstrap()
+    private static void Bootstrap()
     {
         ApplyGlobalSettings(Load());
     }
@@ -88,7 +88,7 @@ public static class MenuSettingsService
         return qualityNames[clampedIndex];
     }
 
-    static MenuSettingsData Clamp(MenuSettingsData settings)
+    private static MenuSettingsData Clamp(MenuSettingsData settings)
     {
         int maxQualityIndex = Mathf.Max(0, QualitySettings.names.Length - 1);
 
@@ -99,7 +99,7 @@ public static class MenuSettingsService
         return settings;
     }
 
-    static void ApplyGlobalSettings(MenuSettingsData settings)
+    private static void ApplyGlobalSettings(MenuSettingsData settings)
     {
         settings = Clamp(settings);
 
