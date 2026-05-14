@@ -5,6 +5,8 @@ using UnityEngine.UI;
 public class MainMenu : MonoBehaviour
 {
 
+    private const string MainMenuMusicTrackName = "MainMenu";
+
     public Button LoadGameBTN;
 
     private void Awake()
@@ -15,15 +17,30 @@ public class MainMenu : MonoBehaviour
 
     private void Start()
     {
+        MusicManager.Instance?.PlayMusic(MainMenuMusicTrackName);
+
         LoadGameBTN.onClick.AddListener(() =>
         {
+            StopMainMenuMusic();
             SaveManager.Instance.StartLoadedGame();
         });
     }
 
+    private void OnDestroy()
+    {
+        StopMainMenuMusic();
+    }
+
     public void NewGame()
     {
-        SceneManager.LoadScene("Suml");
+        DialogueNewGameResetService.ResetToDay1();
+        StopMainMenuMusic();
+        SceneManager.LoadScene("InGame");
+    }
+
+    private void StopMainMenuMusic()
+    {
+        MusicManager.Instance?.StopMusic(0f);
     }
 
     public void ExitGame()

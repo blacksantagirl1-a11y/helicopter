@@ -73,7 +73,7 @@ public class SaveManager : MonoBehaviour
 
     public void StartLoadedGame()
     {
-        SceneManager.LoadScene("Suml");
+        SceneManager.LoadScene("InGame");
 
         StartCoroutine(DelayedLoading());
     }

@@ -56,6 +56,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "helicopter.sln",
+    "dotnet.defaultSolution": "gamerac.sln",
     "dotnet.preferCSharpExtension": true
 }
