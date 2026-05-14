@@ -467,6 +467,7 @@ public class MainMenuController : MonoBehaviour
             return;
         }
 
+        DialogueNewGameResetService.ResetToDay1();
         MenuSettingsService.Save(currentSettings);
         SetState(MenuState.Loading, playButton);
         StopMenuMusic();

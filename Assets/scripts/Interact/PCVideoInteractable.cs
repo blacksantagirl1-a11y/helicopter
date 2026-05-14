@@ -777,7 +777,6 @@ public sealed class PCVideoInteractable : Interactable
         }
 
         SetTimerProgress(0f);
-        SetTimerVisible(true);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         Input.ResetInputAxes();
