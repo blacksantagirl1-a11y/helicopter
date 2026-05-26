@@ -281,8 +281,4 @@ public class MenuManager : MonoBehaviour
         public RectTransform rect;
     }
 
-    public void TempSaveGame()
-    {
-        SaveManager.Instance.SaveGame();
-    }
 }

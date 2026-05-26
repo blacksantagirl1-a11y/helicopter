@@ -22,7 +22,7 @@ public class MainMenu : MonoBehaviour
         LoadGameBTN.onClick.AddListener(() =>
         {
             StopMainMenuMusic();
-            SaveManager.Instance.StartLoadedGame();
+            
         });
     }
 
