@@ -685,7 +685,9 @@ public class PlayerMovement : MonoBehaviour
 
     public void RequestIntroWakeUpDialogue()
     {
-        if (hasRequestedIntroWakeUpDialogue)
+        if (hasRequestedIntroWakeUpDialogue ||
+            SaveManager.IsLoadingSavedGame ||
+            SaveManager.ShouldSuppressAutoStartStory)
         {
             return;
         }

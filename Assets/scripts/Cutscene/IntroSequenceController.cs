@@ -37,6 +37,13 @@ public class IntroSequenceController : MonoBehaviour
 
     void Awake()
     {
+        if (SaveManager.IsLoadingSavedGame)
+        {
+            gameObject.SetActive(false);
+            enabled = false;
+            return;
+        }
+
         // Awake chạy sớm khi scene bắt đầu.
         // Ở đây script tự tìm các object/camera cần dùng.
         initialized = AutoResolveReferences();

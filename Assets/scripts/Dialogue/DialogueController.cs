@@ -152,6 +152,12 @@ public class DialogueController : MonoBehaviour
             return false;
         }
 
+        if (SaveManager.ShouldSuppressAutoStartStory &&
+            (eventId == DialogueEventId.IntroWakeUp || eventId == DialogueEventId.DayStart))
+        {
+            return false;
+        }
+
         DialogueController controller = EnsureInstance();
         if (controller == null)
         {

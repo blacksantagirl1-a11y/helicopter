@@ -54,7 +54,8 @@ public class Door : Interactable
         }
 
         if (isOpen
-            && !hasTriggeredDayStartDialogue)
+            && !hasTriggeredDayStartDialogue
+            && !SaveManager.ShouldSuppressAutoStartStory)
         {
             hasTriggeredDayStartDialogue = true;
             DialogueController.RequestDialogue(DialogueEventId.DayStart);
