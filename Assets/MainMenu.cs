@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour
@@ -35,7 +34,10 @@ public class MainMenu : MonoBehaviour
     {
         DialogueNewGameResetService.ResetToDay1();
         StopMainMenuMusic();
-        SceneManager.LoadScene("InGame");
+        if (!LoadingManager.LoadScene("InGame"))
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("InGame");
+        }
     }
 
     private void StopMainMenuMusic()

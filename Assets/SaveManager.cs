@@ -145,13 +145,21 @@ public class SaveManager : MonoBehaviour
             SetStoryData(gameData.storyData, false);
         }
 
-        SceneManager.LoadScene("InGame");
+        if (!LoadingManager.LoadScene("InGame"))
+        {
+            SceneManager.LoadScene("InGame");
+        }
 
         StartCoroutine(DelayedLoading(slotNumber));
     }
     private IEnumerator DelayedLoading(int slotNumber)
     {
-        yield return new WaitForSeconds(1f);
+        while (SceneManager.GetActiveScene().name != "InGame")
+        {
+            yield return null;
+        }
+
+        yield return null;
         LoadGame(slotNumber);
 
         print("Game Loaded");

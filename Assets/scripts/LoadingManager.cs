@@ -161,6 +161,7 @@ public class LoadingManager : MonoBehaviour
     void ShowOverlayForLoad()
     {
         EnsureFallbackUi();
+        PrepareOverlayForDisplay();
 
         if (overlayRoot != null)
         {
@@ -214,6 +215,37 @@ public class LoadingManager : MonoBehaviour
         }
 
         loadingLabel.text = LoadingText;
+    }
+
+    void PrepareOverlayForDisplay()
+    {
+        if (overlayRoot == null)
+        {
+            return;
+        }
+
+        RectTransform overlayRect = overlayRoot.GetComponent<RectTransform>();
+        if (overlayRect != null)
+        {
+            Stretch(overlayRect);
+        }
+
+        Canvas canvas = overlayRoot.GetComponent<Canvas>();
+        if (canvas != null)
+        {
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 5000;
+        }
+
+        CanvasScaler scaler = overlayRoot.GetComponent<CanvasScaler>();
+        if (scaler != null)
+        {
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.matchWidthOrHeight = 0.5f;
+        }
+
+        overlayRoot.transform.SetAsLastSibling();
     }
 
     void EnsureFallbackUi()

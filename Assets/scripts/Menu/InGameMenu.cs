@@ -5,6 +5,9 @@ public class InGameMenu : MonoBehaviour
 {
     public void BackToMainMenu()
     {
-        SceneManager.LoadScene("MainMenu");
+        if (!LoadingManager.LoadScene("MainMenu"))
+        {
+            SceneManager.LoadScene("MainMenu");
+        }
     }
 }
