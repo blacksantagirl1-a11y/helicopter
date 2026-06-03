@@ -16,6 +16,11 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("Tốc độ di chuyển cơ bản của nhân vật")]
     public float speed = 5f;
 
+    [Header("Gravity")]
+    [Tooltip("Extra gravity multiplier for the player")]
+    [Min(1f)]
+    [SerializeField] private float gravityMultiplier = 2f;
+
     [Header("Running")]
     [Tooltip("Cho phép nhân vật chạy")]
     public bool canRun = true;
@@ -88,6 +93,10 @@ public class PlayerMovement : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         rigidbodyComponent = GetComponent<Rigidbody>();
+        if (rigidbodyComponent != null)
+        {
+            rigidbodyComponent.useGravity = true;
+        }
         actionScript = GetComponent<ActionScript>();
         LockRigidbodyPhysicsRotation();
         originalConstraints = rigidbodyComponent != null
@@ -96,6 +105,7 @@ public class PlayerMovement : MonoBehaviour
 
         TryAutoAssignReferences();
         CacheAnimatorData();
+        
     }
 
     private void Start()
@@ -160,6 +170,7 @@ public class PlayerMovement : MonoBehaviour
         rigidbodyComponent.linearVelocity =
             transform.rotation * new Vector3(targetVelocity.x, rigidbodyComponent.linearVelocity.y, targetVelocity.y);
         rigidbodyComponent.angularVelocity = Vector3.zero;
+        ApplyExtraGravity();
 
         UpdateMovementAudio();
     }
@@ -331,6 +342,20 @@ public class PlayerMovement : MonoBehaviour
 
         rigidbodyComponent.constraints |= RigidbodyConstraints.FreezeRotation;
         rigidbodyComponent.angularVelocity = Vector3.zero;
+    }
+
+    private void ApplyExtraGravity()
+    {
+        if (rigidbodyComponent == null ||
+            rigidbodyComponent.isKinematic ||
+            gravityMultiplier <= 1f)
+        {
+            return;
+        }
+
+        rigidbodyComponent.AddForce(
+            Physics.gravity * (gravityMultiplier - 1f),
+            ForceMode.Acceleration);
     }
 
     private ReSoundManager ResolveSoundManager()

@@ -71,9 +71,10 @@ MonoBehaviour:
     turnInCompletionDialogueEvent: 50
   - day: 5
     questId: 70
-    displayName: "Sinh tồn ngày 5"
+    displayName: "Sinh t\u1ED3n ng\xE0y 5"
     turnInDisplayName: 
-    instructionText: "Bắt 7 con cá, chặt 5 cây gỗ, nấu 3 món ăn, rồi ăn 1 lần."
+    instructionText: "B\u1EAFt 7 con c\xE1, ch\u1EB7t 5 c\xE2y g\u1ED7, n\u1EA5u
+      3 m\xF3n \u0103n, r\u1ED3i \u0103n 1 l\u1EA7n."
     turnInInstructionText: 
     objectiveType: 30
     interactionKey: 
@@ -84,9 +85,9 @@ MonoBehaviour:
     turnInCompletionDialogueEvent: 50
   - day: 6
     questId: 60
-    displayName: Thoat khoi khu rung
+    displayName: "tho\xE1t kh\u1ECFi th\u1EBF gi\u1EDBi \u1EA3o"
     turnInDisplayName: 
-    instructionText: Giai ma chiec PC de tim loi thoat.
+    instructionText: "Gi\u1EA3i m\xE3 PC \u0111\u1EC3 t\xECm l\u1ED1i tho\xE1t"
     turnInInstructionText: 
     objectiveType: 40
     interactionKey: 

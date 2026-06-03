@@ -756,18 +756,8 @@ MonoBehaviour:
       questAction: 0
       questId: 0
     - speakerName: Nhi
-      text: "B\u1EAFt 7 con c\xE1, ch\u1EB7t 5 c\xE2y g\u1ED7, n\u1EA5u 3 m\xF3n
+      text: "B\u1EAFt 3 con c\xE1, ch\u1EB7t 1 kh\xFAc g\u1ED7, n\u1EA5u 2 m\xF3n
         \u0103n, r\u1ED3i \u0103n 1 l\u1EA7n."
-      questAction: 0
-      questId: 0
-    - speakerName: "Tu\u1EA5n"
-      text: "Nghe gi\u1ED1ng sinh t\u1ED3n h\u01A1n l\xE0 c\xF4ng vi\u1EC7c ki\u1EC3m
-        l\xE2m."
-      questAction: 0
-      questId: 0
-    - speakerName: Nhi
-      text: "Trong th\u1EBF gi\u1EDBi n\xE0y... bi\u1EBFt \u0111\xE2u \u0111\xF3
-        m\u1EDBi l\xE0 \u0111i\u1EC1u quan tr\u1ECDng nh\u1EA5t."
       questAction: 1
       questId: 70
   - day: 5
@@ -879,12 +869,8 @@ MonoBehaviour:
     timeScale: 1
     lines:
     - speakerName: "Tu\u1EA5n"
-      text: "7 con c\xE1, 5 kh\xFAc g\u1ED7, n\u1EA5u 3 l\u1EA7n v\xE0 \u0103n 1
-        l\u1EA7n."
-      questAction: 0
-      questId: 0
-    - speakerName: "Tu\u1EA5n"
-      text: "7 5 3 1. M\u1EADt kh\u1EA9u l\xE0 7 5 3 1."
+      text: "M\xECnh ch\u1EDD th\u1EDDi \u0111i\u1EC3m \u0111\u1EBFn v\xE0o ng\xE0y
+        mai"
       questAction: 0
       questId: 0
   - day: 6
