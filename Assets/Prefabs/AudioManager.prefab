@@ -53,7 +53,7 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 25
+  MinDistance: 40
   MaxDistance: 75
   Pan2D: 0
   rolloffMode: 0
@@ -380,6 +380,9 @@ MonoBehaviour:
   - groupID: GunShot
     clips:
     - {fileID: 8300000, guid: 5e2ac552191856647a24956ac037dced, type: 3}
+  - groupID: Boar
+    clips:
+    - {fileID: 8300000, guid: 8008b16b667ddb145a8231fe00252c56, type: 3}
 --- !u!114 &155603303554308607
 MonoBehaviour:
   m_ObjectHideFlags: 0

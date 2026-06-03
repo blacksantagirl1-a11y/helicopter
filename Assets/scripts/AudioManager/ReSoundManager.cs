@@ -5,6 +5,7 @@ public static class SoundIds
 {
     public const string Fishing = "Fishing";
     public const string SwingAxe = "SwingAxe";
+    public const string Boar = "Boar";
     public const string KillBoar = "KillBoar";
     public const string ChopTree = "ChopTree";
     public const string TreeFall = "TreeFall";

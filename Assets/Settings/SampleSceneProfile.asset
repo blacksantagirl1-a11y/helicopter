@@ -18,7 +18,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 0.96713126, z: 0.8643345, w: -0.02557545}
   gamma:
     m_OverrideState: 1
-    m_Value: {x: 0.88658196, y: 0.8515309, z: 1, w: 0.06497854}
+    m_Value: {x: 0.7661244, y: 0.7848301, z: 1, w: 0.06497854}
   gain:
     m_OverrideState: 1
     m_Value: {x: 1, y: 1, z: 1, w: 0.3358825}
@@ -95,7 +95,7 @@ MonoBehaviour:
         - serializedVersion: 3
           time: 0
           value: 0
-          inSlope: 1
+          inSlope: 0
           outSlope: 1
           tangentMode: 0
           weightedMode: 0
@@ -105,7 +105,7 @@ MonoBehaviour:
           time: 1
           value: 1
           inSlope: 1
-          outSlope: 1
+          outSlope: 0
           tangentMode: 0
           weightedMode: 0
           inWeight: 0
@@ -395,13 +395,13 @@ MonoBehaviour:
   active: 1
   color:
     m_OverrideState: 1
-    m_Value: {r: 0, g: 0, b: 0, a: 1}
+    m_Value: {r: 0, g: 0.19999999, b: 0.058348555, a: 1}
   center:
     m_OverrideState: 0
     m_Value: {x: 0.5, y: 0.5}
   intensity:
     m_OverrideState: 1
-    m_Value: 0.24
+    m_Value: 0.31
   smoothness:
     m_OverrideState: 1
     m_Value: 0.523
@@ -423,10 +423,10 @@ MonoBehaviour:
   active: 1
   shadows:
     m_OverrideState: 0
-    m_Value: {x: 0.8113696, y: 0.6715232, z: 1, w: 0.30408588}
+    m_Value: {x: 0.8113696, y: 0.6715232, z: 1, w: 0.08823424}
   midtones:
     m_OverrideState: 1
-    m_Value: {x: 1, y: 0.9548078, z: 0.8977038, w: 0.06389554}
+    m_Value: {x: 1, y: 0.94893974, z: 0.8146286, w: 0.06389554}
   highlights:
     m_OverrideState: 0
     m_Value: {x: 0.94076216, y: 0.9792298, z: 1, w: 1}
@@ -525,8 +525,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   mode:
-    m_OverrideState: 1
-    m_Value: 0
+    m_OverrideState: 0
+    m_Value: 2
   neutralHDRRangeReductionMode:
     m_OverrideState: 0
     m_Value: 2
@@ -590,17 +590,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   postExposure:
-    m_OverrideState: 0
-    m_Value: -1.2
+    m_OverrideState: 1
+    m_Value: -0.15
   contrast:
     m_OverrideState: 1
-    m_Value: 15
+    m_Value: 22
   colorFilter:
     m_OverrideState: 0
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    m_Value: {r: 0.89433956, g: 0.78103536, b: 0.7137842, a: 1}
   hueShift:
     m_OverrideState: 1
-    m_Value: 5
+    m_Value: 8
   saturation:
     m_OverrideState: 1
-    m_Value: 10
+    m_Value: 20

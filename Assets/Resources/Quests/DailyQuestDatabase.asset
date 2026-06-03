@@ -37,7 +37,7 @@ MonoBehaviour:
     objectiveType: 20
     interactionKey: 
     targetItem: {fileID: 11400000, guid: b0910e5d01391994eadc6b6056e44785, type: 2}
-    requiredCount: 5
+    requiredCount: 3
     completionDialogueEvent: 70
     requiresTurnInAfterCompletionDialogue: 1
     turnInCompletionDialogueEvent: 50
@@ -71,9 +71,10 @@ MonoBehaviour:
     turnInCompletionDialogueEvent: 50
   - day: 5
     questId: 70
-    displayName: "Sinh tồn ngày 5"
+    displayName: "Sinh t\u1ED3n ng\xE0y 5"
     turnInDisplayName: 
-    instructionText: "Bắt 7 con cá, chặt 5 cây gỗ, nấu 3 món ăn, rồi ăn 1 lần."
+    instructionText: "B\u1EAFt 7 con c\xE1, ch\u1EB7t 5 c\xE2y g\u1ED7, n\u1EA5u
+      3 m\xF3n \u0103n, r\u1ED3i \u0103n 1 l\u1EA7n."
     turnInInstructionText: 
     objectiveType: 30
     interactionKey: 

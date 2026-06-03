@@ -222,6 +222,7 @@ public class Boar : MonoBehaviour
     private void TakeDamage()
     {
         currentHealth = Mathf.Max(0, currentHealth - 1);
+        PlayHitBoarSound();
 
         if (currentHealth <= 0)
         {
@@ -258,6 +259,11 @@ public class Boar : MonoBehaviour
     private static void PlayKillBoarSound()
     {
         ReSoundManager.Resolve()?.PlaySound2D(SoundIds.KillBoar);
+    }
+
+    private static void PlayHitBoarSound()
+    {
+        ReSoundManager.Resolve()?.PlaySound2D(SoundIds.Boar);
     }
 
     private void UpdateNavMeshMovement()
