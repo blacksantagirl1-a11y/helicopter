@@ -85,9 +85,9 @@ MonoBehaviour:
     turnInCompletionDialogueEvent: 50
   - day: 6
     questId: 60
-    displayName: Thoat khoi khu rung
+    displayName: "tho\xE1t kh\u1ECFi th\u1EBF gi\u1EDBi \u1EA3o"
     turnInDisplayName: 
-    instructionText: Giai ma chiec PC de tim loi thoat.
+    instructionText: "Gi\u1EA3i m\xE3 PC \u0111\u1EC3 t\xECm l\u1ED1i tho\xE1t"
     turnInInstructionText: 
     objectiveType: 40
     interactionKey: 

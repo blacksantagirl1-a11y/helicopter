@@ -55,9 +55,9 @@ public class DailyQuestManager : MonoBehaviour
     private const string Day5WoodItemId = "wood_log";
     private const string Day5ComputerPrefabAssetPath = "Assets/model/computer/source/PC/PC/PC.prefab";
     private const string Day5ComputerPrefabFallbackAssetPath = "Assets/model/Computer/source/PC/PC/PC.prefab";
-    private const int Day5RequiredFish = 7;
-    private const int Day5RequiredWood = 5;
-    private const int Day5RequiredCookedFood = 3;
+    private const int Day5RequiredFish = 3;
+    private const int Day5RequiredWood = 1;
+    private const int Day5RequiredCookedFood = 2;
     private const int Day5RequiredEatenFood = 1;
     private const string Day6ToiletBeforeObjectName = "ToiletBeforePullPosision";
     private const string Day6ToiletAfterObjectName = "ToiletAfterPullPosison";
@@ -1333,10 +1333,7 @@ public class DailyQuestManager : MonoBehaviour
             SetGatherWoodBundlePlaced(false);
         }
 
-        bool shouldShowGatherWoodBundle =
-            IsGatherWoodBundlePlaced() ||
-            (int)currentDay > (int)DialogueDay.Day2;
-        bundle.SetActive(shouldShowGatherWoodBundle);
+        bundle.SetActive(IsGatherWoodBundlePlaced());
     }
 
     private static void ApplyDay3CarpetsState(DialogueDay currentDay)
@@ -1375,9 +1372,8 @@ public class DailyQuestManager : MonoBehaviour
         }
 
         GameObject bundle = FindSceneObjectByName(GatherWoodBundleObjectName, true);
-        if (bundle != null)
+        if (bundle != null && bundle.activeSelf)
         {
-            bundle.SetActive(true);
             EnsureCollider(bundle);
             EnsureComponent<Day3BundOfWoodInteractable>(bundle);
         }
@@ -2384,7 +2380,7 @@ public class DailyQuestManager : MonoBehaviour
 
         if (activeQuest.ObjectiveType == QuestObjectiveType.Day6Escape)
         {
-            return $"Tien do: {Mathf.Min(3, currentProgress)}/3";
+            return $"Tiến độ: {Mathf.Min(3, currentProgress)}/3";
         }
 
         string label = activeQuest.ObjectiveType switch
@@ -2408,11 +2404,11 @@ public class DailyQuestManager : MonoBehaviour
         {
             return day5Stage switch
             {
-                Day5SurvivalStage.CatchFish => "Hướng dẫn: Chuẩn bị đủ 7 con cá và 5 khúc gỗ trong túi đồ.",
-                Day5SurvivalStage.GatherWood => "Hướng dẫn: Chuẩn bị đủ 7 con cá và 5 khúc gỗ trong túi đồ.",
-                Day5SurvivalStage.PlaceCampfire => "Hướng dẫn: Dùng gỗ trong túi đồ để đặt campfire.",
-                Day5SurvivalStage.CookFood => "Hướng dẫn: Nấu đủ 3 món ăn bằng campfire.",
-                Day5SurvivalStage.EatFood => "Hướng dẫn: Ăn 1 món đã nấu.",
+                Day5SurvivalStage.CatchFish => "Hướng dẫn: Chuẩn bị 3 con cá và 1 khúc gỗ trong túi đồ.",
+                Day5SurvivalStage.GatherWood => "Hướng dẫn: Chuẩn bị 3 con cá và 1 khúc gỗ trong túi đồ.",
+                Day5SurvivalStage.PlaceCampfire => "Hướng dẫn: dùng khúc gỗ trong túi đồ để tạo bếp lửa.",
+                Day5SurvivalStage.CookFood => "Hướng dẫn: tương tác với bếp lửa để nấu ăn.",
+                Day5SurvivalStage.EatFood => "Hướng dẫn: tương tác với bếp lửa để ăn.",
                 _ => string.Empty
             };
         }
@@ -2421,9 +2417,9 @@ public class DailyQuestManager : MonoBehaviour
         {
             return day6Stage switch
             {
-                Day6EscapeStage.InspectPc => "H\u01b0\u1edbng d\u1eabn: T\u01b0\u01a1ng t\u00e1c v\u1edbi chiec PC trong cabin.",
-                Day6EscapeStage.PullToilet => "H\u01b0\u1edbng d\u1eabn: Kiem tra toilet de mo loi di bi mat.",
-                Day6EscapeStage.ExitCave => "H\u01b0\u1edbng d\u1eabn: Di den diem GetOut de thoat khoi hang.",
+                Day6EscapeStage.InspectPc => "H\u01b0\u1edbng d\u1eabn: T\u01b0\u01a1ng t\u00e1c v\u1edbi chiếc PC.",
+                Day6EscapeStage.PullToilet => "H\u01b0\u1edbng d\u1eabn: lối đi đằng sau toilet phía sau căn cabin.",
+                Day6EscapeStage.ExitCave => "H\u01b0\u1edbng d\u1eabn: Tiến thẳng và chạm vào ánh sáng xanh",
                 Day6EscapeStage.Completed => "H\u01b0\u1edbng d\u1eabn: Roi khoi khu rung cang nhanh cang tot.",
                 _ => string.Empty
             };
