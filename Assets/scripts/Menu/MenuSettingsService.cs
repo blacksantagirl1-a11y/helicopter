@@ -14,6 +14,11 @@ public static class MenuSettingsService
     private const string LookSensitivityKey = "menu.lookSensitivity";
     private const string FullscreenKey = "menu.fullscreen";
     private const string QualityPresetKey = "menu.qualityPreset";
+    private const string CheatModeKey = "menu.cheatMode";
+    private const string SliderMasterVolumeKey = "MasterVolume";
+    private const string MusicVolumeKey = "MusicVolume";
+    private const string SfxVolumeKey = "SFXVolume";
+    private const string AmbientVolumeKey = "AmbientVolume";
 
     private const float DefaultMasterVolume = 1f;
     private const float DefaultLookSensitivity = 2f;
@@ -71,6 +76,76 @@ public static class MenuSettingsService
         return Load().lookSensitivity;
     }
 
+    public static void SaveLookSensitivity(float sensitivity)
+    {
+        MenuSettingsData settings = Load();
+        settings.lookSensitivity = sensitivity;
+        Save(settings);
+    }
+
+    public static bool GetFullscreen()
+    {
+        return Load().fullscreen;
+    }
+
+    public static void SaveFullscreen(bool fullscreen)
+    {
+        MenuSettingsData settings = Load();
+        settings.fullscreen = fullscreen;
+        Save(settings);
+    }
+
+    public static bool GetCheatMode()
+    {
+        return PlayerPrefs.GetInt(CheatModeKey, 0) == 1;
+    }
+
+    public static void SaveCheatMode(bool enabled)
+    {
+        PlayerPrefs.SetInt(CheatModeKey, enabled ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    public static float GetMasterVolume(float fallback)
+    {
+        return PlayerPrefs.GetFloat(SliderMasterVolumeKey, fallback);
+    }
+
+    public static void SaveMasterVolume(float volume)
+    {
+        SaveSliderVolume(SliderMasterVolumeKey, volume);
+    }
+
+    public static float GetMusicVolume(float fallback)
+    {
+        return PlayerPrefs.GetFloat(MusicVolumeKey, fallback);
+    }
+
+    public static void SaveMusicVolume(float volume)
+    {
+        SaveSliderVolume(MusicVolumeKey, volume);
+    }
+
+    public static float GetSfxVolume(float fallback)
+    {
+        return PlayerPrefs.GetFloat(SfxVolumeKey, fallback);
+    }
+
+    public static void SaveSfxVolume(float volume)
+    {
+        SaveSliderVolume(SfxVolumeKey, volume);
+    }
+
+    public static float GetAmbientVolume(float fallback)
+    {
+        return PlayerPrefs.GetFloat(AmbientVolumeKey, fallback);
+    }
+
+    public static void SaveAmbientVolume(float volume)
+    {
+        SaveSliderVolume(AmbientVolumeKey, volume);
+    }
+
     public static string GetDisplayModeLabel(bool fullscreen)
     {
         return fullscreen ? "Fullscreen" : "Windowed";
@@ -99,11 +174,18 @@ public static class MenuSettingsService
         return settings;
     }
 
+    private static void SaveSliderVolume(string key, float volume)
+    {
+        PlayerPrefs.SetFloat(key, Mathf.Clamp(volume, 0f, 100f));
+        PlayerPrefs.Save();
+        AudioListener.volume = 1f;
+    }
+
     private static void ApplyGlobalSettings(MenuSettingsData settings)
     {
         settings = Clamp(settings);
 
-        AudioListener.volume = settings.masterVolume;
+        AudioListener.volume = 1f;
 
         FullScreenMode targetMode = settings.fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
         if (Screen.fullScreenMode != targetMode)

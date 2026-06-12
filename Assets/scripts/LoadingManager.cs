@@ -18,6 +18,7 @@ public class LoadingManager : MonoBehaviour
     [SerializeField] CanvasGroup overlayCanvasGroup;
     [Tooltip("Nhãn chữ hiển thị trạng thái loading")]
     [SerializeField] TMP_Text loadingLabel;
+    [SerializeField] Color backdropColor = Color.black;
 
     [Header("Timings")]
     [Tooltip("Thời gian fade vào của overlay (giây)")]
@@ -245,7 +246,26 @@ public class LoadingManager : MonoBehaviour
             scaler.matchWidthOrHeight = 0.5f;
         }
 
+        ApplyBackdropColor();
         overlayRoot.transform.SetAsLastSibling();
+    }
+
+    void ApplyBackdropColor()
+    {
+        if (overlayRoot == null)
+        {
+            return;
+        }
+
+        Image[] images = overlayRoot.GetComponentsInChildren<Image>(true);
+        for (int i = 0; i < images.Length; i++)
+        {
+            Image image = images[i];
+            if (image != null && image.gameObject.name == "Backdrop")
+            {
+                image.color = backdropColor;
+            }
+        }
     }
 
     void EnsureFallbackUi()
@@ -282,7 +302,7 @@ public class LoadingManager : MonoBehaviour
             RectTransform canvasRect = canvasObject.GetComponent<RectTransform>();
             Stretch(canvasRect);
 
-            Image backdrop = CreateImage("Backdrop", canvasRect, new Color(0.02f, 0.03f, 0.05f, 0.96f));
+            Image backdrop = CreateImage("Backdrop", canvasRect, backdropColor);
             Stretch(backdrop.rectTransform);
         }
 

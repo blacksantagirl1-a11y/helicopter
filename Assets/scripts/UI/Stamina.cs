@@ -50,6 +50,7 @@ public class Stamina : MonoBehaviour
     public float fishingCatchStaminaCost = 12f;
 
     private ActionScript subscribedActionScript;
+    private bool exhaustionDeathTriggered;
 
     private void Awake()
     {
@@ -99,6 +100,7 @@ public class Stamina : MonoBehaviour
 
         staminaSlider.maxValue = maxStamina;
         staminaSlider.value = maxStamina;
+        exhaustionDeathTriggered = false;
     }
 
     void Update()
@@ -110,16 +112,8 @@ public class Stamina : MonoBehaviour
 
         bool isMoving = IsPlayerMoving();
 
-        if (isMoving)
-        {
-            staminaSlider.value -= staminaFallRate * Time.deltaTime;
-        }
-        else
-        {
-            staminaSlider.value -= idleStaminaFallRate * Time.deltaTime;
-        }
-
-        staminaSlider.value = Mathf.Clamp(staminaSlider.value, 0, maxStamina);
+        float drainRate = isMoving ? staminaFallRate : idleStaminaFallRate;
+        SetStaminaValue(staminaSlider.value - drainRate * Time.deltaTime);
     }
 
     // Moi cu danh co the tru stamina cho viec chat cay; giet heo tru truc tiep tu Boar.Die().
@@ -132,7 +126,7 @@ public class Stamina : MonoBehaviour
 
         if (chopStaminaCost > 0f && IsLookingAtCuttableTree())
         {
-            staminaSlider.value = Mathf.Clamp(staminaSlider.value - chopStaminaCost, 0f, maxStamina);
+            SetStaminaValue(staminaSlider.value - chopStaminaCost);
         }
     }
 
@@ -149,7 +143,7 @@ public class Stamina : MonoBehaviour
             return;
         }
 
-        staminaSlider.value = Mathf.Clamp(staminaSlider.value - boarKillStaminaCost, 0f, maxStamina);
+        SetStaminaValue(staminaSlider.value - boarKillStaminaCost);
     }
 
     public void ConsumeFishingCatchStamina()
@@ -159,10 +153,7 @@ public class Stamina : MonoBehaviour
             return;
         }
 
-        staminaSlider.value = Mathf.Clamp(
-            staminaSlider.value - fishingCatchStaminaCost,
-            0f,
-            maxStamina);
+        SetStaminaValue(staminaSlider.value - fishingCatchStaminaCost);
     }
 
     public void RestoreStamina(float amount)
@@ -179,7 +170,37 @@ public class Stamina : MonoBehaviour
         }
 
         staminaSlider.maxValue = maxStamina;
-        staminaSlider.value = Mathf.Clamp(staminaSlider.value + amount, 0f, maxStamina);
+        SetStaminaValue(staminaSlider.value + amount);
+        if (staminaSlider.value > 0f)
+        {
+            exhaustionDeathTriggered = false;
+        }
+    }
+
+    private void SetStaminaValue(float value)
+    {
+        if (staminaSlider == null)
+        {
+            return;
+        }
+
+        staminaSlider.maxValue = maxStamina;
+        staminaSlider.value = Mathf.Clamp(value, 0f, maxStamina);
+        CheckExhaustionDeath();
+    }
+
+    private void CheckExhaustionDeath()
+    {
+        if (MenuSettingsService.GetCheatMode() ||
+            exhaustionDeathTriggered ||
+            staminaSlider == null ||
+            staminaSlider.value > 0.001f)
+        {
+            return;
+        }
+
+        exhaustionDeathTriggered = true;
+        ExhaustionDeathManager.TriggerExhaustionDeath();
     }
 
     // Kiem tra camera co dang nham vao mot cay hop le de chat hay khong.

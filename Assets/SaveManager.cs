@@ -9,7 +9,10 @@ using UnityEngine.SceneManagement;
 
 public class SaveManager : MonoBehaviour
 {
+    // Singleton giu SaveManager song qua cac scene de menu va gameplay cung truy cap duoc.
     public static SaveManager Instance { get; set; }
+
+    // Co bao cho cac he thong khac biet game dang duoc load tu save, khong phai start moi.
     public static bool IsLoadingSavedGame { get; private set; }
     public static bool ShouldSuppressAutoStartStory { get; private set; }
     private void Awake()
@@ -26,6 +29,7 @@ public class SaveManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    // Cac duong dan luu file save theo tung dinh dang.
     string jsonPathProject;
 
     string jsonPathPersistant;
@@ -33,6 +37,7 @@ public class SaveManager : MonoBehaviour
 
     string fileName = "SaveGame";
 
+    // Danh sach key bool trong PlayerPrefs can dua vao save file.
     private static readonly string[] StoryFlagKeys =
     {
         "quest.gatherWood.bundlePlaced",
@@ -45,6 +50,7 @@ public class SaveManager : MonoBehaviour
         "day3Hint.completed"
     };
 
+    // Danh sach key int trong PlayerPrefs can dua vao save file.
     private static readonly string[] StoryIntKeys =
     {
         "day3Hint.lastKnownDay",
@@ -57,6 +63,7 @@ public class SaveManager : MonoBehaviour
 
     private void Start()
     {
+        // Khoi tao duong dan sau khi Unity da san sang Application paths.
         jsonPathProject = Application.dataPath + Path.AltDirectorySeparatorChar;
         jsonPathPersistant = Application.persistentDataPath + Path.AltDirectorySeparatorChar;
         binaryPath = Application.persistentDataPath + Path.AltDirectorySeparatorChar;
@@ -65,6 +72,7 @@ public class SaveManager : MonoBehaviour
 
     public AllGameData LoadingTypeSwitch(int slotNumber)
     {
+        // Chon cach doc save dua tren isSavingJson trong Inspector.
         if(isSavingJson)
         {
             AllGameData gameData = LoadGameDataFromJsonFile(slotNumber);
@@ -79,6 +87,7 @@ public class SaveManager : MonoBehaviour
 
     public void LoadGame(int slotNumber)
     {
+        // Ap dung toan bo du lieu save vao scene hien tai: story, player, inventory, dialogue.
         AllGameData gameData = LoadingTypeSwitch(slotNumber);
         if (gameData == null)
         {
@@ -97,6 +106,7 @@ public class SaveManager : MonoBehaviour
 
     private void SetPlayerData(PlayerData playerData)
     {
+        // Phuc hoi chi so sinh ton, vi tri, goc xoay va stamina cua nguoi choi.
         if (playerData == null)
         {
             return;
@@ -136,6 +146,7 @@ public class SaveManager : MonoBehaviour
 
     public void StartLoadedGame(int slotNumber)
     {
+        // Goi tu menu load: dat co load save, chuyen sang scene InGame roi moi ap dung du lieu.
         IsLoadingSavedGame = true;
         ShouldSuppressAutoStartStory = true;
 
@@ -145,21 +156,37 @@ public class SaveManager : MonoBehaviour
             SetStoryData(gameData.storyData, false);
         }
 
+        StartCoroutine(LoadInGameSceneThenApplySave(slotNumber));
+    }
+
+    private IEnumerator LoadInGameSceneThenApplySave(int slotNumber)
+    {
+        // Doi scene InGame load xong de dam bao cac object can restore da ton tai.
+        bool inGameSceneLoaded = false;
+
+        void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (scene.name == "InGame")
+            {
+                inGameSceneLoaded = true;
+            }
+        }
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
+
         if (!LoadingManager.LoadScene("InGame"))
         {
             SceneManager.LoadScene("InGame");
         }
 
-        StartCoroutine(DelayedLoading(slotNumber));
-    }
-    private IEnumerator DelayedLoading(int slotNumber)
-    {
-        while (SceneManager.GetActiveScene().name != "InGame")
+        while (!inGameSceneLoaded)
         {
             yield return null;
         }
 
+        SceneManager.sceneLoaded -= OnSceneLoaded;
         yield return null;
+
         LoadGame(slotNumber);
 
         print("Game Loaded");
@@ -175,6 +202,7 @@ public class SaveManager : MonoBehaviour
 
     public void SavingTypeSwitch(AllGameData gameData, int slotNumber)
     {
+        // Chon cach ghi save dua tren isSavingJson trong Inspector.
         if(isSavingJson)
         {
             SaveGameDataToJsonFile(gameData, slotNumber);
@@ -187,6 +215,7 @@ public class SaveManager : MonoBehaviour
 
     public void SaveGame(int slotNumber)
     {
+        // Gom du lieu tu player, inventory va story thanh mot goi AllGameData.
         AllGameData data = new AllGameData();
 
         data.playerData = GetPlayerData();
@@ -197,6 +226,7 @@ public class SaveManager : MonoBehaviour
 
     private PlayerData GetPlayerData()
     {
+        // Lay chi so, vi tri/goc xoay va stamina hien tai cua player.
         float[] playerStats = new float[3];
         playerStats[0] = PlayerState.Instance.currentHealthy;
         playerStats[1] = PlayerState.Instance.currentCarlories;
@@ -260,6 +290,7 @@ public class SaveManager : MonoBehaviour
 
     private InventorySaveData GetInventoryData()
     {
+        // Chuyen inventory runtime thanh du lieu nhe de co the serialize.
         PlayerInventory inventory = FindFirstObjectByType<PlayerInventory>();
         if (inventory == null)
         {
@@ -288,6 +319,7 @@ public class SaveManager : MonoBehaviour
 
     private void SetInventoryData(InventorySaveData inventoryData)
     {
+        // Xoa inventory hien tai va nap lai tung slot tu save file.
         PlayerInventory inventory = FindFirstObjectByType<PlayerInventory>();
         if (inventory == null || inventoryData == null || inventoryData.slots == null)
         {
@@ -323,6 +355,7 @@ public class SaveManager : MonoBehaviour
 
     private Dictionary<string, InventoryItemDefinition> BuildInventoryItemLookup()
     {
+        // Tao bang tra itemId/name -> item definition tu Resources de restore inventory.
         Dictionary<string, InventoryItemDefinition> itemDefinitions = new Dictionary<string, InventoryItemDefinition>(StringComparer.OrdinalIgnoreCase);
         InventoryItemDefinition[] loadedDefinitions = Resources.LoadAll<InventoryItemDefinition>(string.Empty);
 
@@ -350,6 +383,7 @@ public class SaveManager : MonoBehaviour
 
     private StorySaveData GetStoryData()
     {
+        // Gom ngay hien tai, flag story, int story, quest va dialogue vao save.
         StorySaveData storyData = new StorySaveData();
         storyData.currentDay = (int)DialogueSaveService.GetCurrentDay();
         storyData.flags = new StoryFlagSaveData[StoryFlagKeys.Length];
@@ -382,6 +416,7 @@ public class SaveManager : MonoBehaviour
 
     private void SetStoryData(StorySaveData storyData, bool restoreQuestProgress = true)
     {
+        // Ghi nguoc du lieu story vao DialogueSaveService, PlayerPrefs va DailyQuestManager.
         if (storyData == null)
         {
             return;
@@ -437,6 +472,7 @@ public class SaveManager : MonoBehaviour
 
     private QuestProgressSaveData GetQuestProgressData()
     {
+        // DailyQuestManager giu nhieu field private nen dung reflection de lay trang thai.
         DailyQuestManager questManager = FindFirstObjectByType<DailyQuestManager>();
         if (questManager == null)
         {
@@ -478,6 +514,7 @@ public class SaveManager : MonoBehaviour
 
     private void RestoreQuestProgress(QuestProgressSaveData questProgress)
     {
+        // Dung reflection de gan lai cac field private cua DailyQuestManager sau khi load.
         DailyQuestManager questManager = FindFirstObjectByType<DailyQuestManager>();
         if (questManager == null || questProgress == null)
         {
@@ -531,6 +568,7 @@ public class SaveManager : MonoBehaviour
 
     private DialogueProgressSaveData GetDialogueProgressData()
     {
+        // Luu lai dialogue dang chay de co the load tiep dung dong hoi thoai.
         DialogueController dialogueController = FindFirstObjectByType<DialogueController>();
         if (dialogueController == null)
         {
@@ -553,6 +591,7 @@ public class SaveManager : MonoBehaviour
 
     private void RestoreDialogueProgress(DialogueProgressSaveData dialogueProgress)
     {
+        // Neu save giua dialogue thu cong, khoi dong lai event va hien dung line.
         if (dialogueProgress == null ||
             !dialogueProgress.isDialogueActive ||
             dialogueProgress.currentEventId == (int)DialogueEventId.None ||
@@ -574,6 +613,7 @@ public class SaveManager : MonoBehaviour
 
     private void RestoreGameplayStateAfterLoad(DialogueProgressSaveData dialogueProgress)
     {
+        // Dong menu, mo gameplay controls va bat dung camera sau khi load save.
         Time.timeScale = 1f;
         Input.ResetInputAxes();
 
@@ -608,6 +648,7 @@ public class SaveManager : MonoBehaviour
 
     private void EnableGameplayControls()
     {
+        // Bat lai cac script dieu khien nguoi choi sau khi qua man load/menu.
         EnableBehaviour(FindFirstObjectByType<PlayerMovement>(FindObjectsInactive.Include));
         EnableBehaviour(FindFirstObjectByType<Jump>(FindObjectsInactive.Include));
         EnableBehaviour(FindFirstObjectByType<Crouch>(FindObjectsInactive.Include));
@@ -631,6 +672,7 @@ public class SaveManager : MonoBehaviour
 
     private void EnsurePlayerCameraActive()
     {
+        // Dam bao chi camera chinh cua player va AudioListener cua no duoc bat.
         Camera mainCamera = null;
         PlayerMovement playerMovement = FindFirstObjectByType<PlayerMovement>(FindObjectsInactive.Include);
         if (playerMovement != null)
@@ -686,12 +728,14 @@ public class SaveManager : MonoBehaviour
 
     private static bool IsAutoStartDialogue(DialogueEventId eventId)
     {
+        // Cac dialogue nay tu dong bat dau theo ngay, khong can restore nhu dialogue thu cong.
         return eventId == DialogueEventId.IntroWakeUp ||
             eventId == DialogueEventId.DayStart;
     }
 
     private static FieldInfo GetPrivateFieldInfo(object target, string fieldName)
     {
+        // Helper reflection dung chung de doc/ghi field private o manager khac.
         return target != null
             ? target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic)
             : null;
@@ -769,6 +813,7 @@ public class SaveManager : MonoBehaviour
 
     public void SaveGameDataToBinaryFile(AllGameData gameData, int slotNumber)
     {
+        // Ghi save dang binary vao persistentDataPath.
         BinaryFormatter formatter = new BinaryFormatter();
 
         FileStream steam = new FileStream(binaryPath + fileName + slotNumber + ".binary", FileMode.Create);
@@ -782,6 +827,7 @@ public class SaveManager : MonoBehaviour
 
     public AllGameData LoadGameDataFromBinaryFile(int slotNumber)
     {
+        // Doc save binary neu file ton tai, nguoc lai tra ve null.
         if (File.Exists(binaryPath + fileName + slotNumber + ".binary"))
         {
             BinaryFormatter formatter = new BinaryFormatter();
@@ -805,6 +851,7 @@ public class SaveManager : MonoBehaviour
 
     public void SaveGameDataToJsonFile(AllGameData gameData , int slotNumber)
     {
+       // Ghi save dang JSON da ma hoa don gian vao thu muc Assets.
        String json = JsonUtility.ToJson(gameData);
 
        String encrypted = EncryptionDecryption(json);
@@ -819,6 +866,7 @@ public class SaveManager : MonoBehaviour
 
     public AllGameData LoadGameDataFromJsonFile(int slotNumber)
     {
+        // Doc JSON, giai ma roi chuyen lai thanh AllGameData.
         using (StreamReader reader = new StreamReader(jsonPathProject + fileName + slotNumber + ".json"))
         {
             string json = reader.ReadToEnd();
@@ -843,6 +891,7 @@ public class SaveManager : MonoBehaviour
 
     public void SaveVolumeSettings(float _music, float _sound, float _master)
     {
+        // Luu volume menu cu vao PlayerPrefs de SettingsManager doc lai.
         VolumeSettings volumeSettings = new VolumeSettings()
         {
             music = _music,
@@ -865,6 +914,7 @@ public class SaveManager : MonoBehaviour
 
     public string EncryptionDecryption(string jsonString)
     {
+        // Ma hoa/giai ma XOR don gian: goi hai lan se quay ve chuoi ban dau.
         string keyword = "1234567";
         string result = "";
         for (int i = 0; i < jsonString.Length; i++)
@@ -880,6 +930,7 @@ public class SaveManager : MonoBehaviour
 #region Utility
 public bool DoesFileExists(int slotNumber)
     {
+        // Kiem tra slot co file save tuong ung voi dinh dang dang chon hay khong.
         if (isSavingJson)
         {
             if (System.IO.File.Exists(jsonPathProject + fileName + slotNumber + ".json"))
@@ -919,6 +970,7 @@ public bool DoesFileExists(int slotNumber)
 
     public void DeselectButton()
     {
+        // Bo focus UI sau khi bam nut de tranh Enter/Space kich hoat lai nut cu.
         GameObject myEventSystem = GameObject.Find("EventSystem");
         myEventSystem.GetComponent<UnityEngine.EventSystems.EventSystem>().SetSelectedGameObject(null);
     }

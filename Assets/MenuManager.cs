@@ -6,21 +6,26 @@ using UnityEngine.UI;
 
 public class MenuManager : MonoBehaviour
 {
+    // Singleton cho pause menu trong scene gameplay.
     public static MenuManager Instance { get; set; }
 
+    // Canvas menu tam dung va HUD gameplay.
     public GameObject menuCanvas;
     public GameObject uiCanvas;
 
+    // Cac man con trong pause menu.
     public GameObject saveMenu;
     public GameObject loadMenu;
     public GameObject settingsMenu;
     public GameObject subMenu;
 
+    // Thong so hover cho cac nut trong sub menu.
     [SerializeField, Min(1f)] private float subMenuHighlightScale = 1.06f;
     [SerializeField, Min(0f)] private float subMenuButtonTweenDuration = 0.16f;
     [SerializeField] private Color subMenuButtonNormalColor = new Color(0.92f, 0.96f, 1f, 0.78f);
     [SerializeField] private Color subMenuButtonHoverColor = Color.white;
 
+    // Luu cac nut submenu va trang thai control truoc khi pause de restore dung.
     private readonly Dictionary<Button, SubMenuButtonVisual> subMenuButtons = new Dictionary<Button, SubMenuButtonVisual>();
     private readonly Dictionary<Behaviour, bool> cachedControlStates = new Dictionary<Behaviour, bool>();
     private Button hoveredSubMenuButton;
@@ -29,6 +34,7 @@ public class MenuManager : MonoBehaviour
 
     private void Awake()
     {
+        // Dam bao chi co mot MenuManager dieu khien pause menu.
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -44,6 +50,7 @@ public class MenuManager : MonoBehaviour
 
     private void Update()
     {
+        // Phim Z dung de mo/dong pause menu trong gameplay.
         if (Input.GetKeyDown(KeyCode.Z) && !isMenuOpen)
         {
             uiCanvas.SetActive(false);
@@ -83,6 +90,7 @@ public class MenuManager : MonoBehaviour
 
     public void BackSubMenu()
     {
+        // Nut back dua nguoi choi ve gameplay va khoi phuc control.
         if (!isMenuOpen)
         {
             return;
@@ -111,6 +119,7 @@ public class MenuManager : MonoBehaviour
 
     private void CacheAndDisableMenuControls()
     {
+        // Luu trang thai cac script dieu khien roi tat chung de player khong di chuyen khi mo menu.
         cachedControlStates.Clear();
 
         CacheBehaviour(FindFirstObjectByType<PlayerMovement>());
@@ -143,6 +152,7 @@ public class MenuManager : MonoBehaviour
 
     private void RestoreMenuControls()
     {
+        // Tra cac script dieu khien ve dung trang thai truoc khi menu duoc mo.
         foreach (KeyValuePair<Behaviour, bool> state in cachedControlStates)
         {
             if (state.Key != null)
@@ -156,6 +166,7 @@ public class MenuManager : MonoBehaviour
 
     private void CacheBehaviour(Behaviour behaviour)
     {
+        // Them mot behaviour vao cache neu no ton tai va chua duoc luu.
         if (behaviour == null || cachedControlStates.ContainsKey(behaviour))
         {
             return;
@@ -180,6 +191,7 @@ public class MenuManager : MonoBehaviour
 
     private void RegisterSubMenuButtons()
     {
+        // Tu dong gan relay hover cho tat ca nut trong submenu.
         subMenuButtons.Clear();
 
         if (subMenu == null)
@@ -229,6 +241,7 @@ public class MenuManager : MonoBehaviour
 
     private void RefreshSubMenuButtons(bool immediate = false)
     {
+        // Cap nhat visual cho tat ca nut dua tren nut dang hover.
         foreach (SubMenuButtonVisual visual in subMenuButtons.Values)
         {
             bool isHovered = visual.button == hoveredSubMenuButton;
@@ -241,6 +254,7 @@ public class MenuManager : MonoBehaviour
 
     private void ApplySubMenuButtonVisual(SubMenuButtonVisual visual, float targetScale, Color targetColor, bool immediate)
     {
+        // Dung tween cu truoc khi tao tween moi de hover khong bi cong don.
         if (visual.rect != null)
         {
             visual.rect.DOKill();

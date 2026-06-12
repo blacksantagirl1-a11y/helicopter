@@ -3,6 +3,7 @@ using UnityEngine;
 [System.Serializable]
 public class AllGameData
 {
+   // Goi tong tat ca du lieu can luu cho mot slot save.
    public PlayerData playerData;
    public InventorySaveData inventoryData;
    public StorySaveData storyData;
@@ -12,12 +13,14 @@ public class AllGameData
 [System.Serializable]
 public class InventorySaveData
 {
+   // Mang slot giu thong tin item va so luong trong inventory.
    public InventorySlotSaveData[] slots;
 }
 
 [System.Serializable]
 public class InventorySlotSaveData
 {
+   // itemId lien ket lai voi InventoryItemDefinition khi load game.
    public string itemId;
    public int amount;
 }
@@ -25,6 +28,7 @@ public class InventorySlotSaveData
 [System.Serializable]
 public class StorySaveData
 {
+   // Luu ngay hien tai, cac co PlayerPrefs va tien trinh quest/dialogue.
    public int currentDay;
    public StoryFlagSaveData[] flags;
    public StoryIntSaveData[] intValues;
@@ -35,6 +39,7 @@ public class StorySaveData
 [System.Serializable]
 public class StoryFlagSaveData
 {
+   // Cap key/value cho cac trang thai dung-sai cua story.
    public string key;
    public bool value;
 }
@@ -42,6 +47,7 @@ public class StoryFlagSaveData
 [System.Serializable]
 public class StoryIntSaveData
 {
+   // Cap key/value cho cac trang thai dang so nguyen cua story.
    public string key;
    public int value;
 }
@@ -49,6 +55,7 @@ public class StoryIntSaveData
 [System.Serializable]
 public class QuestProgressSaveData
 {
+   // Du lieu phuc hoi DailyQuestManager khi load lai game.
    public bool isQuestActive;
    public int questDay;
    public int questId;
@@ -77,6 +84,7 @@ public class QuestProgressSaveData
 [System.Serializable]
 public class DialogueProgressSaveData
 {
+   // Du lieu phuc hoi doan hoi thoai dang chay khi nguoi choi save game giua dialogue.
    public bool isDialogueActive;
    public int currentDay;
    public int currentEventId;

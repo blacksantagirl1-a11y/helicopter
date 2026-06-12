@@ -23,6 +23,8 @@ public static class SoundIds
 public class ReSoundManager : MonoBehaviour
 {
     public static ReSoundManager Instance;
+    private const string SfxVolumeKey = "SFXVolume";
+    private const string MasterVolumeKey = "MasterVolume";
 
     [SerializeField]
     private SoundLibrary sfxLibrary;
@@ -70,14 +72,14 @@ public class ReSoundManager : MonoBehaviour
 
         source.loop = false;
         source.spatialBlend = 0f;
-        source.PlayOneShot(clip);
+        source.PlayOneShot(clip, GetSavedSfxVolume());
     }
 
     public void PlaySound3D(AudioClip clip, Vector3 pos)
     {
         if (clip != null)
         {
-            AudioSource.PlayClipAtPoint(clip, pos);
+            AudioSource.PlayClipAtPoint(clip, pos, GetSavedSfxVolume());
         }
     }
 
@@ -117,6 +119,8 @@ public class ReSoundManager : MonoBehaviour
         {
             source.Play();
         }
+
+        source.volume = GetSavedSfxVolume();
     }
 
     public void StopLoop2D(string loopKey)
@@ -146,18 +150,21 @@ public class ReSoundManager : MonoBehaviour
     {
         if (SoundSource != null)
         {
+            SoundSource.volume = GetSavedSfxVolume();
             return SoundSource;
         }
 
         SoundSource = GetComponentInChildren<AudioSource>();
         if (SoundSource != null)
         {
+            SoundSource.volume = GetSavedSfxVolume();
             return SoundSource;
         }
 
         SoundSource = gameObject.AddComponent<AudioSource>();
         SoundSource.playOnAwake = false;
         SoundSource.spatialBlend = 0f;
+        SoundSource.volume = GetSavedSfxVolume();
         return SoundSource;
     }
 
@@ -174,7 +181,30 @@ public class ReSoundManager : MonoBehaviour
         source.playOnAwake = false;
         source.loop = true;
         source.spatialBlend = 0f;
+        source.volume = GetSavedSfxVolume();
         loopSources[loopKey] = source;
         return source;
+    }
+
+    private float GetSavedSfxVolume()
+    {
+        float savedValue = PlayerPrefs.GetFloat(SfxVolumeKey, 1f);
+        if (savedValue > 1f)
+        {
+            savedValue /= 100f;
+        }
+
+        return Mathf.Clamp01(savedValue) * GetSavedMasterVolume();
+    }
+
+    private float GetSavedMasterVolume()
+    {
+        float savedValue = PlayerPrefs.GetFloat(MasterVolumeKey, 1f);
+        if (savedValue > 1f)
+        {
+            savedValue /= 100f;
+        }
+
+        return Mathf.Clamp01(savedValue);
     }
 }
